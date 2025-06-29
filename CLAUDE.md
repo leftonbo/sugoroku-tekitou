@@ -76,6 +76,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
       - 💄 UI/UX改善
       - 🚚 ファイル・フォルダ整理
       - 🍱 画像や音声などリソース周りの変更
+- **ブランチ作成時の命名規則**
+  - `feature/` + 機能名
+  - `bugfix/` + バグ内容
+  - `refactor/` + リファクタリング内容
+  - `docs/` + ドキュメント更新内容
 - **日本語でのコメント**
   - すべてのコード内コメントは日本語で記述
 - **レスポンシブ対応**
