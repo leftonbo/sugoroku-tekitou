@@ -33,11 +33,11 @@
 
 ## 技術仕様
 
-- **言語**: Vanilla JavaScript (ES6+ Modules)
+- **言語**: TypeScript (ES6+ Modules)
 - **UI**: HTML5 + CSS3 + Bootstrap 5.3
 - **データ保存**: LocalStorage API + SessionStorage (デバッグ用)
 - **ゲーム更新**: requestAnimationFrame による60fps更新
-- **アーキテクチャ**: モジュラー設計、関心の分離
+- **アーキテクチャ**: モジュラー設計、関心の分離、型安全性
 
 ## ファイル構成
 
@@ -47,24 +47,29 @@ sugoroku-tekitou/
 ├── assets/
 │   ├── css/
 │   │   └── style.css            # カスタムスタイル（アニメーション含む）
-│   └── js/
-│       ├── core/
-│       │   ├── game.js          # メインゲームクラス
-│       │   └── game-loop.js     # ゲームループ管理
-│       ├── data/
-│       │   ├── game-state.js    # ゲーム状態管理
-│       │   └── storage-manager.js # データ保存・復元
-│       ├── systems/
-│       │   ├── board-system.js  # 盤面システム
-│       │   ├── dice-system.js   # ダイスシステム
-│       │   ├── prestige-system.js # プレステージシステム
-│       │   └── upgrade-system.js # アップグレードシステム
-│       ├── ui/
-│       │   ├── animation-manager.js # アニメーション管理
-│       │   └── ui-manager.js    # UI管理・最適化
-│       └── utils/
-│           ├── constants.js     # 定数・設定値
-│           └── math-utils.js    # 数学・計算関数
+│   ├── types/                   # TypeScript型定義
+│   │   ├── game-state.ts        # ゲーム状態の型定義
+│   │   └── constants.ts         # 設定値の型定義
+│   ├── utils/                   # ユーティリティ (TypeScript)
+│   │   ├── constants.ts         # 定数・設定値
+│   │   └── math-utils.ts        # 数学・計算関数
+│   ├── data/                    # データ管理 (TypeScript)
+│   │   ├── game-state.ts        # ゲーム状態管理
+│   │   └── storage-manager.ts   # データ保存・復元
+│   ├── systems/                 # ゲームシステム (TypeScript)
+│   │   ├── board-system.ts      # 盤面システム
+│   │   ├── dice-system.ts       # ダイスシステム
+│   │   ├── prestige-system.ts   # プレステージシステム
+│   │   └── upgrade-system.ts    # アップグレードシステム
+│   ├── ui/                      # UI層 (TypeScript)
+│   │   ├── animation-manager.ts # アニメーション管理
+│   │   └── ui-manager.ts        # UI管理・最適化
+│   └── core/                    # メイン (TypeScript)
+│       ├── game.ts              # メインゲームクラス
+│       └── game-loop.ts         # ゲームループ管理
+├── dist/                        # コンパイル済みJavaScript (自動生成)
+├── tsconfig.json                # TypeScript設定
+├── package.json                 # 依存関係管理
 ├── CLAUDE.md                    # 開発ガイド
 └── README.md                    # このファイル
 ```
@@ -84,10 +89,11 @@ sugoroku-tekitou/
 - [x] **レスポンシブ**: モバイル対応UI
 
 ### 最近の改善
+- [x] **TypeScript移行**: 完全な型安全性とコンパイル時エラー検出
 - [x] **パフォーマンス**: UI更新の最適化、HTML再生成の削減
 - [x] **デバッグ支援**: 一時停止、1Tick進行、セーブ削除機能
 - [x] **ゲームバランス**: 戻るマス最大値拡張、負荷システム改良
-- [x] **モジュラー設計**: 関心の分離、保守性向上
+- [x] **モジュラー設計**: 関心の分離、保守性向上、型定義による明確なインターフェース
 
 ### 将来実装予定
 - [ ] プレステージアップグレード（永続強化）
@@ -95,6 +101,25 @@ sugoroku-tekitou/
 - [ ] 特殊イベントマス
 - [ ] BGM・効果音
 - [ ] エクスポート・インポート機能
+
+## 開発・ビルド
+
+### 開発環境セットアップ
+```bash
+# 依存関係のインストール
+npm install
+
+# TypeScriptのコンパイル
+npm run build
+
+# 開発モード（ファイル監視）
+npm run dev
+```
+
+### プレイ方法
+1. **ビルド実行**: `npm run build` でTypeScriptをコンパイル
+2. **ゲーム開始**: ブラウザで `index.html` を開く
+3. **開発モード**: ローカルサーバーまたは直接ファイルアクセス
 
 ## 遊び方
 
