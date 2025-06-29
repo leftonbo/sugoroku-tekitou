@@ -1,9 +1,10 @@
 // ゲーム状態の初期値定義
 
 import { DICE_CONFIGS, GAME_CONFIG } from '../utils/constants.js';
+import type { GameState } from '../types/game-state.js';
 
 // デフォルトゲーム状態の生成
-export function createDefaultGameState() {
+export function createDefaultGameState(): GameState {
     return {
         credits: 0,                 // クレジット
         position: 0,                // 現在位置
@@ -50,7 +51,7 @@ export function createDefaultGameState() {
 }
 
 // ゲーム状態のリセット（転生用）
-export function resetGameStateForPrestige(currentState) {
+export function resetGameStateForPrestige(currentState: GameState): GameState {
     // 転生回数と使用可能PPは保持
     const preservedRebirthCount = currentState.rebirthCount;
     const preservedAvailablePP = currentState.prestigePoints.available;
@@ -68,21 +69,32 @@ export function resetGameStateForPrestige(currentState) {
 }
 
 // ゲーム状態の検証とマージ
-export function mergeGameState(defaultState, savedState) {
+export function mergeGameState(defaultState: GameState, savedState: Partial<GameState>): GameState {
     const merged = { ...defaultState };
     
     // 新システム対応：古いデータ構造を検出した場合は初期化
-    if (savedState.dice || savedState.upgrades) {
+    const savedStateAny = savedState as any;
+    if (savedStateAny.dice || savedStateAny.upgrades) {
         console.log('古いダイスシステムのデータを検出。新システムで初期化します。');
         return merged; // デフォルト状態を返す
     }
     
     // トップレベルプロパティのマージ
     Object.keys(savedState).forEach(key => {
-        if (typeof defaultState[key] === 'object' && !Array.isArray(defaultState[key]) && !Array.isArray(savedState[key])) {
-            merged[key] = { ...defaultState[key], ...savedState[key] };
-        } else {
-            merged[key] = savedState[key];
+        const typedKey = key as keyof GameState;
+        const defaultValue = defaultState[typedKey];
+        const savedValue = savedState[typedKey];
+        
+        if (savedValue !== undefined) {
+            if (typeof defaultValue === 'object' && 
+                !Array.isArray(defaultValue) && 
+                !Array.isArray(savedValue) && 
+                typeof savedValue === 'object' && 
+                savedValue !== null) {
+                (merged as any)[typedKey] = { ...defaultValue, ...savedValue };
+            } else {
+                (merged as any)[typedKey] = savedValue;
+            }
         }
     });
     

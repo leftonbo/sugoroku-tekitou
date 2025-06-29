@@ -1,7 +1,22 @@
 // ゲーム定数・設定値
 
+import type {
+    DiceConfig,
+    UpgradeMultipliers,
+    ManualDiceConfig,
+    BoardConfig,
+    CellProbability,
+    GameConfig,
+    FixedBackwardConfig,
+    CreditConfig,
+    UIConfig,
+    PrestigeConfig,
+    BurdenConfig,
+    StorageKeys
+} from '../types/constants.js';
+
 // 自動ダイス関連定数
-export const DICE_CONFIGS = [
+export const DICE_CONFIGS: DiceConfig[] = [
     { faces: 2,  baseInterval: 1500,  unlockCost: 30,    speedBaseCost: 15,   countBaseCost: 60,    emoji: '🎯' },
     { faces: 4,  baseInterval: 2500,  unlockCost: 120,   speedBaseCost: 60,   countBaseCost: 240,   emoji: '🔹' },
     { faces: 6,  baseInterval: 3500,  unlockCost: 300,   speedBaseCost: 150,  countBaseCost: 600,   emoji: '🎲' },
@@ -12,20 +27,20 @@ export const DICE_CONFIGS = [
 ];
 
 // アップグレードコスト係数
-export const UPGRADE_MULTIPLIERS = {
+export const UPGRADE_MULTIPLIERS: UpgradeMultipliers = {
     MANUAL_DICE: 1.6,
     AUTO_SPEED: 1.5,
     AUTO_COUNT: 2.5
 };
 
 // 手動ダイス関連定数
-export const MANUAL_DICE_CONFIG = {
+export const MANUAL_DICE_CONFIG: ManualDiceConfig = {
     BASE_UPGRADE_COST: 75,
     BASE_FACES: 6
 };
 
 // 盤面生成定数
-export const BOARD_CONFIG = {
+export const BOARD_CONFIG: BoardConfig = {
     TOTAL_CELLS: 100,
     CELL_TYPES: {
         EMPTY: 'empty',
@@ -36,7 +51,7 @@ export const BOARD_CONFIG = {
 };
 
 // マス目確率設定
-export const CELL_PROBABILITY = {
+export const CELL_PROBABILITY: CellProbability = {
     CREDIT_RATIO: 0.55,
     FORWARD_RATIO: 0.18,
     BACKWARD_BASE_RATIO: 0.08,
@@ -44,7 +59,7 @@ export const CELL_PROBABILITY = {
 };
 
 // ゲーム設定
-export const GAME_CONFIG = {
+export const GAME_CONFIG: GameConfig = {
     TICK_RATE: 1000 / 60,  // 60fps
     SAVE_INTERVAL: 30000,  // 30秒間隔で保存
     MAX_SPEED_MULTIPLIER: 10,
@@ -52,7 +67,7 @@ export const GAME_CONFIG = {
 };
 
 // 固定戻るマス設定
-export const FIXED_BACKWARD_CONFIG = {
+export const FIXED_BACKWARD_CONFIG: FixedBackwardConfig = {
     START_LEVEL: 10,       // 固定配置開始レベル
     AREA_START: 90,        // 固定配置エリア開始位置
     AREA_END: 99,          // 固定配置エリア終了位置
@@ -61,7 +76,7 @@ export const FIXED_BACKWARD_CONFIG = {
 };
 
 // クレジット計算設定
-export const CREDIT_CONFIG = {
+export const CREDIT_CONFIG: CreditConfig = {
     BASE_AMOUNT_DIVISOR: 8,
     MIN_BASE_AMOUNT: 2,
     LEVEL_BONUS_MULTIPLIER: 0.8,
@@ -70,27 +85,27 @@ export const CREDIT_CONFIG = {
 };
 
 // UI関連定数
-export const UI_CONFIG = {
+export const UI_CONFIG: UIConfig = {
     ANIMATION_DURATION: 800,
     DICE_ANIMATION_DURATION: 600,
     GLOW_EFFECT_DURATION: 1500
 };
 
 // プレステージシステム設定
-export const PRESTIGE_CONFIG = {
+export const PRESTIGE_CONFIG: PrestigeConfig = {
     START_LEVEL: 50,           // プレステージポイント獲得開始レベル
     BASE_POINTS: 1,            // 基準ポイント（レベル50で1ポイント）
     SCALING_POWER: Math.log(2) / 50  // 50レベルで2倍になる指数
 };
 
 // 負荷システム設定
-export const BURDEN_CONFIG = {
+export const BURDEN_CONFIG: BurdenConfig = {
     LEVEL_1_START: 201,        // 負荷レベル1開始
     LEVEL_2_START: 501,        // 負荷レベル2開始
     LEVEL_3_START: 1001        // 負荷レベル3開始
 };
 
 // 統計表示用定数
-export const STORAGE_KEYS = {
+export const STORAGE_KEYS: StorageKeys = {
     GAME_STATE: 'sugoroku-game-state'
 };

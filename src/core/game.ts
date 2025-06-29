@@ -9,14 +9,74 @@ import { PrestigeSystem } from '../systems/prestige-system.js';
 import { AnimationManager } from '../ui/animation-manager.js';
 import { UIManager } from '../ui/ui-manager.js';
 import { GameLoop } from './game-loop.js';
+import type { GameState } from '../types/game-state.js';
+
+// ストレージシステムの型定義
+interface StorageSystem {
+    saveGameState: () => boolean;
+    clearSaveData: (createBackup?: boolean) => any;
+    debugShowStorageData: () => any;
+    enableAutoSave: () => boolean;
+    gameState: GameState;
+}
+
+// システムの型定義
+interface Systems {
+    dice: DiceSystem;
+    board: BoardSystem;
+    upgrade: UpgradeSystem;
+    prestige: PrestigeSystem;
+    storage?: StorageSystem;
+    gameLoop?: GameLoop;
+}
+
+// デバッグ情報の型定義
+interface DebugInfo {
+    gameState: GameState;
+    gameLoop: any;
+    systems: {
+        dice: any;
+        board: any;
+        upgrade: any;
+        prestige: any;
+    };
+}
+
+// パフォーマンス統計の型定義
+interface PerformanceStats {
+    fps: number;
+    isRunning: boolean;
+    totalCredits: number;
+    currentLevel: number;
+    autoDiceCount: number;
+    totalStats: any;
+}
+
+// グローバル型拡張
+declare global {
+    interface Window {
+        sugorokuGame: SugorokuGame;
+        debugGame: () => void;
+        resetGame: () => void;
+        pauseGame: () => void;
+        resumeGame: () => void;
+    }
+}
 
 export class SugorokuGame {
+    private gameState: GameState | null;
+    private systems: Systems;
+    private animationManager: AnimationManager | null;
+    private uiManager: UIManager | null;
+    private gameLoop: GameLoop | null;
+    private autoSaveCleanup: (() => void) | null;
+
     constructor() {
         // ゲーム状態の初期化
         this.gameState = null;
         
         // システムの初期化
-        this.systems = {};
+        this.systems = {} as Systems;
         this.animationManager = null;
         this.uiManager = null;
         this.gameLoop = null;
@@ -29,7 +89,7 @@ export class SugorokuGame {
     }
     
     // ゲーム初期化
-    async init() {
+    async init(): Promise<void> {
         try {
             // ゲーム状態を読み込み
             this.gameState = loadGameState();
@@ -54,21 +114,31 @@ export class SugorokuGame {
     }
     
     // システムの初期化
-    initializeSystems() {
+    private initializeSystems(): void {
+        if (!this.gameState) {
+            throw new Error('ゲーム状態が初期化されていません');
+        }
+        
         this.systems = {
             dice: new DiceSystem(this.gameState),
             board: new BoardSystem(this.gameState),
             upgrade: new UpgradeSystem(this.gameState),
-            prestige: new PrestigeSystem(this.gameState),
-            storage: null, // 後で設定
-            gameLoop: null // 後で設定
+            prestige: new PrestigeSystem(this.gameState)
         };
     }
     
     // UI初期化
-    initializeUI() {
+    private initializeUI(): void {
+        if (!this.gameState) {
+            throw new Error('ゲーム状態が初期化されていません');
+        }
+        
         this.animationManager = new AnimationManager();
-        this.uiManager = new UIManager(this.gameState, this.systems, this.animationManager);
+        this.uiManager = new UIManager(
+            this.gameState, 
+            this.systems as Required<Systems>, 
+            this.animationManager
+        );
         
         // DOM要素のバインド
         this.uiManager.bindDOMElements();
@@ -84,12 +154,16 @@ export class SugorokuGame {
     }
     
     // 自動保存設定
-    setupAutoSave() {
-        this.autoSaveCleanup = setupAutoSave(() => this.gameState);
+    private setupAutoSave(): void {
+        this.autoSaveCleanup = setupAutoSave(() => this.gameState as GameState);
     }
     
     // ゲームループ開始
-    startGameLoop() {
+    private startGameLoop(): void {
+        if (!this.gameState || !this.uiManager) {
+            throw new Error('必要なコンポーネントが初期化されていません');
+        }
+        
         this.gameLoop = new GameLoop(this.gameState, this.systems, this.uiManager);
         
         // デバッグ用にsystemsにstorageとgameLoopの参照を追加
@@ -106,27 +180,30 @@ export class SugorokuGame {
     }
     
     // ゲーム保存
-    saveGame() {
+    saveGame(): boolean {
+        if (!this.gameState) {
+            return false;
+        }
         return saveGameState(this.gameState);
     }
 
     // デバッグ: セーブデータ削除
-    clearSaveData(createBackup = true) {
+    clearSaveData(createBackup: boolean = true): any {
         return clearSaveData(createBackup);
     }
 
     // デバッグ: ストレージデータ表示
-    debugShowStorageData() {
+    debugShowStorageData(): any {
         return debugShowStorageData();
     }
 
     // デバッグ: 自動保存再有効化
-    enableAutoSave() {
+    enableAutoSave(): boolean {
         return enableAutoSave();
     }
     
     // 初期化エラーの処理
-    handleInitializationError(error) {
+    private handleInitializationError(error: any): void {
         console.error('ゲーム初期化エラー:', error);
         
         // エラー画面を表示
@@ -148,21 +225,21 @@ export class SugorokuGame {
     }
     
     // ゲームの一時停止
-    pause() {
+    pause(): void {
         if (this.gameLoop) {
             this.gameLoop.pause();
         }
     }
     
     // ゲームの再開
-    resume() {
+    resume(): void {
         if (this.gameLoop) {
             this.gameLoop.resume();
         }
     }
     
     // ゲームの完全停止
-    stop() {
+    stop(): void {
         // ゲームループ停止
         if (this.gameLoop) {
             this.gameLoop.stop();
@@ -182,9 +259,9 @@ export class SugorokuGame {
     }
     
     // デバッグ情報の取得
-    getDebugInfo() {
+    getDebugInfo(): DebugInfo {
         return {
-            gameState: this.gameState,
+            gameState: this.gameState as GameState,
             gameLoop: this.gameLoop?.getDebugInfo() || null,
             systems: {
                 dice: this.systems.dice?.getAllAutoDiceInfo() || null,
@@ -196,7 +273,7 @@ export class SugorokuGame {
     }
     
     // 手動でUI更新を強制実行
-    forceUpdate() {
+    forceUpdate(): void {
         if (this.uiManager) {
             this.uiManager.updateUI();
         }
@@ -206,7 +283,7 @@ export class SugorokuGame {
     }
     
     // ゲーム状態のリセット（デバッグ用）
-    resetGame() {
+    resetGame(): void {
         if (confirm('ゲームをリセットしますか？すべての進行状況が失われます。')) {
             localStorage.removeItem('sugoroku-game-state');
             location.reload();
@@ -214,7 +291,7 @@ export class SugorokuGame {
     }
     
     // パフォーマンス統計取得
-    getPerformanceStats() {
+    getPerformanceStats(): PerformanceStats {
         const debugInfo = this.getDebugInfo();
         
         return {

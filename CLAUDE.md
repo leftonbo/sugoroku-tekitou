@@ -8,66 +8,82 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 開発環境
 
-このプロジェクトは**ブラウザ専用**のゲームで、特別なビルドツールやライブラリのインストールは不要です：
+このプロジェクトは**TypeScriptベース**のブラウザゲームです：
 
-- **開発**: 任意のウェブサーバーまたは直接ファイルを開く
+- **言語**: TypeScript (ES6+ Modules)
+- **開発**: TypeScriptコンパイル → ブラウザで実行
+- **ビルド**: `npm run build` でJavaScriptにコンパイル
 - **実行**: `index.html`をブラウザで開く
 - **テスト**: 手動でブラウザ上での動作確認
-- **デバッグ**: ブラウザのDevToolsコンソールを使用
+- **デバッグ**: ブラウザのDevToolsコンソール + TypeScriptソースマップ
+
+### 開発コマンド
+```bash
+npm install          # 依存関係インストール
+npm run build        # TypeScriptコンパイル
+npm run dev          # 開発モード（ファイル監視）
+```
 
 ## コードアーキテクチャ
 
 ### 主要ファイル構成
 - `index.html` - メインHTML（Bootstrap 5.3 CDN使用）
-- `assets/css/style.css` - カスタムCSS（レスポンシブデザイン、アニメーション）
-- `assets/js/` - モジュラー設計によるJavaScriptコード
+- `assets/` - 静的ファイル（CSS、画像等）
+- `src/` - TypeScriptソースコード
+- `dist/` - コンパイル済みJavaScript（自動生成）
+- `tsconfig.json` - TypeScript設定
+- `package.json` - 依存関係管理
 
 ### モジュラー設計
 
 **関心の分離**により以下のように責務を分散：
 
+#### Types（型定義）
+- **`src/types/game-state.ts`**: ゲーム状態、インターフェース、型定義
+- **`src/types/constants.ts`**: 設定値、構成オブジェクトの型定義
+
 #### Core（核となるクラス）
-- **`game.js`**: メインゲームクラス、全体の統合・初期化
-- **`game-loop.js`**: ゲームループ管理、60fps更新、デバッグ制御
+- **`src/core/game.ts`**: メインゲームクラス、全体の統合・初期化
+- **`src/core/game-loop.ts`**: ゲームループ管理、60fps更新、デバッグ制御
 
 #### Systems（ゲームシステム）
-- **`dice-system.js`**: 手動・自動ダイス、タイマー管理
-- **`board-system.js`**: 盤面生成、プレイヤー移動、マス目効果
-- **`upgrade-system.js`**: アップグレード計算、コスト管理
-- **`prestige-system.js`**: 転生、プレステージポイント、統計
+- **`src/systems/dice-system.ts`**: 手動・自動ダイス、タイマー管理
+- **`src/systems/board-system.ts`**: 盤面生成、プレイヤー移動、マス目効果
+- **`src/systems/upgrade-system.ts`**: アップグレード計算、コスト管理
+- **`src/systems/prestige-system.ts`**: 転生、プレステージポイント、統計
 
 #### Data（データ管理）
-- **`game-state.js`**: ゲーム状態の定義、デフォルト値、マージ処理
-- **`storage-manager.js`**: 自動保存、データ復元、バックアップ機能
+- **`src/data/game-state.ts`**: ゲーム状態の定義、デフォルト値、マージ処理
+- **`src/data/storage-manager.ts`**: 自動保存、データ復元、バックアップ機能
 
 #### UI（ユーザーインターフェース）
-- **`ui-manager.js`**: DOM操作、イベント処理、部分更新最適化
-- **`animation-manager.js`**: アニメーション効果、視覚フィードバック
+- **`src/ui/ui-manager.ts`**: DOM操作、イベント処理、部分更新最適化
+- **`src/ui/animation-manager.ts`**: アニメーション効果、視覚フィードバック
 
 #### Utils（ユーティリティ）
-- **`constants.js`**: 定数、設定値、ゲームバランス調整
-- **`math-utils.js`**: 数学関数、確率計算、シード付きランダム
+- **`src/utils/constants.ts`**: 定数、設定値、ゲームバランス調整
+- **`src/utils/math-utils.ts`**: 数学関数、確率計算、シード付きランダム
 
 ### 重要なゲームシステム
 
-**ダイスシステム（dice-system.js）**:
+**ダイスシステム（src/systems/dice-system.ts）**:
 - **手動ダイス**: 複数個対応、手動実行
 - **自動ダイス**: 7種類（2/4/6/8/10/12/20面）、段階的解禁
 - **タイマー管理**: 各ダイスの実行間隔制御、負荷システム対応
 - **アップグレード**: 速度（間隔短縮）・個数（同時実行数）
 
-**盤面システム（board-system.js）**:
+**盤面システム（src/systems/board-system.ts）**:
 - **動的生成**: レベルごとの盤面再生成、シード付きランダム
 - **マス目種類**: 空白、クレジット、進む、戻るマス
 - **特殊配置**: 固定戻るマス（レベル10以降、90-99マス目）
 - **効果適用**: マス目到達時の効果処理
 
-**アップグレードシステム（upgrade-system.js）**:
+**アップグレードシステム（src/systems/upgrade-system.ts）**:
 - **段階的価格**: 累乗による価格上昇（1.5倍、2倍等）
 - **解禁システム**: ダイス種類の段階的解禁
 - **コスト計算**: 各アップグレード種類で異なる計算式
 
-**プレステージシステム（prestige-system.js）**:
+**プレステージシステム（src/systems/prestige-system.ts）**:
 - **プレステージポイント**: レベル50以降、指数関数的獲得
 - **転生処理**: 状態リセット + 統計保存
 - **統計管理**: 転生回数、最高記録、総獲得値等の追跡
@@ -83,15 +99,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### UI最適化システム
 
-**部分更新アーキテクチャ（ui-manager.js）**:
+**部分更新アーキテクチャ（src/ui/ui-manager.ts）**:
 - **shouldRegenerateAutoDice()**: 全体再生成の必要性判定
 - **updateExistingAutoDice()**: 既存要素の部分更新
 - **updateUILight()**: 軽量版更新（ボタン状態のみ）
 - **data属性**: ボタン識別・状態管理
+- **型安全性**: DOM要素の型定義、null安全性
 
-**アニメーション管理（animation-manager.js）**:
+**アニメーション管理（src/ui/animation-manager.ts）**:
 - **効果別アニメ**: ダイス結果、マス効果、アップグレード成功
 - **パフォーマンス配慮**: アニメーション制御、メモリ管理
+- **型定義**: アニメーションパラメータの型安全性
+
+## TypeScript移行について
+
+### 移行の効果
+- **型安全性**: コンパイル時エラー検出、実行時エラーの大幅削減
+- **開発効率**: IDEサポート向上、オートコンプリート、リファクタリング支援
+- **保守性**: インターフェースの明確化、コードの自己文書化
+- **チーム開発**: 型定義による仕様の明確化
+
+### 型定義の設計方針
+- **包括的型定義**: 主要なデータ構造をすべて型定義
+- **null安全性**: optional chainingと厳密なnullチェック
+- **インターフェース分離**: システム間の依存関係を型で明確化
+- **段階的移行**: 既存機能を完全保持したまま型安全性を追加
+
+### ビルドプロセス
+- **TypeScript → JavaScript**: ES6モジュールとして出力
+- **ソースマップ**: デバッグ時のTypeScriptコード表示
+- **型チェック**: 開発時の厳密な型検証
+- **既存互換**: Bootstrap等外部ライブラリとの完全互換性
 
 ## 開発方針（最重要）
 
@@ -121,6 +159,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `docs/` + ドキュメント更新内容
 - **日本語でのコメント**
   - すべてのコード内コメントは日本語で記述
+  - TypeScript型定義のコメントも日本語で記述
 - **レスポンシブ対応**
   - Bootstrap + カスタムCSSでモバイル対応済み
 - **ゲームバランス**
@@ -133,10 +172,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 拡張時の設計指針
 
 ### 新機能追加時の考慮点
+- **型定義の更新**: 新機能追加時は対応する型定義を必ず追加
 - **後方互換性**: `gameState`への新プロパティ追加時は`mergeGameState()`で対応
 - **UI更新**: 全体更新は避け、部分更新を優先（`updateUILight()`等）
-- **アニメーション**: CSS + JavaScriptのクラス操作で実装
+- **アニメーション**: CSS + TypeScriptのクラス操作で実装
 - **システム拡張**: 既存Systemクラスの拡張または新規System作成
+- **型安全性**: null安全性を保ち、optional chainingを活用
 
 ### パフォーマンス考慮
 - **DOM操作最小化**: HTML再生成を避け、既存要素の更新を優先
@@ -144,6 +185,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **バッチ処理**: 複数の状態変更をまとめて処理
 
 ### デバッグ支援
+- **TypeScriptコンパイル**: `npm run build`で型チェック・コンパイル
 - **コンソールログ**: 重要な処理にはデバッグログを追加
 - **エラーハンドリング**: try-catch文で適切なエラー処理
 - **開発ツール**: デバッグパネルの機能拡張
+- **型エラー**: 開発時にコンパイラによる型エラー検出

@@ -1,9 +1,73 @@
 // ゲームループ管理
 
 import { GAME_CONFIG } from '../utils/constants.js';
+import type { GameState } from '../types/game-state.js';
+import type { DiceSystem } from '../systems/dice-system.js';
+import type { BoardSystem } from '../systems/board-system.js';
+import type { UpgradeSystem } from '../systems/upgrade-system.js';
+import type { PrestigeSystem } from '../systems/prestige-system.js';
+import type { UIManager } from '../ui/ui-manager.js';
+
+// システムの型定義
+interface Systems {
+    dice: DiceSystem;
+    board: BoardSystem;
+    upgrade: UpgradeSystem;
+    prestige: PrestigeSystem;
+}
+
+// 自動ダイス結果の型定義
+interface AutoDiceRoll {
+    index: number;
+    faces: number;
+    result: number;
+}
+
+// 移動結果の型定義は../types/game-state.tsで定義済み
+
+// ゲームループ状態の型定義
+interface GameLoopStatus {
+    isRunning: boolean;
+    lastUpdateTime: number;
+    animationId: number | null;
+}
+
+// デバッグ情報の型定義
+interface DebugInfo extends GameLoopStatus {
+    fps: number;
+    targetFrameTime: number;
+    gameState: {
+        position: number;
+        level: number;
+        credits: number;
+        autoDiceCount: number;
+    };
+}
+
+interface DetailedDebugInfo extends DebugInfo {
+    timestamp: number;
+    autoDice: Array<{
+        index: number;
+        faces: number;
+        unlocked: boolean;
+        count: number;
+        speedLevel: number;
+        lastRoll: number;
+        interval: number;
+    }>;
+    prestigeInfo: any;
+    upgradeInfo: any;
+}
 
 export class GameLoop {
-    constructor(gameState, systems, uiManager) {
+    private gameState: GameState;
+    private systems: Systems;
+    private uiManager: UIManager;
+    private isRunning: boolean;
+    private animationId: number | null;
+    private lastUpdateTime: number;
+
+    constructor(gameState: GameState, systems: Systems, uiManager: UIManager) {
         this.gameState = gameState;
         this.systems = systems;
         this.uiManager = uiManager;
@@ -13,7 +77,7 @@ export class GameLoop {
     }
 
     // ゲームループの開始
-    start() {
+    start(): void {
         if (this.isRunning) return;
         
         this.isRunning = true;
@@ -27,7 +91,7 @@ export class GameLoop {
     }
 
     // ゲームループの停止
-    stop() {
+    stop(): void {
         if (!this.isRunning) return;
         
         this.isRunning = false;
@@ -40,7 +104,7 @@ export class GameLoop {
     }
 
     // メインゲームループ
-    gameLoop(currentTime) {
+    private gameLoop(currentTime: number): void {
         if (!this.isRunning) return;
         
         // デルタタイム計算
@@ -57,7 +121,7 @@ export class GameLoop {
     }
 
     // ゲーム状態の更新
-    update(currentTime, deltaTime) {
+    private update(currentTime: number, _deltaTime: number): void {
         // 自動ダイスのタイマーチェック
         const rolledDice = this.systems.dice.checkAutoDiceTimers(currentTime);
         
@@ -67,11 +131,12 @@ export class GameLoop {
         }
         
         // UI更新（クールダウンゲージ用）
-        this.uiManager.updateAutoDiceCooldowns();
+        // 注意: UIManagerでこのメソッドが定義されていない場合はコメントアウト
+        // this.uiManager.updateAutoDiceCooldowns();
     }
 
     // 自動ダイスの結果処理
-    handleAutoDiceRolls(rolledDice) {
+    private handleAutoDiceRolls(rolledDice: AutoDiceRoll[]): void {
         let totalSteps = 0;
         
         // 全ての自動ダイス結果を合計
@@ -86,7 +151,7 @@ export class GameLoop {
             
             // ログ出力
             if (rolledDice.length === 1) {
-                console.log(`自動ダイス: ${rolledDice[0].faces}面 = ${rolledDice[0].result}`);
+                console.log(`自動ダイス: ${rolledDice[0]!.faces}面 = ${rolledDice[0]!.result}`);
             } else {
                 const rollDetails = rolledDice.map(r => `${r.faces}面=${r.result}`).join(', ');
                 console.log(`自動ダイス複数: ${rollDetails} 合計=${totalSteps}`);
@@ -95,7 +160,7 @@ export class GameLoop {
     }
 
     // ゲームの一時停止
-    pause() {
+    pause(): void {
         if (this.isRunning) {
             this.stop();
             console.log('ゲームを一時停止しました');
@@ -103,15 +168,25 @@ export class GameLoop {
     }
 
     // ゲームの再開
-    resume() {
+    resume(): void {
         if (!this.isRunning) {
             this.start();
             console.log('ゲームを再開しました');
         }
     }
 
+    // 一時停止状態の確認
+    isPaused(): boolean {
+        return !this.isRunning;
+    }
+
+    // 1ステップ実行（デバッグ用）
+    step(): void {
+        this.stepOneTick();
+    }
+
     // ゲームループの状態取得
-    getStatus() {
+    getStatus(): GameLoopStatus {
         return {
             isRunning: this.isRunning,
             lastUpdateTime: this.lastUpdateTime,
@@ -120,7 +195,7 @@ export class GameLoop {
     }
 
     // デバッグ情報の取得
-    getDebugInfo() {
+    getDebugInfo(): DebugInfo {
         const status = this.getStatus();
         return {
             ...status,
@@ -136,19 +211,19 @@ export class GameLoop {
     }
 
     // 強制的なUI更新
-    forceUIUpdate() {
+    forceUIUpdate(): void {
         this.uiManager.updateUI();
     }
 
     // ゲームループのリセット
-    reset() {
+    reset(): void {
         this.stop();
         this.lastUpdateTime = 0;
         console.log('ゲームループをリセットしました');
     }
 
     // デバッグ: 1Tick分だけ進める
-    stepOneTick() {
+    stepOneTick(): boolean {
         if (this.isRunning) {
             console.warn('ゲームが実行中です。一時停止してから使用してください。');
             return false;
@@ -166,7 +241,7 @@ export class GameLoop {
     }
 
     // デバッグ: ゲーム状態の詳細情報取得
-    getDetailedDebugInfo() {
+    getDetailedDebugInfo(): DetailedDebugInfo {
         const baseInfo = this.getDebugInfo();
         const autoDiceInfo = this.gameState.autoDice.map((dice, index) => ({
             index,

@@ -6,14 +6,46 @@ import {
     calculateAutoDiceCountUpgradeCost 
 } from '../utils/math-utils.js';
 import { DICE_CONFIGS, UPGRADE_MULTIPLIERS, MANUAL_DICE_CONFIG } from '../utils/constants.js';
+import type { GameState } from '../types/game-state.js';
+
+// アップグレード情報の型定義
+interface ManualUpgradeInfo {
+    cost: number;
+    canAfford: boolean;
+    currentCount: number;
+    currentLevel: number;
+}
+
+interface AutoDiceUpgradeInfo {
+    index: number;
+    faces: number;
+    unlocked: boolean;
+    count: number;
+    speedLevel: number;
+    countLevel: number;
+    unlockCost: number;
+    speedUpgradeCost: number;
+    countUpgradeCost: number;
+    canUnlock: boolean;
+    canUpgradeSpeed: boolean;
+    canUpgradeCount: boolean;
+}
+
+interface AllUpgradeInfo {
+    manual: ManualUpgradeInfo;
+    auto: AutoDiceUpgradeInfo[];
+    totalCredits: number;
+}
 
 export class UpgradeSystem {
-    constructor(gameState) {
+    private gameState: GameState;
+
+    constructor(gameState: GameState) {
         this.gameState = gameState;
     }
 
     // 手動ダイス個数アップグレード
-    upgradeManualDiceCount() {
+    upgradeManualDiceCount(): boolean {
         const cost = this.getManualDiceUpgradeCost();
         
         if (this.gameState.credits >= cost) {
@@ -28,56 +60,54 @@ export class UpgradeSystem {
     }
 
     // 自動ダイス解禁
-    unlockAutoDice(diceIndex) {
+    unlockAutoDice(diceIndex: number): boolean {
         const cost = this.getAutoDiceUnlockCost(diceIndex);
+        const dice = this.gameState.autoDice[diceIndex];
         
-        if (this.gameState.credits >= cost && !this.gameState.autoDice[diceIndex].unlocked) {
+        if (dice && this.gameState.credits >= cost && !dice.unlocked) {
             this.gameState.credits -= cost;
-            this.gameState.autoDice[diceIndex].unlocked = true;
-            this.gameState.autoDice[diceIndex].lastRoll = performance.now();
+            dice.unlocked = true;
+            dice.lastRoll = performance.now();
             
-            const faces = this.gameState.autoDice[diceIndex].faces;
-            console.log(`${faces}面自動ダイス解禁！`);
+            console.log(`${dice.faces}面自動ダイス解禁！`);
             return true;
         }
         return false;
     }
 
     // 自動ダイス速度アップグレード
-    upgradeAutoDiceSpeed(diceIndex) {
+    upgradeAutoDiceSpeed(diceIndex: number): boolean {
         const cost = this.getAutoDiceSpeedUpgradeCost(diceIndex);
+        const dice = this.gameState.autoDice[diceIndex];
         
-        if (this.gameState.credits >= cost && this.gameState.autoDice[diceIndex].unlocked) {
+        if (dice && this.gameState.credits >= cost && dice.unlocked) {
             this.gameState.credits -= cost;
-            this.gameState.autoDice[diceIndex].speedLevel++;
+            dice.speedLevel++;
             
-            const faces = this.gameState.autoDice[diceIndex].faces;
-            const level = this.gameState.autoDice[diceIndex].speedLevel;
-            console.log(`${faces}面ダイス速度アップグレード！レベル: ${level}`);
+            console.log(`${dice.faces}面ダイス速度アップグレード！レベル: ${dice.speedLevel}`);
             return true;
         }
         return false;
     }
 
     // 自動ダイス個数アップグレード
-    upgradeAutoDiceCount(diceIndex) {
+    upgradeAutoDiceCount(diceIndex: number): boolean {
         const cost = this.getAutoDiceCountUpgradeCost(diceIndex);
+        const dice = this.gameState.autoDice[diceIndex];
         
-        if (this.gameState.credits >= cost && this.gameState.autoDice[diceIndex].unlocked) {
+        if (dice && this.gameState.credits >= cost && dice.unlocked) {
             this.gameState.credits -= cost;
-            this.gameState.autoDice[diceIndex].count++;
-            this.gameState.autoDice[diceIndex].countLevel++;
+            dice.count++;
+            dice.countLevel++;
             
-            const faces = this.gameState.autoDice[diceIndex].faces;
-            const count = this.gameState.autoDice[diceIndex].count;
-            console.log(`${faces}面ダイス個数アップグレード！現在: ${count}個`);
+            console.log(`${dice.faces}面ダイス個数アップグレード！現在: ${dice.count}個`);
             return true;
         }
         return false;
     }
 
     // 手動ダイスアップグレードのコスト計算
-    getManualDiceUpgradeCost() {
+    getManualDiceUpgradeCost(): number {
         const level = this.gameState.manualDice.upgradeLevel;
         return calculateManualDiceUpgradeCost(
             level,
@@ -87,17 +117,20 @@ export class UpgradeSystem {
     }
 
     // 自動ダイス解禁のコスト計算
-    getAutoDiceUnlockCost(diceIndex) {
+    getAutoDiceUnlockCost(diceIndex: number): number {
         if (diceIndex < 0 || diceIndex >= DICE_CONFIGS.length) return Infinity;
-        return DICE_CONFIGS[diceIndex].unlockCost;
+        return DICE_CONFIGS[diceIndex]!.unlockCost;
     }
 
     // 自動ダイス速度アップグレードのコスト計算
-    getAutoDiceSpeedUpgradeCost(diceIndex) {
+    getAutoDiceSpeedUpgradeCost(diceIndex: number): number {
         if (diceIndex < 0 || diceIndex >= DICE_CONFIGS.length) return Infinity;
         
         const dice = this.gameState.autoDice[diceIndex];
-        const baseCost = DICE_CONFIGS[diceIndex].speedBaseCost;
+        const config = DICE_CONFIGS[diceIndex];
+        if (!dice || !config) return Infinity;
+        
+        const baseCost = config.speedBaseCost;
         return calculateAutoDiceSpeedUpgradeCost(
             baseCost,
             dice.speedLevel,
@@ -106,11 +139,14 @@ export class UpgradeSystem {
     }
 
     // 自動ダイス個数アップグレードのコスト計算
-    getAutoDiceCountUpgradeCost(diceIndex) {
+    getAutoDiceCountUpgradeCost(diceIndex: number): number {
         if (diceIndex < 0 || diceIndex >= DICE_CONFIGS.length) return Infinity;
         
         const dice = this.gameState.autoDice[diceIndex];
-        const baseCost = DICE_CONFIGS[diceIndex].countBaseCost;
+        const config = DICE_CONFIGS[diceIndex];
+        if (!dice || !config) return Infinity;
+        
+        const baseCost = config.countBaseCost;
         return calculateAutoDiceCountUpgradeCost(
             baseCost,
             dice.countLevel,
@@ -119,35 +155,41 @@ export class UpgradeSystem {
     }
 
     // アップグレード可能性チェック
-    canUpgradeManualDice() {
+    canUpgradeManualDice(): boolean {
         return this.gameState.credits >= this.getManualDiceUpgradeCost();
     }
 
-    canUnlockAutoDice(diceIndex) {
-        return this.gameState.credits >= this.getAutoDiceUnlockCost(diceIndex) && 
-               !this.gameState.autoDice[diceIndex].unlocked;
+    canUnlockAutoDice(diceIndex: number): boolean {
+        const dice = this.gameState.autoDice[diceIndex];
+        return dice ? 
+            this.gameState.credits >= this.getAutoDiceUnlockCost(diceIndex) && !dice.unlocked :
+            false;
     }
 
-    canUpgradeAutoDiceSpeed(diceIndex) {
-        return this.gameState.credits >= this.getAutoDiceSpeedUpgradeCost(diceIndex) && 
-               this.gameState.autoDice[diceIndex].unlocked;
+    canUpgradeAutoDiceSpeed(diceIndex: number): boolean {
+        const dice = this.gameState.autoDice[diceIndex];
+        return dice ? 
+            this.gameState.credits >= this.getAutoDiceSpeedUpgradeCost(diceIndex) && dice.unlocked :
+            false;
     }
 
-    canUpgradeAutoDiceCount(diceIndex) {
-        return this.gameState.credits >= this.getAutoDiceCountUpgradeCost(diceIndex) && 
-               this.gameState.autoDice[diceIndex].unlocked;
+    canUpgradeAutoDiceCount(diceIndex: number): boolean {
+        const dice = this.gameState.autoDice[diceIndex];
+        return dice ? 
+            this.gameState.credits >= this.getAutoDiceCountUpgradeCost(diceIndex) && dice.unlocked :
+            false;
     }
 
     // 全アップグレード情報の取得
-    getAllUpgradeInfo() {
-        const manualInfo = {
+    getAllUpgradeInfo(): AllUpgradeInfo {
+        const manualInfo: ManualUpgradeInfo = {
             cost: this.getManualDiceUpgradeCost(),
             canAfford: this.canUpgradeManualDice(),
             currentCount: this.gameState.manualDice.count,
             currentLevel: this.gameState.manualDice.upgradeLevel
         };
 
-        const autoInfo = this.gameState.autoDice.map((dice, index) => ({
+        const autoInfo: AutoDiceUpgradeInfo[] = this.gameState.autoDice.map((dice, index) => ({
             index,
             faces: dice.faces,
             unlocked: dice.unlocked,
@@ -170,7 +212,7 @@ export class UpgradeSystem {
     }
 
     // 購入したアップグレードの総数を取得
-    getTotalUpgradesPurchased() {
+    getTotalUpgradesPurchased(): number {
         let total = this.gameState.manualDice.upgradeLevel;
         
         this.gameState.autoDice.forEach(dice => {

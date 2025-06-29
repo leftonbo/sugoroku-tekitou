@@ -1,0 +1,117 @@
+// 定数関連の型定義
+
+// ダイス設定の型定義
+export interface DiceConfig {
+    faces: number;
+    baseInterval: number;
+    unlockCost: number;
+    speedBaseCost: number;
+    countBaseCost: number;
+    emoji: string;
+}
+
+// アップグレード乗数設定の型定義
+export interface UpgradeMultipliers {
+    MANUAL_DICE: number;
+    AUTO_SPEED: number;
+    AUTO_COUNT: number;
+}
+
+// 手動ダイス設定の型定義
+export interface ManualDiceConfig {
+    BASE_UPGRADE_COST: number;
+    BASE_FACES: number;
+}
+
+// ボード設定の型定義
+export interface BoardConfig {
+    TOTAL_CELLS: number;
+    CELL_TYPES: {
+        EMPTY: 'empty';
+        CREDIT: 'credit';
+        FORWARD: 'forward';
+        BACKWARD: 'backward';
+    };
+}
+
+// セル確率設定の型定義
+export interface CellProbability {
+    CREDIT_RATIO: number;
+    FORWARD_RATIO: number;
+    BACKWARD_BASE_RATIO: number;
+    BACKWARD_MAX_RATIO: number;
+}
+
+// ゲーム設定の型定義
+export interface GameConfig {
+    TICK_RATE: number;
+    SAVE_INTERVAL: number;
+    MAX_SPEED_MULTIPLIER: number;
+    MAX_BACKWARD_STEPS: number;
+}
+
+// 固定戻るマス設定の型定義
+export interface FixedBackwardConfig {
+    START_LEVEL: number;
+    AREA_START: number;
+    AREA_END: number;
+    MAX_COUNT: number;
+    LEVEL_INCREMENT: number;
+}
+
+// クレジット計算設定の型定義
+export interface CreditConfig {
+    BASE_AMOUNT_DIVISOR: number;
+    MIN_BASE_AMOUNT: number;
+    LEVEL_BONUS_MULTIPLIER: number;
+    RANDOM_BONUS_MIN: number;
+    RANDOM_BONUS_MAX: number;
+}
+
+// UI設定の型定義
+export interface UIConfig {
+    ANIMATION_DURATION: number;
+    DICE_ANIMATION_DURATION: number;
+    GLOW_EFFECT_DURATION: number;
+}
+
+// プレステージシステム設定の型定義
+export interface PrestigeConfig {
+    START_LEVEL: number;
+    BASE_POINTS: number;
+    SCALING_POWER: number;
+}
+
+// 負荷システム設定の型定義
+export interface BurdenConfig {
+    LEVEL_1_START: number;
+    LEVEL_2_START: number;
+    LEVEL_3_START: number;
+}
+
+// ストレージキー設定の型定義
+export interface StorageKeys {
+    GAME_STATE: string;
+}
+
+// 負荷効果の型定義
+export interface BurdenEffect {
+    level: number;
+    description: string;
+    diceModifier: number;  // ダイス結果に対する乗数
+}
+
+// 数学ユーティリティ関連の型定義
+export interface RandomGenerator {
+    seed: number;
+    next(): number;
+}
+
+// イベント関連の型定義
+export type GameEventType = 'diceRoll' | 'move' | 'creditGain' | 'levelUp' | 'prestige' | 'upgrade';
+
+export interface GameEvent {
+    type: GameEventType;
+    data: any;
+    timestamp: number;
+}

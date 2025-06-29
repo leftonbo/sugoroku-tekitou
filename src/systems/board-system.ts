@@ -10,14 +10,56 @@ import {
     calculatePrestigePointsForLevel
 } from '../utils/math-utils.js';
 import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG, FIXED_BACKWARD_CONFIG, PRESTIGE_CONFIG } from '../utils/constants.js';
+import type { GameState, CellType } from '../types/game-state.js';
+
+// ボード関連の型定義
+interface CellData {
+    type: CellType;
+    effect: number | null;
+}
+
+interface MoveResult {
+    oldPosition: number;
+    newPosition: number;
+    levelChanged: boolean;
+    prestigeEarned: number;
+}
+
+interface PositionChangeResult {
+    levelChanged: boolean;
+    prestigeEarned: number;
+}
+
+interface SquareEffect {
+    type: CellType;
+    value: number | null;
+    position: number;
+    applied: boolean;
+    moveResult?: MoveResult;
+}
+
+interface PositionInfo {
+    position: number;
+    level: number;
+    cellData: CellData;
+}
+
+interface BoardCell {
+    position: number;
+    type: CellType;
+    effect: number | null;
+    isPlayerPosition: boolean;
+}
 
 export class BoardSystem {
-    constructor(gameState) {
+    private gameState: GameState;
+
+    constructor(gameState: GameState) {
         this.gameState = gameState;
     }
 
     // マス種類の決定
-    getCellType(position, level) {
+    getCellType(position: number, level: number): CellData {
         // レベル10以降の固定戻るマス処理
         if (level >= FIXED_BACKWARD_CONFIG.START_LEVEL) {
             const fixedBackwardCell = this.checkFixedBackwardCell(position, level);
@@ -60,7 +102,7 @@ export class BoardSystem {
     }
 
     // 固定戻るマスのチェック
-    checkFixedBackwardCell(position, level) {
+    private checkFixedBackwardCell(position: number, level: number): CellData | null {
         // 固定配置エリア外は対象外
         if (position < FIXED_BACKWARD_CONFIG.AREA_START || position > FIXED_BACKWARD_CONFIG.AREA_END) {
             return null;
@@ -71,7 +113,6 @@ export class BoardSystem {
         const fixedCount = Math.min(levelProgress + 1, FIXED_BACKWARD_CONFIG.MAX_COUNT);
         
         // 固定配置する位置を決定（後ろから配置）
-        const areaSize = FIXED_BACKWARD_CONFIG.AREA_END - FIXED_BACKWARD_CONFIG.AREA_START + 1;
         const startFixedPosition = FIXED_BACKWARD_CONFIG.AREA_END - fixedCount + 1;
         
         if (position >= startFixedPosition) {
@@ -88,7 +129,7 @@ export class BoardSystem {
     }
 
     // プレイヤーの移動
-    movePlayer(steps) {
+    movePlayer(steps: number): MoveResult {
         const oldPosition = this.gameState.position;
         const newPosition = oldPosition + steps;
         
@@ -106,7 +147,7 @@ export class BoardSystem {
     }
 
     // 位置変更の処理
-    handlePositionChange(newPosition) {
+    private handlePositionChange(newPosition: number): PositionChangeResult {
         let levelChanged = false;
         let prestigeEarned = 0;
         
@@ -154,7 +195,7 @@ export class BoardSystem {
     }
 
     // 直接移動（マス効果を適用しない）
-    movePlayerDirect(steps) {
+    movePlayerDirect(steps: number): MoveResult {
         const oldPosition = this.gameState.position;
         let newPosition = oldPosition + steps;
         
@@ -190,9 +231,9 @@ export class BoardSystem {
     }
 
     // マス目の効果を適用
-    applySquareEffect(position) {
+    applySquareEffect(position: number): SquareEffect {
         const cellData = this.getCellType(position, this.gameState.level);
-        const effect = {
+        const effect: SquareEffect = {
             type: cellData.type,
             value: cellData.effect,
             position: position,
@@ -206,26 +247,32 @@ export class BoardSystem {
                 break;
                 
             case BOARD_CONFIG.CELL_TYPES.CREDIT:
-                this.gameState.credits += cellData.effect;
-                this.gameState.stats.totalCreditsEarned += cellData.effect;
-                console.log(`クレジット +${cellData.effect} (位置: ${position})`);
+                if (cellData.effect !== null) {
+                    this.gameState.credits += cellData.effect;
+                    this.gameState.stats.totalCreditsEarned += cellData.effect;
+                    console.log(`クレジット +${cellData.effect} (位置: ${position})`);
+                }
                 effect.applied = true;
                 break;
                 
             case BOARD_CONFIG.CELL_TYPES.FORWARD:
-                console.log(`${cellData.effect}マス進む! (位置: ${position})`);
-                // 移動を実行（再帰的な効果は無視）
-                const forwardResult = this.movePlayerDirect(cellData.effect);
-                effect.moveResult = forwardResult;
+                if (cellData.effect !== null) {
+                    console.log(`${cellData.effect}マス進む! (位置: ${position})`);
+                    // 移動を実行（再帰的な効果は無視）
+                    const forwardResult = this.movePlayerDirect(cellData.effect);
+                    effect.moveResult = forwardResult;
+                }
                 effect.applied = true;
                 break;
                 
             case BOARD_CONFIG.CELL_TYPES.BACKWARD:
-                console.log(`${cellData.effect}マス戻る... (位置: ${position})`);
-                // 移動を実行（再帰的な効果は無視、0マス目を下回らないよう制限）
-                const maxBackwardSteps = Math.min(cellData.effect, this.gameState.position);
-                const backwardResult = this.movePlayerDirect(-maxBackwardSteps);
-                effect.moveResult = backwardResult;
+                if (cellData.effect !== null) {
+                    console.log(`${cellData.effect}マス戻る... (位置: ${position})`);
+                    // 移動を実行（再帰的な効果は無視、0マス目を下回らないよう制限）
+                    const maxBackwardSteps = Math.min(cellData.effect, this.gameState.position);
+                    const backwardResult = this.movePlayerDirect(-maxBackwardSteps);
+                    effect.moveResult = backwardResult;
+                }
                 effect.applied = true;
                 break;
         }
@@ -234,7 +281,7 @@ export class BoardSystem {
     }
 
     // 現在の位置情報取得
-    getCurrentPositionInfo() {
+    getCurrentPositionInfo(): PositionInfo {
         return {
             position: this.gameState.position,
             level: this.gameState.level,
@@ -243,8 +290,8 @@ export class BoardSystem {
     }
 
     // 盤面の完全な情報取得（UI生成用）
-    getBoardData() {
-        const boardData = [];
+    getBoardData(): BoardCell[] {
+        const boardData: BoardCell[] = [];
         for (let i = 0; i < BOARD_CONFIG.TOTAL_CELLS; i++) {
             const cellData = this.getCellType(i, this.gameState.level);
             boardData.push({

@@ -2,15 +2,62 @@
 
 import { calculateAutoDiceInterval } from '../utils/math-utils.js';
 import { GAME_CONFIG, MANUAL_DICE_CONFIG, BURDEN_CONFIG } from '../utils/constants.js';
+import type { GameState } from '../types/game-state.js';
+
+// ダイス結果の型定義
+interface ManualDiceResult {
+    total: number;
+    results: number[];
+    quality: number;
+}
+
+interface AutoDiceRoll {
+    index: number;
+    faces: number;
+    result: number;
+}
+
+interface AutoDiceInfo {
+    faces: number;
+    count: number;
+    unlocked: boolean;
+    speedLevel: number;
+    countLevel: number;
+    interval: number;
+    rollsPerMinute: number;
+    lastRoll: number;
+}
+
+interface ManualDiceInfo {
+    count: number;
+    upgradeLevel: number;
+    faces: number;
+}
+
+interface BurdenInfo {
+    level: number;
+    diceReduction: number;
+    totalHalving: boolean;
+    nextBurdenLevel: NextBurdenLevelInfo | null;
+}
+
+interface NextBurdenLevelInfo {
+    level: number;
+    levelRequired: number;
+    levelsRemaining: number;
+}
 
 export class DiceSystem {
-    constructor(gameState) {
+    private gameState: GameState;
+    private manualDiceResults: number[];
+
+    constructor(gameState: GameState) {
         this.gameState = gameState;
         this.manualDiceResults = [];  // 手動ダイスの結果表示用
     }
 
     // 手動ダイスを振る
-    rollManualDice() {
+    rollManualDice(): ManualDiceResult {
         const diceCount = this.gameState.manualDice.count;
         let totalRoll = 0;
         this.manualDiceResults = [];
@@ -44,16 +91,16 @@ export class DiceSystem {
     }
 
     // 手動ダイスの結果品質を計算
-    calculateRollQuality(total, diceCount) {
+    private calculateRollQuality(total: number, diceCount: number): number {
         const maxPossible = diceCount * MANUAL_DICE_CONFIG.BASE_FACES;
         const minPossible = diceCount;
         return (total - minPossible) / (maxPossible - minPossible);
     }
 
     // 自動ダイスを振る（種類別）
-    rollAutoDice(diceIndex) {
+    rollAutoDice(diceIndex: number): number {
         const dice = this.gameState.autoDice[diceIndex];
-        if (!dice.unlocked) return 0;
+        if (!dice || !dice.unlocked) return 0;
         
         let totalRoll = 0;
         
@@ -84,8 +131,10 @@ export class DiceSystem {
     }
 
     // 自動ダイスの間隔計算
-    getAutoDiceInterval(diceIndex) {
+    getAutoDiceInterval(diceIndex: number): number {
         const dice = this.gameState.autoDice[diceIndex];
+        if (!dice) return 0;
+        
         return calculateAutoDiceInterval(
             dice.baseInterval, 
             dice.speedLevel, 
@@ -94,8 +143,8 @@ export class DiceSystem {
     }
 
     // 自動ダイスのタイマーチェック
-    checkAutoDiceTimers(currentTime) {
-        const rolledDice = [];
+    checkAutoDiceTimers(currentTime: number): AutoDiceRoll[] {
+        const rolledDice: AutoDiceRoll[] = [];
         
         this.gameState.autoDice.forEach((dice, index) => {
             if (!dice.unlocked) return;
@@ -117,7 +166,7 @@ export class DiceSystem {
     }
 
     // 自動ダイスの初期化（ゲーム開始時）
-    initializeAutoDiceTimers(currentTime) {
+    initializeAutoDiceTimers(currentTime: number): void {
         this.gameState.autoDice.forEach(dice => {
             // セーブデータ読み込み時に古いperformance.now()タイムスタンプが残っているため
             // すべてのダイスのタイマーを現在時刻でリセット
@@ -126,17 +175,17 @@ export class DiceSystem {
     }
 
     // 手動ダイス結果のゲッター
-    getManualDiceResults() {
+    getManualDiceResults(): number[] {
         return [...this.manualDiceResults];
     }
 
     // 自動ダイスの解禁状態チェック
-    isAutoDiceUnlocked(diceIndex) {
+    isAutoDiceUnlocked(diceIndex: number): boolean {
         return this.gameState.autoDice[diceIndex]?.unlocked || false;
     }
 
     // 自動ダイスの情報取得
-    getAutoDiceInfo(diceIndex) {
+    getAutoDiceInfo(diceIndex: number): AutoDiceInfo | null {
         const dice = this.gameState.autoDice[diceIndex];
         if (!dice) return null;
 
@@ -156,12 +205,12 @@ export class DiceSystem {
     }
 
     // 全自動ダイスの情報取得
-    getAllAutoDiceInfo() {
+    getAllAutoDiceInfo(): (AutoDiceInfo | null)[] {
         return this.gameState.autoDice.map((_, index) => this.getAutoDiceInfo(index));
     }
 
     // 手動ダイス情報取得
-    getManualDiceInfo() {
+    getManualDiceInfo(): ManualDiceInfo {
         return {
             count: this.gameState.manualDice.count,
             upgradeLevel: this.gameState.manualDice.upgradeLevel,
@@ -170,7 +219,7 @@ export class DiceSystem {
     }
 
     // 負荷レベルの計算
-    getBurdenLevel() {
+    getBurdenLevel(): number {
         const level = this.gameState.level;
         
         if (level >= BURDEN_CONFIG.LEVEL_3_START) return 3;
@@ -181,7 +230,7 @@ export class DiceSystem {
     }
 
     // 負荷による出目補正の適用
-    applyBurdenEffect(roll, faces) {
+    private applyBurdenEffect(roll: number, faces: number): number {
         const burdenLevel = this.getBurdenLevel();
         
         if (burdenLevel === 0) {
@@ -205,7 +254,7 @@ export class DiceSystem {
     }
 
     // 負荷レベルの詳細情報を取得
-    getBurdenInfo() {
+    getBurdenInfo(): BurdenInfo {
         const level = this.gameState.level;
         const burdenLevel = this.getBurdenLevel();
         
@@ -218,7 +267,7 @@ export class DiceSystem {
     }
 
     // 次の負荷レベル情報を取得
-    getNextBurdenLevelInfo(currentLevel) {
+    private getNextBurdenLevelInfo(currentLevel: number): NextBurdenLevelInfo | null {
         if (currentLevel < BURDEN_CONFIG.LEVEL_1_START) {
             return {
                 level: 1,

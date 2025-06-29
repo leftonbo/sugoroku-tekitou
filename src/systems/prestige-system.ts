@@ -2,14 +2,79 @@
 
 import { formatNumber } from '../utils/math-utils.js';
 import { resetGameStateForPrestige } from '../data/game-state.js';
+import type { GameState } from '../types/game-state.js';
+
+// プレステージ統計の型定義
+interface BestRunStats {
+    credits: number;
+    distance: number;
+    laps: number;
+    level: number;
+}
+
+interface PrestigeStats {
+    totalRuns: number;
+    totalCreditsEarned: number;
+    totalDistanceTraveled: number;
+    totalLapsCompleted: number;
+    bestSingleRun: BestRunStats;
+}
+
+interface GameStats {
+    totalCredits: number;
+    totalDistance: number;
+    completedLaps: number;
+    currentPosition: number;
+    currentLevel: number;
+    diceRolls: number;
+    creditsEarned: number;
+}
+
+interface PrestigeResult {
+    success: boolean;
+    reason?: string;
+    earnedPrestige?: number;
+    newAvailable?: number;
+    oldStats?: GameStats;
+}
+
+interface PrestigeInfo {
+    earned: number;
+    available: number;
+    canPrestige: boolean;
+    rebirthCount: number;
+    prestigeStats: PrestigeStats | null;
+    historical?: PrestigeStats;
+}
+
+interface DetailedStats {
+    current: {
+        diceRolls: number;
+        totalMoves: number;
+        creditsEarned: number;
+        rebirths: number;
+        totalPrestigePoints: number;
+        currentLevel: number;
+        currentPosition: number;
+        currentCredits: number;
+    };
+    prestige: PrestigeInfo;
+}
+
+// GameStateの拡張（prestigeStats追加）
+interface ExtendedGameState extends GameState {
+    prestigeStats?: PrestigeStats;
+}
 
 export class PrestigeSystem {
-    constructor(gameState) {
-        this.gameState = gameState;
+    private gameState: ExtendedGameState;
+
+    constructor(gameState: GameState) {
+        this.gameState = gameState as ExtendedGameState;
     }
 
     // プレステージ（転生）の実行
-    prestige() {
+    prestige(): PrestigeResult {
         if (this.gameState.prestigePoints.earned === 0) {
             return { success: false, reason: 'no_points' };
         }
@@ -27,7 +92,7 @@ export class PrestigeSystem {
     }
 
     // 転生確認テキスト生成
-    buildPrestigeConfirmText() {
+    private buildPrestigeConfirmText(): string {
         return `転生しますか？\n\n` +
             `現在の統計:\n` +
             `・獲得予定プレステージポイント: ${this.gameState.prestigePoints.earned}\n` +
@@ -39,7 +104,7 @@ export class PrestigeSystem {
     }
 
     // 転生の実行
-    executePrestige() {
+    private executePrestige(): PrestigeResult {
         // 現在の統計を保存
         const oldStats = this.getGameStats();
         
@@ -69,7 +134,7 @@ export class PrestigeSystem {
     }
 
     // 転生結果の表示
-    showPrestigeResult(result) {
+    private showPrestigeResult(result: PrestigeResult): void {
         if (!result.success) return;
         
         const resultText = `転生しました！\n\n` +
@@ -80,7 +145,7 @@ export class PrestigeSystem {
     }
 
     // ゲーム統計の取得
-    getGameStats() {
+    private getGameStats(): GameStats {
         const completedLaps = Math.floor(this.gameState.stats.totalMoves / 100);
         return {
             totalCredits: this.gameState.credits,
@@ -94,7 +159,7 @@ export class PrestigeSystem {
     }
 
     // プレステージ統計の更新
-    updatePrestigeStats(stats) {
+    private updatePrestigeStats(stats: GameStats): void {
         if (!this.gameState.prestigeStats) {
             this.gameState.prestigeStats = {
                 totalRuns: 0,
@@ -134,24 +199,30 @@ export class PrestigeSystem {
     }
 
     // 転生可能性チェック
-    canPrestige() {
+    canPrestige(): boolean {
         return this.gameState.prestigePoints.earned > 0;
     }
 
     // プレステージポイント関連情報
-    getPrestigeInfo() {
-        return {
+    getPrestigeInfo(): PrestigeInfo {
+        const info: PrestigeInfo = {
             earned: this.gameState.prestigePoints.earned,
             available: this.gameState.prestigePoints.available,
             canPrestige: this.canPrestige(),
             rebirthCount: this.gameState.rebirthCount,
             prestigeStats: this.gameState.prestigeStats || null
         };
+
+        if (this.gameState.prestigeStats) {
+            info.historical = this.gameState.prestigeStats;
+        }
+
+        return info;
     }
 
     // 統計情報の取得
-    getDetailedStats() {
-        const baseStats = {
+    getDetailedStats(): DetailedStats {
+        const baseStats: DetailedStats = {
             // 現在のゲーム統計
             current: {
                 diceRolls: this.gameState.stats.totalDiceRolls,
@@ -167,11 +238,6 @@ export class PrestigeSystem {
             // プレステージ関連
             prestige: this.getPrestigeInfo()
         };
-
-        // プレステージ統計が存在する場合は追加
-        if (this.gameState.prestigeStats) {
-            baseStats.prestige.historical = this.gameState.prestigeStats;
-        }
 
         return baseStats;
     }

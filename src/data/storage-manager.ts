@@ -2,9 +2,33 @@
 
 import { STORAGE_KEYS } from '../utils/constants.js';
 import { createDefaultGameState, mergeGameState } from './game-state.js';
+import type { GameState } from '../types/game-state.js';
+
+// バックアップデータの型定義
+interface BackupData {
+    timestamp: number;
+    data: string;
+}
+
+// 削除結果の型定義
+interface ClearResult {
+    success: boolean;
+    backup?: string | null;
+    message?: string;
+    error?: string;
+}
+
+// ストレージデータ情報の型定義
+interface StorageInfo {
+    exists: boolean;
+    data?: GameState;
+    size?: number;
+    lastModified?: string;
+    error?: string;
+}
 
 // ゲーム状態の保存
-export function saveGameState(gameState) {
+export function saveGameState(gameState: GameState): boolean {
     try {
         // データ削除フラグをチェック
         if (sessionStorage.getItem('game-data-cleared') === 'true') {
@@ -22,7 +46,7 @@ export function saveGameState(gameState) {
 }
 
 // ゲーム状態の読み込み
-export function loadGameState() {
+export function loadGameState(): GameState {
     try {
         // 削除フラグをチェック
         const wasCleared = sessionStorage.getItem('game-data-cleared') === 'true';
@@ -35,7 +59,7 @@ export function loadGameState() {
         
         const savedState = localStorage.getItem(STORAGE_KEYS.GAME_STATE);
         if (savedState) {
-            const parsed = JSON.parse(savedState);
+            const parsed = JSON.parse(savedState) as Partial<GameState>;
             const defaultState = createDefaultGameState();
             
             // 既存の構造と新しい構造をマージ
@@ -55,7 +79,7 @@ export function loadGameState() {
 }
 
 // 自動保存の設定
-export function setupAutoSave(gameStateGetter, interval = 30000) {
+export function setupAutoSave(gameStateGetter: () => GameState, interval: number = 30000): () => void {
     // 定期保存（30秒ごと）
     const autoSaveTimer = setInterval(() => {
         const currentState = gameStateGetter();
@@ -63,7 +87,7 @@ export function setupAutoSave(gameStateGetter, interval = 30000) {
     }, interval);
 
     // ページ離脱時の保存
-    const beforeUnloadHandler = () => {
+    const beforeUnloadHandler = (): void => {
         const currentState = gameStateGetter();
         saveGameState(currentState);
     };
@@ -71,14 +95,14 @@ export function setupAutoSave(gameStateGetter, interval = 30000) {
     window.addEventListener('beforeunload', beforeUnloadHandler);
 
     // クリーンアップ関数を返す
-    return () => {
+    return (): void => {
         clearInterval(autoSaveTimer);
         window.removeEventListener('beforeunload', beforeUnloadHandler);
     };
 }
 
 // LocalStorageの容量チェック
-export function checkStorageSpace() {
+export function checkStorageSpace(): boolean {
     try {
         const testKey = 'storage-test';
         const testData = 'x'.repeat(1024); // 1KB のテストデータ
@@ -92,11 +116,11 @@ export function checkStorageSpace() {
 }
 
 // 保存データのバックアップ作成
-export function createBackup() {
+export function createBackup(): string | null {
     try {
         const gameState = localStorage.getItem(STORAGE_KEYS.GAME_STATE);
         if (gameState) {
-            const backup = {
+            const backup: BackupData = {
                 timestamp: Date.now(),
                 data: gameState
             };
@@ -110,9 +134,9 @@ export function createBackup() {
 }
 
 // バックアップからの復元
-export function restoreFromBackup(backupData) {
+export function restoreFromBackup(backupData: string): boolean {
     try {
-        const backup = JSON.parse(backupData);
+        const backup = JSON.parse(backupData) as BackupData;
         localStorage.setItem(STORAGE_KEYS.GAME_STATE, backup.data);
         console.log('バックアップから復元しました');
         return true;
@@ -123,7 +147,7 @@ export function restoreFromBackup(backupData) {
 }
 
 // デバッグ: コンソールからのバックアップ復元用ヘルパー
-export function debugRestoreFromConsole() {
+export function debugRestoreFromConsole(): void {
     console.log('使用方法:');
     console.log('1. 削除時にコンソールに出力されたバックアップデータをコピー');
     console.log('2. debugRestoreBackup("バックアップデータ") を実行');
@@ -131,7 +155,13 @@ export function debugRestoreFromConsole() {
 }
 
 // デバッグ: バックアップデータからの復元（コンソール用）
-window.debugRestoreBackup = function(backupData) {
+declare global {
+    interface Window {
+        debugRestoreBackup: (backupData: string) => boolean;
+    }
+}
+
+window.debugRestoreBackup = function(backupData: string): boolean {
     try {
         const result = restoreFromBackup(backupData);
         if (result) {
@@ -150,16 +180,16 @@ window.debugRestoreBackup = function(backupData) {
 };
 
 // デバッグ: 保存機能の再有効化
-export function enableAutoSave() {
+export function enableAutoSave(): boolean {
     sessionStorage.removeItem('game-data-cleared');
     console.log('自動保存機能を再有効化しました');
     return true;
 }
 
 // デバッグ: セーブデータの削除
-export function clearSaveData(shouldCreateBackup = true) {
+export function clearSaveData(shouldCreateBackup: boolean = true): ClearResult {
     try {
-        let backupData = null;
+        let backupData: string | null = null;
         
         // バックアップを作成（削除前に実行）
         if (shouldCreateBackup) {
@@ -187,18 +217,18 @@ export function clearSaveData(shouldCreateBackup = true) {
         console.error('セーブデータの削除に失敗しました:', error);
         return {
             success: false,
-            error: error.message
+            error: error instanceof Error ? error.message : String(error)
         };
     }
 }
 
 // デバッグ: LocalStorage内のすべてのゲーム関連データを表示
-export function debugShowStorageData() {
+export function debugShowStorageData(): StorageInfo {
     try {
         const gameData = localStorage.getItem(STORAGE_KEYS.GAME_STATE);
         
         if (gameData) {
-            const parsed = JSON.parse(gameData);
+            const parsed = JSON.parse(gameData) as GameState;
             console.log('現在のセーブデータ:', parsed);
             
             // データサイズの計算
@@ -209,7 +239,7 @@ export function debugShowStorageData() {
                 exists: true,
                 data: parsed,
                 size: dataSize,
-                lastModified: new Date(parsed.timestamp || 0).toLocaleString()
+                lastModified: new Date((parsed as any).timestamp || 0).toLocaleString()
             };
         } else {
             console.log('セーブデータが存在しません');
@@ -221,7 +251,7 @@ export function debugShowStorageData() {
         console.error('セーブデータの取得に失敗しました:', error);
         return {
             exists: false,
-            error: error.message
+            error: error instanceof Error ? error.message : String(error)
         };
     }
 }

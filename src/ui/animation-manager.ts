@@ -2,13 +2,25 @@
 
 import { UI_CONFIG } from '../utils/constants.js';
 
+// アニメーション関連の型定義
+type EffectType = 'credit-gain' | 'forward' | 'backward';
+type AnimationType = 'diceRolling' | 'diceRoll';
+
 export class AnimationManager {
+    private activeAnimations: Map<HTMLElement, number>;
+
     constructor() {
         this.activeAnimations = new Map();
     }
 
     // 手動ダイス表示のアニメーション（強化版）
-    animateManualDiceResult(element, rollQuality = 0.5, diceCount = 1, results = [], total = 0) {
+    animateManualDiceResult(
+        element: HTMLElement | null, 
+        rollQuality: number = 0.5, 
+        diceCount: number = 1, 
+        results: number[] = [], 
+        total: number = 0
+    ): void {
         if (!element) return;
         
         // 結果品質に応じた表示色とアニメーション
@@ -48,7 +60,7 @@ export class AnimationManager {
         this.stopAnimation(element);
         
         setTimeout(() => {
-            const animationType = rollQuality >= 0.8 ? 'diceRolling' : 'diceRoll';
+            const animationType: AnimationType = rollQuality >= 0.8 ? 'diceRolling' : 'diceRoll';
             this.startAnimation(element, animationType, UI_CONFIG.DICE_ANIMATION_DURATION);
             
             // 特別演出（優秀な結果の場合）
@@ -59,7 +71,7 @@ export class AnimationManager {
     }
 
     // マス目効果のアニメーション
-    animateCellEffect(cellElement, effectType) {
+    animateCellEffect(cellElement: HTMLElement | null, effectType: EffectType): void {
         if (!cellElement) return;
         
         const animationClass = `${effectType}-effect`;
@@ -72,22 +84,22 @@ export class AnimationManager {
     }
 
     // クレジット獲得アニメーション
-    animateCreditGain(cellElement) {
+    animateCreditGain(cellElement: HTMLElement | null): void {
         this.animateCellEffect(cellElement, 'credit-gain');
     }
 
     // 進むマスのアニメーション
-    animateForwardEffect(cellElement) {
+    animateForwardEffect(cellElement: HTMLElement | null): void {
         this.animateCellEffect(cellElement, 'forward');
     }
 
     // 戻るマスのアニメーション
-    animateBackwardEffect(cellElement) {
+    animateBackwardEffect(cellElement: HTMLElement | null): void {
         this.animateCellEffect(cellElement, 'backward');
     }
 
     // プレイヤー位置移動のアニメーション
-    animatePlayerMove(fromPosition, toPosition, gameBoard) {
+    animatePlayerMove(_fromPosition: number, toPosition: number, gameBoard: HTMLElement): void {
         // 既存のプレイヤー位置をクリア
         const oldPlayerCells = gameBoard.querySelectorAll('.player-position');
         oldPlayerCells.forEach(cell => {
@@ -97,7 +109,7 @@ export class AnimationManager {
         });
         
         // 新しい位置にプレイヤーアイコンを配置
-        const newCell = gameBoard.querySelector(`[data-position="${toPosition}"]`);
+        const newCell = gameBoard.querySelector(`[data-position="${toPosition}"]`) as HTMLElement;
         if (newCell) {
             newCell.classList.add('player-position');
             
@@ -113,7 +125,11 @@ export class AnimationManager {
     }
 
     // 汎用アニメーション開始
-    startAnimation(element, animationName, duration = UI_CONFIG.ANIMATION_DURATION) {
+    startAnimation(
+        element: HTMLElement, 
+        animationName: string, 
+        duration: number = UI_CONFIG.ANIMATION_DURATION
+    ): void {
         if (!element) return;
         
         // 既存のアニメーションを停止
@@ -122,7 +138,7 @@ export class AnimationManager {
         element.style.animation = `${animationName} ${duration}ms ease-in-out`;
         
         // アニメーション終了後のクリーンアップ
-        const timeoutId = setTimeout(() => {
+        const timeoutId = window.setTimeout(() => {
             element.style.animation = '';
             this.activeAnimations.delete(element);
         }, duration);
@@ -131,7 +147,7 @@ export class AnimationManager {
     }
 
     // アニメーション停止
-    stopAnimation(element) {
+    stopAnimation(element: HTMLElement): void {
         if (!element) return;
         
         const timeoutId = this.activeAnimations.get(element);
@@ -144,7 +160,11 @@ export class AnimationManager {
     }
 
     // 光るエフェクト
-    addGlowEffect(element, color = 'gold', duration = UI_CONFIG.GLOW_EFFECT_DURATION) {
+    addGlowEffect(
+        element: HTMLElement | null, 
+        color: string = 'gold', 
+        duration: number = UI_CONFIG.GLOW_EFFECT_DURATION
+    ): void {
         if (!element) return;
         
         element.style.textShadow = `0 0 20px ${color}`;
@@ -157,8 +177,8 @@ export class AnimationManager {
     }
 
     // パルスエフェクト（購入可能ボタンなど）
-    addPulseEffect(element) {
-        if (!element) return;
+    addPulseEffect(element: HTMLElement | null): (() => void) | null {
+        if (!element) return null;
         
         element.style.animation = 'pulse 2s infinite';
         return () => {
@@ -167,7 +187,12 @@ export class AnimationManager {
     }
 
     // ボタンの有効性に応じた視覚効果
-    updateButtonAffordability(button, canAfford, cost, currentCredits) {
+    updateButtonAffordability(
+        button: HTMLElement | null, 
+        canAfford: boolean, 
+        cost: number, 
+        currentCredits: number
+    ): void {
         if (!button) return;
         
         if (canAfford) {
@@ -190,7 +215,7 @@ export class AnimationManager {
     }
 
     // クールダウンゲージのアニメーション
-    updateCooldownProgress(progressBar, progress) {
+    updateCooldownProgress(progressBar: HTMLElement | null, progress: number): void {
         if (!progressBar) return;
         
         progressBar.style.width = `${Math.min(100, progress)}%`;
@@ -204,7 +229,7 @@ export class AnimationManager {
     }
 
     // 全アニメーションのクリーンアップ
-    cleanupAllAnimations() {
+    cleanupAllAnimations(): void {
         this.activeAnimations.forEach((timeoutId, element) => {
             clearTimeout(timeoutId);
             if (element) {
