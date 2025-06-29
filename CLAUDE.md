@@ -28,8 +28,8 @@ npm run dev          # 開発モード（ファイル監視）
 
 ### 主要ファイル構成
 - `index.html` - メインHTML（Bootstrap 5.3 CDN使用）
-- `assets/css/style.css` - カスタムCSS（レスポンシブデザイン、アニメーション）
-- `assets/` - TypeScriptソースコード
+- `assets/` - 静的ファイル（CSS、画像等）
+- `src/` - TypeScriptソースコード
 - `dist/` - コンパイル済みJavaScript（自動生成）
 - `tsconfig.json` - TypeScript設定
 - `package.json` - 依存関係管理
@@ -39,51 +39,51 @@ npm run dev          # 開発モード（ファイル監視）
 **関心の分離**により以下のように責務を分散：
 
 #### Types（型定義）
-- **`types/game-state.ts`**: ゲーム状態、インターフェース、型定義
-- **`types/constants.ts`**: 設定値、構成オブジェクトの型定義
+- **`src/types/game-state.ts`**: ゲーム状態、インターフェース、型定義
+- **`src/types/constants.ts`**: 設定値、構成オブジェクトの型定義
 
 #### Core（核となるクラス）
-- **`core/game.ts`**: メインゲームクラス、全体の統合・初期化
-- **`core/game-loop.ts`**: ゲームループ管理、60fps更新、デバッグ制御
+- **`src/core/game.ts`**: メインゲームクラス、全体の統合・初期化
+- **`src/core/game-loop.ts`**: ゲームループ管理、60fps更新、デバッグ制御
 
 #### Systems（ゲームシステム）
-- **`systems/dice-system.ts`**: 手動・自動ダイス、タイマー管理
-- **`systems/board-system.ts`**: 盤面生成、プレイヤー移動、マス目効果
-- **`systems/upgrade-system.ts`**: アップグレード計算、コスト管理
-- **`systems/prestige-system.ts`**: 転生、プレステージポイント、統計
+- **`src/systems/dice-system.ts`**: 手動・自動ダイス、タイマー管理
+- **`src/systems/board-system.ts`**: 盤面生成、プレイヤー移動、マス目効果
+- **`src/systems/upgrade-system.ts`**: アップグレード計算、コスト管理
+- **`src/systems/prestige-system.ts`**: 転生、プレステージポイント、統計
 
 #### Data（データ管理）
-- **`data/game-state.ts`**: ゲーム状態の定義、デフォルト値、マージ処理
-- **`data/storage-manager.ts`**: 自動保存、データ復元、バックアップ機能
+- **`src/data/game-state.ts`**: ゲーム状態の定義、デフォルト値、マージ処理
+- **`src/data/storage-manager.ts`**: 自動保存、データ復元、バックアップ機能
 
 #### UI（ユーザーインターフェース）
-- **`ui/ui-manager.ts`**: DOM操作、イベント処理、部分更新最適化
-- **`ui/animation-manager.ts`**: アニメーション効果、視覚フィードバック
+- **`src/ui/ui-manager.ts`**: DOM操作、イベント処理、部分更新最適化
+- **`src/ui/animation-manager.ts`**: アニメーション効果、視覚フィードバック
 
 #### Utils（ユーティリティ）
-- **`utils/constants.ts`**: 定数、設定値、ゲームバランス調整
-- **`utils/math-utils.ts`**: 数学関数、確率計算、シード付きランダム
+- **`src/utils/constants.ts`**: 定数、設定値、ゲームバランス調整
+- **`src/utils/math-utils.ts`**: 数学関数、確率計算、シード付きランダム
 
 ### 重要なゲームシステム
 
-**ダイスシステム（dice-system.ts）**:
+**ダイスシステム（src/systems/dice-system.ts）**:
 - **手動ダイス**: 複数個対応、手動実行
 - **自動ダイス**: 7種類（2/4/6/8/10/12/20面）、段階的解禁
 - **タイマー管理**: 各ダイスの実行間隔制御、負荷システム対応
 - **アップグレード**: 速度（間隔短縮）・個数（同時実行数）
 
-**盤面システム（board-system.ts）**:
+**盤面システム（src/systems/board-system.ts）**:
 - **動的生成**: レベルごとの盤面再生成、シード付きランダム
 - **マス目種類**: 空白、クレジット、進む、戻るマス
 - **特殊配置**: 固定戻るマス（レベル10以降、90-99マス目）
 - **効果適用**: マス目到達時の効果処理
 
-**アップグレードシステム（upgrade-system.ts）**:
+**アップグレードシステム（src/systems/upgrade-system.ts）**:
 - **段階的価格**: 累乗による価格上昇（1.5倍、2倍等）
 - **解禁システム**: ダイス種類の段階的解禁
 - **コスト計算**: 各アップグレード種類で異なる計算式
 
-**プレステージシステム（prestige-system.ts）**:
+**プレステージシステム（src/systems/prestige-system.ts）**:
 - **プレステージポイント**: レベル50以降、指数関数的獲得
 - **転生処理**: 状態リセット + 統計保存
 - **統計管理**: 転生回数、最高記録、総獲得値等の追跡
@@ -99,14 +99,14 @@ npm run dev          # 開発モード（ファイル監視）
 
 ### UI最適化システム
 
-**部分更新アーキテクチャ（ui-manager.ts）**:
+**部分更新アーキテクチャ（src/ui/ui-manager.ts）**:
 - **shouldRegenerateAutoDice()**: 全体再生成の必要性判定
 - **updateExistingAutoDice()**: 既存要素の部分更新
 - **updateUILight()**: 軽量版更新（ボタン状態のみ）
 - **data属性**: ボタン識別・状態管理
 - **型安全性**: DOM要素の型定義、null安全性
 
-**アニメーション管理（animation-manager.ts）**:
+**アニメーション管理（src/ui/animation-manager.ts）**:
 - **効果別アニメ**: ダイス結果、マス効果、アップグレード成功
 - **パフォーマンス配慮**: アニメーション制御、メモリ管理
 - **型定義**: アニメーションパラメータの型安全性

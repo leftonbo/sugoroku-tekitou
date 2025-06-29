@@ -44,27 +44,29 @@
 ```
 sugoroku-tekitou/
 ├── index.html                    # メインHTMLファイル
-├── assets/
+├── assets/                       # 静的ファイル
 │   ├── css/
 │   │   └── style.css            # カスタムスタイル（アニメーション含む）
+│   └── img/                     # 画像ファイル
+├── src/                         # TypeScriptソースコード
 │   ├── types/                   # TypeScript型定義
 │   │   ├── game-state.ts        # ゲーム状態の型定義
 │   │   └── constants.ts         # 設定値の型定義
-│   ├── utils/                   # ユーティリティ (TypeScript)
+│   ├── utils/                   # ユーティリティ
 │   │   ├── constants.ts         # 定数・設定値
 │   │   └── math-utils.ts        # 数学・計算関数
-│   ├── data/                    # データ管理 (TypeScript)
+│   ├── data/                    # データ管理
 │   │   ├── game-state.ts        # ゲーム状態管理
 │   │   └── storage-manager.ts   # データ保存・復元
-│   ├── systems/                 # ゲームシステム (TypeScript)
+│   ├── systems/                 # ゲームシステム
 │   │   ├── board-system.ts      # 盤面システム
 │   │   ├── dice-system.ts       # ダイスシステム
 │   │   ├── prestige-system.ts   # プレステージシステム
 │   │   └── upgrade-system.ts    # アップグレードシステム
-│   ├── ui/                      # UI層 (TypeScript)
+│   ├── ui/                      # UI層
 │   │   ├── animation-manager.ts # アニメーション管理
 │   │   └── ui-manager.ts        # UI管理・最適化
-│   └── core/                    # メイン (TypeScript)
+│   └── core/                    # メイン
 │       ├── game.ts              # メインゲームクラス
 │       └── game-loop.ts         # ゲームループ管理
 ├── dist/                        # コンパイル済みJavaScript (自動生成)
