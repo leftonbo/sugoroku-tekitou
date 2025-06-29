@@ -20,7 +20,7 @@ export class DiceSystem {
             let roll = Math.floor(Math.random() * MANUAL_DICE_CONFIG.BASE_FACES) + 1;
             
             // 負荷による出目補正を適用
-            roll = this.applyBurdenEffect(roll);
+            roll = this.applyBurdenEffect(roll, MANUAL_DICE_CONFIG.BASE_FACES);
             
             this.manualDiceResults.push(roll);
             totalRoll += roll;
@@ -62,7 +62,7 @@ export class DiceSystem {
             let roll = Math.floor(Math.random() * dice.faces) + 1;
             
             // 負荷による出目補正を適用
-            roll = this.applyBurdenEffect(roll);
+            roll = this.applyBurdenEffect(roll, dice.faces);
             
             totalRoll += roll;
         }
@@ -181,21 +181,27 @@ export class DiceSystem {
     }
 
     // 負荷による出目補正の適用
-    applyBurdenEffect(roll) {
+    applyBurdenEffect(roll, faces) {
         const burdenLevel = this.getBurdenLevel();
         
         if (burdenLevel === 0) {
             return roll;
         }
         
-        // 負荷レベル1: -1、負荷レベル2: -2、負荷レベル3: -2（最小1）
+        // 負荷レベル1: -1、負荷レベル2: -2
         let adjustedRoll = roll;
         
         if (burdenLevel >= 1) adjustedRoll -= 1;
         if (burdenLevel >= 2) adjustedRoll -= 1;
         
-        // 出目は最小1
-        return Math.max(1, adjustedRoll);
+        // 正数の場合はそのまま
+        if (adjustedRoll >= 1) {
+            return adjustedRoll;
+        }
+        
+        // adjustedRoll が0以下になる場合
+        // 出目が face の半分未満の出目は 0, それ以外は 1 以上に調整
+        return roll < faces / 2 ? 0 : 1;
     }
 
     // 負荷レベルの詳細情報を取得
