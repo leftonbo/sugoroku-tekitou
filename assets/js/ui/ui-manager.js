@@ -114,9 +114,9 @@ export class UIManager {
             this.updatePlayerPosition();
         }
         
-        // 基本情報のみ更新
+        // 基本情報とボタン状態の軽量更新
         this.updateGameInfo();
-        this.updatePrestigeButton();
+        this.updateUILight();
         
         // マス目の効果を適用
         const effect = this.systems.board.applySquareEffect(this.gameState.position);
@@ -243,11 +243,33 @@ export class UIManager {
         }
     }
 
-    // UI更新
+    // UI更新（全体）
     updateUI() {
         this.updateGameInfo();
         this.updateManualDiceUI();
         this.updateAutoDiceUI();
+        this.updatePrestigeButton();
+    }
+
+    // UI更新（軽量版：ボタン状態のみ）
+    updateUILight() {
+        const upgradeInfo = this.systems.upgrade.getAllUpgradeInfo();
+        
+        // 手動ダイスボタンの更新
+        if (this.elements.upgradeManualCountBtn) {
+            this.elements.upgradeManualCountBtn.disabled = !upgradeInfo.manual.canAfford;
+            this.animationManager.updateButtonAffordability(
+                this.elements.upgradeManualCountBtn,
+                upgradeInfo.manual.canAfford,
+                upgradeInfo.manual.cost,
+                this.gameState.credits
+            );
+        }
+        
+        // 自動ダイスボタンの更新
+        this.updateExistingAutoDice(upgradeInfo);
+        
+        // プレステージボタンの更新
         this.updatePrestigeButton();
     }
 
@@ -329,14 +351,127 @@ export class UIManager {
         const container = this.elements.autoDiceContainer;
         if (!container) return;
         
-        container.innerHTML = '';
-        
         const upgradeInfo = this.systems.upgrade.getAllUpgradeInfo();
+        
+        // 初回または構造変更時のみ全体再生成
+        if (this.shouldRegenerateAutoDice(upgradeInfo)) {
+            this.generateAutoDiceUI(upgradeInfo);
+        } else {
+            // 部分更新のみ実行
+            this.updateExistingAutoDice(upgradeInfo);
+        }
+    }
+
+    // 自動ダイス全体の生成が必要かチェック
+    shouldRegenerateAutoDice(upgradeInfo) {
+        const container = this.elements.autoDiceContainer;
+        const existingPanels = container.querySelectorAll('.auto-dice-panel');
+        
+        // パネル数が異なる場合は再生成
+        if (existingPanels.length !== upgradeInfo.auto.length) {
+            return true;
+        }
+        
+        // 解禁状態が変わった場合は再生成
+        for (let i = 0; i < upgradeInfo.auto.length; i++) {
+            const panel = existingPanels[i];
+            const wasUnlocked = panel.getAttribute('data-unlocked') === 'true';
+            const isUnlocked = upgradeInfo.auto[i].unlocked;
+            
+            if (wasUnlocked !== isUnlocked) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    // 自動ダイス全体生成
+    generateAutoDiceUI(upgradeInfo) {
+        const container = this.elements.autoDiceContainer;
+        container.innerHTML = '';
         
         upgradeInfo.auto.forEach((diceInfo, index) => {
             const dicePanel = this.createAutoDicePanel(diceInfo, index);
             container.appendChild(dicePanel);
         });
+    }
+
+    // 既存の自動ダイスパネルの部分更新
+    updateExistingAutoDice(upgradeInfo) {
+        const container = this.elements.autoDiceContainer;
+        const existingPanels = container.querySelectorAll('.auto-dice-panel');
+        
+        upgradeInfo.auto.forEach((diceInfo, index) => {
+            const panel = existingPanels[index];
+            if (!panel) return;
+            
+            if (diceInfo.unlocked) {
+                this.updateUnlockedDicePanel(panel, diceInfo, index);
+            } else {
+                this.updateLockedDicePanel(panel, diceInfo, index);
+            }
+        });
+    }
+
+    // 解禁済みダイスパネルの更新
+    updateUnlockedDicePanel(panel, diceInfo, index) {
+        // ステータス表示の更新
+        const statusDiv = panel.querySelector('.debug-status, .bg-light');
+        if (statusDiv) {
+            const diceDetails = this.systems.dice.getAutoDiceInfo(index);
+            const statusInfo = statusDiv.querySelector('small');
+            if (statusInfo) {
+                statusInfo.innerHTML = `
+                    📊 <strong>ステータス</strong><br>
+                    🎯 個数: <span class="text-primary fw-bold">${diceInfo.count}</span> | 
+                    ⚡ 速度Lv: <span class="text-info fw-bold">${diceInfo.speedLevel}</span><br>
+                    ⏱️ 間隔: <span class="text-success">${(diceDetails.interval / 1000).toFixed(1)}秒</span> | 
+                    📈 毎分: <span class="text-warning fw-bold">${diceDetails.rollsPerMinute}回</span>
+                `;
+            }
+        }
+
+        // アップグレードボタンの更新
+        const speedBtn = panel.querySelector('[data-upgrade-type="speed"]');
+        if (speedBtn) {
+            this.updateUpgradeButton(speedBtn, diceInfo.speedUpgradeCost, diceInfo.canUpgradeSpeed);
+        }
+        
+        const countBtn = panel.querySelector('[data-upgrade-type="count"]');
+        if (countBtn) {
+            this.updateUpgradeButton(countBtn, diceInfo.countUpgradeCost, diceInfo.canUpgradeCount);
+        }
+    }
+
+    // 未解禁ダイスパネルの更新
+    updateLockedDicePanel(panel, diceInfo, index) {
+        const unlockBtn = panel.querySelector('[data-upgrade-type="unlock"]');
+        if (unlockBtn) {
+            this.updateUpgradeButton(unlockBtn, diceInfo.unlockCost, diceInfo.canUnlock);
+        }
+    }
+
+    // 個別アップグレードボタンの更新
+    updateUpgradeButton(button, cost, canAfford) {
+        if (!button) return;
+        
+        // ボタンの有効/無効状態
+        button.disabled = !canAfford;
+        
+        // コスト表示の更新
+        const costElement = button.querySelector('small');
+        if (costElement) {
+            costElement.textContent = formatNumber(cost) + '💰';
+        }
+        
+        // アフォーダビリティのスタイル更新
+        this.animationManager.updateButtonAffordability(
+            button,
+            canAfford,
+            cost,
+            this.gameState.credits
+        );
     }
 
     // 自動ダイスパネルの作成
@@ -375,7 +510,8 @@ export class UIManager {
             buttonClass += ' btn-ripple';
         }
         unlockBtn.className = buttonClass;
-        unlockBtn.innerHTML = `🔓 解禁<br><small>コスト: ${formatNumber(diceInfo.unlockCost)}💰</small>`;
+        unlockBtn.setAttribute('data-upgrade-type', 'unlock');
+        unlockBtn.innerHTML = `🔓 解禁<br><small>${formatNumber(diceInfo.unlockCost)}💰</small>`;
         unlockBtn.disabled = !diceInfo.canUnlock;
         
         unlockBtn.addEventListener('click', () => {
@@ -443,6 +579,7 @@ export class UIManager {
             diceInfo.speedUpgradeCost,
             diceInfo.canUpgradeSpeed,
             'btn-outline-primary',
+            'speed',
             () => {
                 if (this.systems.upgrade.upgradeAutoDiceSpeed(index)) {
                     this.updateUI();
@@ -459,6 +596,7 @@ export class UIManager {
             diceInfo.countUpgradeCost,
             diceInfo.canUpgradeCount,
             'btn-outline-warning',
+            'count',
             () => {
                 if (this.systems.upgrade.upgradeAutoDiceCount(index)) {
                     this.updateUI();
@@ -473,9 +611,10 @@ export class UIManager {
     }
 
     // アップグレードボタンの作成
-    createUpgradeButton(text, cost, canAfford, buttonClass, clickHandler) {
+    createUpgradeButton(text, cost, canAfford, buttonClass, upgradeType, clickHandler) {
         const button = document.createElement('button');
         button.className = `btn ${buttonClass} btn-sm w-100` + (canAfford ? ' btn-ripple' : '');
+        button.setAttribute('data-upgrade-type', upgradeType);
         button.innerHTML = `${text}<br><small>${formatNumber(cost)}💰</small>`;
         button.disabled = !canAfford;
         button.addEventListener('click', clickHandler);
