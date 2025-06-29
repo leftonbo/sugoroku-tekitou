@@ -328,8 +328,121 @@ class SugorokuGame {
         // アップグレードボタンの状態
         this.elements.upgradeAutoSpeed.disabled = this.gameState.credits < autoSpeedCost;
         
+        // サイコロアップグレードUIの更新
+        this.updateDiceUpgradeUI();
+        
         // プレステージボタンの状態
         this.elements.prestigeBtn.disabled = this.gameState.prestigePoints === 0;
+    }
+    
+    // サイコロアップグレードUIの更新
+    updateDiceUpgradeUI() {
+        const container = this.elements.diceUpgrades;
+        container.innerHTML = '';
+        
+        const diceTypes = [
+            { key: 'd2', faces: 2, name: '2面', basePrice: 50, emoji: '🎯' },
+            { key: 'd4', faces: 4, name: '4面', basePrice: 200, emoji: '🔹' },
+            { key: 'd6', faces: 6, name: '6面', basePrice: 0, emoji: '🎲' },
+            { key: 'd8', faces: 8, name: '8面', basePrice: 800, emoji: '🔸' },
+            { key: 'd10', faces: 10, name: '10面', basePrice: 2000, emoji: '🔟' },
+            { key: 'd12', faces: 12, name: '12面', basePrice: 5000, emoji: '🔵' },
+            { key: 'd20', faces: 20, name: '20面', basePrice: 20000, emoji: '⭐' }
+        ];
+        
+        diceTypes.forEach(diceType => {
+            const currentCount = this.getDiceCount(diceType.faces);
+            const isUnlocked = this.isDiceUnlocked(diceType.faces);
+            const cost = this.getDiceUpgradeCost(diceType.key, diceType.basePrice);
+            
+            const diceDiv = document.createElement('div');
+            diceDiv.className = 'upgrade-item mb-2';
+            
+            let buttonText, buttonClass, isDisabled;
+            
+            if (!isUnlocked && diceType.key !== 'd6') {
+                buttonText = `${diceType.emoji} ${diceType.name}ダイス解放<br><small>コスト: ${this.formatNumber(cost)}💰</small>`;
+                buttonClass = 'btn btn-outline-success btn-sm w-100';
+                isDisabled = this.gameState.credits < cost;
+            } else {
+                buttonText = `${diceType.emoji} ${diceType.name}ダイス追加<br><small>現在: ${currentCount}個 | コスト: ${this.formatNumber(cost)}💰</small>`;
+                buttonClass = 'btn btn-outline-primary btn-sm w-100';
+                isDisabled = this.gameState.credits < cost;
+            }
+            
+            const button = document.createElement('button');
+            button.className = buttonClass;
+            button.innerHTML = buttonText;
+            button.disabled = isDisabled;
+            
+            button.addEventListener('click', () => {
+                this.purchaseDiceUpgrade(diceType.key, diceType.faces, diceType.basePrice);
+            });
+            
+            diceDiv.appendChild(button);
+            container.appendChild(diceDiv);
+        });
+    }
+    
+    // サイコロの所持数を取得
+    getDiceCount(faces) {
+        const dice = this.gameState.dice.find(d => d.faces === faces);
+        return dice ? dice.count : 0;
+    }
+    
+    // サイコロが解放されているかチェック
+    isDiceUnlocked(faces) {
+        const dice = this.gameState.dice.find(d => d.faces === faces);
+        return dice ? dice.unlocked : false;
+    }
+    
+    // サイコロアップグレードのコスト計算
+    getDiceUpgradeCost(diceKey, basePrice) {
+        const currentLevel = this.gameState.upgrades.diceUpgrades[diceKey] || 0;
+        if (diceKey === 'd6') return Math.floor(basePrice * Math.pow(1.5, currentLevel));
+        
+        // 初回解放コストは固定、その後は段階的に上昇
+        const dice = this.gameState.dice.find(d => d.faces === parseInt(diceKey.slice(1)));
+        if (!dice || !dice.unlocked) {
+            return basePrice; // 解放コスト
+        } else {
+            return Math.floor(basePrice * Math.pow(2, currentLevel - 1)); // 追加コスト
+        }
+    }
+    
+    // サイコロアップグレードの購入
+    purchaseDiceUpgrade(diceKey, faces, basePrice) {
+        const cost = this.getDiceUpgradeCost(diceKey, basePrice);
+        
+        if (this.gameState.credits >= cost) {
+            this.gameState.credits -= cost;
+            
+            // サイコロデータを更新
+            let dice = this.gameState.dice.find(d => d.faces === faces);
+            
+            if (!dice) {
+                // 新しいサイコロタイプを追加
+                dice = { faces: faces, count: 0, unlocked: false };
+                this.gameState.dice.push(dice);
+            }
+            
+            if (!dice.unlocked) {
+                // サイコロタイプを解放
+                dice.unlocked = true;
+                dice.count = 1;
+                console.log(`${faces}面ダイスを解放しました！`);
+            } else {
+                // サイコロ数を増加
+                dice.count++;
+                console.log(`${faces}面ダイスを追加しました！現在: ${dice.count}個`);
+            }
+            
+            // アップグレードレベルを増加
+            this.gameState.upgrades.diceUpgrades[diceKey]++;
+            
+            this.updateUI();
+            this.saveGameState();
+        }
     }
     
     // 数値のフォーマット
