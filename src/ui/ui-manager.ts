@@ -326,18 +326,19 @@ export class UIManager {
             switch (cellData.type) {
                 case 'empty':
                     effectDiv.textContent = '　';
+                    cell.classList.add('normal');
                     break;
                 case 'credit':
                     effectDiv.innerHTML = `💰<br><small>${cellData.effect}</small>`;
-                    cell.classList.add('credit-cell');
+                    cell.classList.add('credit');
                     break;
                 case 'forward':
                     effectDiv.innerHTML = `➡️<br><small>+${cellData.effect}</small>`;
-                    cell.classList.add('forward-cell');
+                    cell.classList.add('forward');
                     break;
                 case 'backward':
                     effectDiv.innerHTML = `⬅️<br><small>-${cellData.effect}</small>`;
-                    cell.classList.add('backward-cell');
+                    cell.classList.add('backward');
                     break;
             }
             
