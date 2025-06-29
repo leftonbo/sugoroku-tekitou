@@ -1,0 +1,741 @@
+// UI管理・DOM操作・イベント処理
+
+import { formatNumber } from '../utils/math-utils.js';
+import { DICE_CONFIGS } from '../utils/constants.js';
+import type { GameState } from '../types/game-state.js';
+import type { DiceSystem } from '../systems/dice-system.js';
+import type { BoardSystem } from '../systems/board-system.js';
+import type { UpgradeSystem } from '../systems/upgrade-system.js';
+import type { PrestigeSystem } from '../systems/prestige-system.js';
+import type { AnimationManager } from './animation-manager.js';
+
+// DOM要素の型定義
+interface DOMElements {
+    // ゲーム情報
+    credits?: HTMLElement;
+    position?: HTMLElement;
+    level?: HTMLElement;
+    prestigeEarned?: HTMLElement;
+    prestigeAvailable?: HTMLElement;
+    burdenDisplay?: HTMLElement;
+    burdenLevel?: HTMLElement;
+    burdenEffects?: HTMLElement;
+    
+    // 手動ダイス
+    manualDiceResult?: HTMLElement;
+    rollManualDiceBtn?: HTMLButtonElement;
+    upgradeManualCountBtn?: HTMLButtonElement;
+    manualDiceCount?: HTMLElement;
+    manualUpgradeCost?: HTMLElement;
+    
+    // 自動ダイス
+    autoDiceContainer?: HTMLElement;
+    
+    // ゲームボード
+    gameBoard?: HTMLElement;
+    
+    // プレステージ
+    prestigeBtn?: HTMLButtonElement;
+    
+    // 統計
+    statsBtn?: HTMLButtonElement;
+    statDiceRolls?: HTMLElement;
+    statTotalMoves?: HTMLElement;
+    statTotalCredits?: HTMLElement;
+    statRebirths?: HTMLElement;
+    statTotalPrestige?: HTMLElement;
+    statCurrentLevel?: HTMLElement;
+    
+    // デバッグパネル
+    debugPanel?: HTMLElement;
+    debugToggle?: HTMLButtonElement;
+    debugContent?: HTMLElement;
+    debugPause?: HTMLButtonElement;
+    debugResume?: HTMLButtonElement;
+    debugStep?: HTMLButtonElement;
+    debugShowData?: HTMLButtonElement;
+    debugClearData?: HTMLButtonElement;
+    debugEnableSave?: HTMLButtonElement;
+    debugGameStatus?: HTMLElement;
+    debugFps?: HTMLElement;
+    debugLastUpdate?: HTMLElement;
+    debugAutoDice?: HTMLElement;
+    debugLog?: HTMLElement;
+}
+
+// システムの型定義
+interface Systems {
+    dice: DiceSystem;
+    board: BoardSystem;
+    upgrade: UpgradeSystem;
+    prestige: PrestigeSystem;
+    storage: {
+        saveGameState: (gameState: GameState) => boolean;
+    };
+    gameLoop: {
+        pause: () => void;
+        resume: () => void;
+        step: () => void;
+        isPaused: () => boolean;
+    };
+}
+
+// ダイス結果の型定義
+interface RollResult {
+    total: number;
+    results: number[];
+    quality: number;
+}
+
+// 移動結果の型定義
+interface MoveResult {
+    oldPosition: number;
+    newPosition: number;
+    levelChanged: boolean;
+    prestigeEarned: number;
+}
+
+// マス効果の型定義
+interface SquareEffect {
+    type: string;
+    position: number;
+    moveResult?: MoveResult;
+}
+
+// アップグレード情報の型定義
+interface UpgradeInfo {
+    manual: {
+        cost: number;
+        canAfford: boolean;
+        currentCount: number;
+        currentLevel: number;
+    };
+    auto: Array<{
+        index: number;
+        faces: number;
+        unlocked: boolean;
+        count: number;
+        speedLevel: number;
+        countLevel: number;
+        unlockCost: number;
+        speedUpgradeCost: number;
+        countUpgradeCost: number;
+        canUnlock: boolean;
+        canUpgradeSpeed: boolean;
+        canUpgradeCount: boolean;
+    }>;
+    totalCredits: number;
+}
+
+export class UIManager {
+    private gameState: GameState;
+    private systems: Systems;
+    private animationManager: AnimationManager;
+    private elements: DOMElements;
+
+    constructor(gameState: GameState, systems: Systems, animationManager: AnimationManager) {
+        this.gameState = gameState;
+        this.systems = systems;
+        this.animationManager = animationManager;
+        this.elements = {};
+    }
+
+    // DOM要素のバインド
+    bindDOMElements(): void {
+        this.elements = {
+            // ゲーム情報
+            credits: document.getElementById('credits') as HTMLElement,
+            position: document.getElementById('position') as HTMLElement,
+            level: document.getElementById('level') as HTMLElement,
+            prestigeEarned: document.getElementById('prestige-earned') as HTMLElement,
+            prestigeAvailable: document.getElementById('prestige-available') as HTMLElement,
+            burdenDisplay: document.getElementById('burden-display') as HTMLElement,
+            burdenLevel: document.getElementById('burden-level') as HTMLElement,
+            burdenEffects: document.getElementById('burden-effects') as HTMLElement,
+            
+            // 手動ダイス
+            manualDiceResult: document.getElementById('manual-dice-result') as HTMLElement,
+            rollManualDiceBtn: document.getElementById('roll-manual-dice') as HTMLButtonElement,
+            upgradeManualCountBtn: document.getElementById('upgrade-manual-count') as HTMLButtonElement,
+            manualDiceCount: document.getElementById('manual-dice-count') as HTMLElement,
+            manualUpgradeCost: document.getElementById('manual-upgrade-cost') as HTMLElement,
+            
+            // 自動ダイス
+            autoDiceContainer: document.getElementById('auto-dice-container') as HTMLElement,
+            
+            // ゲームボード
+            gameBoard: document.getElementById('game-board') as HTMLElement,
+            
+            // プレステージ
+            prestigeBtn: document.getElementById('prestige-btn') as HTMLButtonElement,
+            
+            // 統計
+            statsBtn: document.getElementById('stats-btn') as HTMLButtonElement,
+            statDiceRolls: document.getElementById('stat-dice-rolls') as HTMLElement,
+            statTotalMoves: document.getElementById('stat-total-moves') as HTMLElement,
+            statTotalCredits: document.getElementById('stat-total-credits') as HTMLElement,
+            statRebirths: document.getElementById('stat-rebirths') as HTMLElement,
+            statTotalPrestige: document.getElementById('stat-total-prestige') as HTMLElement,
+            statCurrentLevel: document.getElementById('stat-current-level') as HTMLElement,
+            
+            // デバッグパネル
+            debugPanel: document.getElementById('debug-panel') as HTMLElement,
+            debugToggle: document.getElementById('debug-toggle') as HTMLButtonElement,
+            debugContent: document.getElementById('debug-content') as HTMLElement,
+            debugPause: document.getElementById('debug-pause') as HTMLButtonElement,
+            debugResume: document.getElementById('debug-resume') as HTMLButtonElement,
+            debugStep: document.getElementById('debug-step') as HTMLButtonElement,
+            debugShowData: document.getElementById('debug-show-data') as HTMLButtonElement,
+            debugClearData: document.getElementById('debug-clear-data') as HTMLButtonElement,
+            debugEnableSave: document.getElementById('debug-enable-save') as HTMLButtonElement,
+            debugGameStatus: document.getElementById('debug-game-status') as HTMLElement,
+            debugFps: document.getElementById('debug-fps') as HTMLElement,
+            debugLastUpdate: document.getElementById('debug-last-update') as HTMLElement,
+            debugAutoDice: document.getElementById('debug-auto-dice') as HTMLElement,
+            debugLog: document.getElementById('debug-log') as HTMLElement
+        };
+    }
+
+    // イベントリスナーの設定
+    setupEventListeners(): void {
+        // 手動ダイスを振るボタン
+        this.elements.rollManualDiceBtn?.addEventListener('click', () => {
+            const rollResult = this.systems.dice.rollManualDice();
+            this.updateManualDiceDisplay(rollResult);
+            
+            // プレイヤーを移動
+            const moveResult = this.systems.board.movePlayer(rollResult.total);
+            this.handlePlayerMove(moveResult);
+        });
+        
+        // 手動ダイス個数アップグレード
+        this.elements.upgradeManualCountBtn?.addEventListener('click', () => {
+            if (this.systems.upgrade.upgradeManualDiceCount()) {
+                this.updateUI();
+            }
+        });
+        
+        // プレステージボタン
+        this.elements.prestigeBtn?.addEventListener('click', () => {
+            const result = this.systems.prestige.prestige();
+            if (result.success) {
+                this.generateGameBoard();
+                this.updateUI();
+                this.systems.storage.saveGameState(this.gameState);
+            }
+        });
+        
+        // 統計ボタン
+        this.elements.statsBtn?.addEventListener('click', () => {
+            this.showStats();
+        });
+        
+        // デバッグパネルのイベントリスナー
+        this.setupDebugEventListeners();
+    }
+
+    // プレイヤー移動の処理
+    handlePlayerMove(moveResult: MoveResult): void {
+        // 盤面再生成が必要かチェック
+        if (moveResult.levelChanged) {
+            this.generateGameBoard();
+        } else {
+            this.updatePlayerPosition();
+        }
+        
+        // 基本情報とボタン状態の軽量更新
+        this.updateGameInfo();
+        this.updateUILight();
+        
+        // マス目の効果を適用
+        const effect = this.systems.board.applySquareEffect(this.gameState.position);
+        this.animateSquareEffect(effect);
+    }
+
+    // マス目効果のアニメーション処理
+    animateSquareEffect(effect: SquareEffect): void {
+        const cell = this.elements.gameBoard?.querySelector(`[data-position="${effect.position}"]`) as HTMLElement;
+        if (!cell) return;
+        
+        switch (effect.type) {
+            case 'credit':
+                this.animationManager.animateCreditGain(cell);
+                break;
+            case 'forward':
+                this.animationManager.animateForwardEffect(cell);
+                if (effect.moveResult) {
+                    this.animationManager.animatePlayerMove(
+                        effect.moveResult.oldPosition,
+                        effect.moveResult.newPosition,
+                        this.elements.gameBoard as HTMLElement
+                    );
+                }
+                break;
+            case 'backward':
+                this.animationManager.animateBackwardEffect(cell);
+                if (effect.moveResult) {
+                    this.animationManager.animatePlayerMove(
+                        effect.moveResult.oldPosition,
+                        effect.moveResult.newPosition,
+                        this.elements.gameBoard as HTMLElement
+                    );
+                }
+                break;
+        }
+    }
+
+    // 手動ダイス表示の更新
+    updateManualDiceDisplay(rollResult: RollResult): void {
+        if (!this.elements.manualDiceResult) return;
+        
+        this.animationManager.animateManualDiceResult(
+            this.elements.manualDiceResult,
+            rollResult.quality,
+            this.gameState.manualDice.count,
+            rollResult.results,
+            rollResult.total
+        );
+    }
+
+    // ゲームボードの生成
+    generateGameBoard(): void {
+        const board = this.elements.gameBoard;
+        if (!board) return;
+        
+        board.innerHTML = '';
+        
+        const boardData = this.systems.board.getBoardData();
+        
+        boardData.forEach(cellData => {
+            const cell = document.createElement('div');
+            cell.className = 'board-cell';
+            cell.dataset.position = cellData.position.toString();
+            cell.dataset.cellType = cellData.type;
+            cell.dataset.cellEffect = cellData.effect?.toString() || '';
+            
+            // マス番号
+            const cellNumber = document.createElement('div');
+            cellNumber.className = 'cell-number';
+            cellNumber.textContent = cellData.position.toString();
+            cell.appendChild(cellNumber);
+            
+            // マスの効果表示
+            const effectDiv = document.createElement('div');
+            effectDiv.className = 'cell-effect';
+            
+            switch (cellData.type) {
+                case 'empty':
+                    effectDiv.textContent = '　';
+                    break;
+                case 'credit':
+                    effectDiv.innerHTML = `💰<br><small>${cellData.effect}</small>`;
+                    cell.classList.add('credit-cell');
+                    break;
+                case 'forward':
+                    effectDiv.innerHTML = `➡️<br><small>+${cellData.effect}</small>`;
+                    cell.classList.add('forward-cell');
+                    break;
+                case 'backward':
+                    effectDiv.innerHTML = `⬅️<br><small>-${cellData.effect}</small>`;
+                    cell.classList.add('backward-cell');
+                    break;
+            }
+            
+            cell.appendChild(effectDiv);
+            
+            // プレイヤー位置のマーク
+            if (cellData.isPlayerPosition) {
+                cell.classList.add('player-position');
+                const playerIcon = document.createElement('div');
+                playerIcon.className = 'player-icon';
+                playerIcon.textContent = '🚀';
+                cell.appendChild(playerIcon);
+            }
+            
+            board.appendChild(cell);
+        });
+    }
+
+    // プレイヤー位置の更新
+    updatePlayerPosition(): void {
+        const board = this.elements.gameBoard;
+        if (!board) return;
+        
+        // 既存のプレイヤー位置をクリア
+        const oldPlayerCells = board.querySelectorAll('.player-position');
+        oldPlayerCells.forEach(cell => {
+            cell.classList.remove('player-position');
+            const icon = cell.querySelector('.player-icon');
+            if (icon) icon.remove();
+        });
+        
+        // 新しい位置にプレイヤーアイコンを配置
+        const newCell = board.querySelector(`[data-position="${this.gameState.position}"]`) as HTMLElement;
+        if (newCell) {
+            newCell.classList.add('player-position');
+            
+            const playerIcon = document.createElement('div');
+            playerIcon.className = 'player-icon';
+            playerIcon.textContent = '🚀';
+            newCell.appendChild(playerIcon);
+        }
+    }
+
+    // ゲーム情報の更新
+    updateGameInfo(): void {
+        if (this.elements.credits) {
+            this.elements.credits.textContent = formatNumber(this.gameState.credits);
+        }
+        if (this.elements.position) {
+            this.elements.position.textContent = this.gameState.position.toString();
+        }
+        if (this.elements.level) {
+            this.elements.level.textContent = this.gameState.level.toString();
+        }
+        if (this.elements.prestigeEarned) {
+            this.elements.prestigeEarned.textContent = this.gameState.prestigePoints.earned.toString();
+        }
+        if (this.elements.prestigeAvailable) {
+            this.elements.prestigeAvailable.textContent = this.gameState.prestigePoints.available.toString();
+        }
+        
+        // 負荷システムの表示
+        this.updateBurdenDisplay();
+    }
+
+    // 負荷システム表示の更新
+    updateBurdenDisplay(): void {
+        const burdenInfo = this.systems.dice.getBurdenInfo();
+        
+        if (burdenInfo.level > 0) {
+            if (this.elements.burdenDisplay) {
+                this.elements.burdenDisplay.style.display = 'block';
+            }
+            if (this.elements.burdenLevel) {
+                this.elements.burdenLevel.textContent = burdenInfo.level.toString();
+            }
+            if (this.elements.burdenEffects) {
+                let effectText = '';
+                if (burdenInfo.diceReduction > 0) {
+                    effectText += `出目-${burdenInfo.diceReduction}`;
+                }
+                if (burdenInfo.totalHalving) {
+                    effectText += effectText ? ', 総計半減' : '総計半減';
+                }
+                this.elements.burdenEffects.textContent = effectText;
+            }
+        } else {
+            if (this.elements.burdenDisplay) {
+                this.elements.burdenDisplay.style.display = 'none';
+            }
+        }
+    }
+
+    // UI全体の更新
+    updateUI(): void {
+        this.updateGameInfo();
+        this.updateManualDiceUI();
+        this.updateAutoDiceUI();
+        this.updatePrestigeButton();
+        this.updateStats();
+    }
+
+    // 軽量版UI更新（ボタン状態のみ）
+    updateUILight(): void {
+        this.updateManualDiceUI();
+        this.updatePrestigeButton();
+        
+        // 自動ダイスの軽量更新
+        if (this.shouldRegenerateAutoDice()) {
+            this.updateAutoDiceUI();
+        } else {
+            this.updateExistingAutoDice();
+        }
+    }
+
+    // 手動ダイスUIの更新
+    updateManualDiceUI(): void {
+        const upgradeInfo = this.systems.upgrade.getAllUpgradeInfo();
+        
+        if (this.elements.manualDiceCount) {
+            this.elements.manualDiceCount.textContent = upgradeInfo.manual.currentCount.toString();
+        }
+        if (this.elements.manualUpgradeCost) {
+            this.elements.manualUpgradeCost.textContent = formatNumber(upgradeInfo.manual.cost);
+        }
+        
+        // ボタンの有効性更新
+        if (this.elements.upgradeManualCountBtn) {
+            this.elements.upgradeManualCountBtn.disabled = !upgradeInfo.manual.canAfford;
+            this.animationManager.updateButtonAffordability(
+                this.elements.upgradeManualCountBtn,
+                upgradeInfo.manual.canAfford,
+                upgradeInfo.manual.cost,
+                upgradeInfo.totalCredits
+            );
+        }
+    }
+
+    // 自動ダイス全体更新が必要かチェック
+    shouldRegenerateAutoDice(): boolean {
+        const container = this.elements.autoDiceContainer;
+        if (!container) return true;
+        
+        const currentPanels = container.querySelectorAll('[data-dice-index]');
+        const upgradeInfo = this.systems.upgrade.getAllUpgradeInfo();
+        
+        // パネル数が異なる場合は再生成
+        if (currentPanels.length !== upgradeInfo.auto.length) {
+            return true;
+        }
+        
+        // 解禁状態が変わった場合は再生成
+        for (let i = 0; i < upgradeInfo.auto.length; i++) {
+            const panel = currentPanels[i] as HTMLElement;
+            const wasUnlocked = panel.dataset.unlocked === 'true';
+            const isUnlocked = upgradeInfo.auto[i]?.unlocked || false;
+            
+            if (wasUnlocked !== isUnlocked) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    // 自動ダイスUIの更新
+    updateAutoDiceUI(): void {
+        if (this.shouldRegenerateAutoDice()) {
+            this.generateAutoDiceUI();
+        } else {
+            this.updateExistingAutoDice();
+        }
+    }
+
+    // 自動ダイスUIの生成
+    generateAutoDiceUI(): void {
+        const container = this.elements.autoDiceContainer;
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        const upgradeInfo = this.systems.upgrade.getAllUpgradeInfo();
+        
+        upgradeInfo.auto.forEach((diceInfo) => {
+            const panel = this.createAutoDicePanel(diceInfo);
+            container.appendChild(panel);
+        });
+    }
+
+    // 自動ダイスパネルの作成
+    createAutoDicePanel(diceInfo: UpgradeInfo['auto'][0]): HTMLElement {
+        const config = DICE_CONFIGS[diceInfo.index];
+        if (!config) {
+            return document.createElement('div');
+        }
+        
+        const panel = document.createElement('div');
+        panel.className = 'upgrade-section mb-3';
+        panel.dataset.diceIndex = diceInfo.index.toString();
+        panel.dataset.unlocked = diceInfo.unlocked.toString();
+        
+        if (!diceInfo.unlocked) {
+            // 未解禁状態
+            panel.innerHTML = `
+                <h6 class="text-muted">${config.emoji} ${diceInfo.faces}面ダイス</h6>
+                <button class="btn btn-outline-warning btn-sm w-100" 
+                        data-action="unlock" data-index="${diceInfo.index}">
+                    解禁する
+                    <br><small>コスト: ${formatNumber(diceInfo.unlockCost)}💰</small>
+                </button>
+            `;
+        } else {
+            // 解禁済み状態
+            panel.innerHTML = `
+                <h6 class="text-success">${config.emoji} ${diceInfo.faces}面ダイス</h6>
+                <div class="mb-2">
+                    <small class="text-muted">個数: ${diceInfo.count} | 速度Lv: ${diceInfo.speedLevel}</small>
+                </div>
+                <div class="d-grid gap-1">
+                    <button class="btn btn-outline-primary btn-sm" 
+                            data-action="speed" data-index="${diceInfo.index}">
+                        速度アップグレード
+                        <br><small>コスト: ${formatNumber(diceInfo.speedUpgradeCost)}💰</small>
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" 
+                            data-action="count" data-index="${diceInfo.index}">
+                        個数アップグレード
+                        <br><small>コスト: ${formatNumber(diceInfo.countUpgradeCost)}💰</small>
+                    </button>
+                </div>
+            `;
+        }
+        
+        // ボタンイベントの設定
+        panel.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            const button = target.closest('button') as HTMLButtonElement;
+            if (!button) return;
+            
+            const action = button.dataset.action;
+            const index = parseInt(button.dataset.index || '0');
+            
+            switch (action) {
+                case 'unlock':
+                    if (this.systems.upgrade.unlockAutoDice(index)) {
+                        this.updateUI();
+                    }
+                    break;
+                case 'speed':
+                    if (this.systems.upgrade.upgradeAutoDiceSpeed(index)) {
+                        this.updateUI();
+                    }
+                    break;
+                case 'count':
+                    if (this.systems.upgrade.upgradeAutoDiceCount(index)) {
+                        this.updateUI();
+                    }
+                    break;
+            }
+        });
+        
+        return panel;
+    }
+
+    // 既存自動ダイスの更新
+    updateExistingAutoDice(): void {
+        const container = this.elements.autoDiceContainer;
+        if (!container) return;
+        
+        const upgradeInfo = this.systems.upgrade.getAllUpgradeInfo();
+        const panels = container.querySelectorAll('[data-dice-index]');
+        
+        panels.forEach((panel, index) => {
+            const diceInfo = upgradeInfo.auto[index];
+            if (!diceInfo) return;
+            
+            const buttons = panel.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
+            buttons.forEach(button => {
+                const action = button.dataset.action;
+                let canAfford = false;
+                let cost = 0;
+                
+                switch (action) {
+                    case 'unlock':
+                        canAfford = diceInfo.canUnlock;
+                        cost = diceInfo.unlockCost;
+                        break;
+                    case 'speed':
+                        canAfford = diceInfo.canUpgradeSpeed;
+                        cost = diceInfo.speedUpgradeCost;
+                        break;
+                    case 'count':
+                        canAfford = diceInfo.canUpgradeCount;
+                        cost = diceInfo.countUpgradeCost;
+                        break;
+                }
+                
+                button.disabled = !canAfford;
+                this.animationManager.updateButtonAffordability(
+                    button,
+                    canAfford,
+                    cost,
+                    upgradeInfo.totalCredits
+                );
+            });
+        });
+    }
+
+    // プレステージボタンの更新
+    updatePrestigeButton(): void {
+        const prestigeInfo = this.systems.prestige.getPrestigeInfo();
+        const button = this.elements.prestigeBtn;
+        
+        if (!button) return;
+        
+        if (prestigeInfo.canPrestige) {
+            button.disabled = false;
+            button.innerHTML = `転生する<br><small>${prestigeInfo.earned}PP獲得</small>`;
+        } else {
+            button.disabled = true;
+            button.innerHTML = `転生する<br><small>レベルアップで解放</small>`;
+        }
+    }
+
+    // 統計の更新
+    updateStats(): void {
+        const stats = this.gameState.stats;
+        
+        if (this.elements.statDiceRolls) {
+            this.elements.statDiceRolls.textContent = formatNumber(stats.totalDiceRolls);
+        }
+        if (this.elements.statTotalMoves) {
+            this.elements.statTotalMoves.textContent = formatNumber(stats.totalMoves);
+        }
+        if (this.elements.statTotalCredits) {
+            this.elements.statTotalCredits.textContent = formatNumber(stats.totalCreditsEarned);
+        }
+        if (this.elements.statRebirths) {
+            this.elements.statRebirths.textContent = stats.totalRebirths.toString();
+        }
+        if (this.elements.statTotalPrestige) {
+            this.elements.statTotalPrestige.textContent = stats.totalPrestigePoints.toString();
+        }
+        if (this.elements.statCurrentLevel) {
+            this.elements.statCurrentLevel.textContent = this.gameState.level.toString();
+        }
+    }
+
+    // 統計モーダルの表示
+    showStats(): void {
+        // Bootstrap modalを使用
+        const modal = document.getElementById('statsModal');
+        if (modal) {
+            // TypeScript用のBootstrap modal呼び出し
+            const modalInstance = new (window as any).bootstrap.Modal(modal);
+            modalInstance.show();
+        }
+    }
+
+    // デバッグ機能の設定
+    setupDebugEventListeners(): void {
+        if (!this.isDebugMode()) return;
+        
+        // デバッグパネルの表示/非表示
+        this.elements.debugToggle?.addEventListener('click', () => {
+            const content = this.elements.debugContent;
+            if (content) {
+                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+        
+        // ゲーム制御
+        this.elements.debugPause?.addEventListener('click', () => {
+            this.systems.gameLoop.pause();
+        });
+        
+        this.elements.debugResume?.addEventListener('click', () => {
+            this.systems.gameLoop.resume();
+        });
+        
+        this.elements.debugStep?.addEventListener('click', () => {
+            this.systems.gameLoop.step();
+        });
+        
+        // その他のデバッグ機能は省略...
+    }
+
+    // デバッグモードの判定
+    isDebugMode(): boolean {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('debug') === 'true' || window.location.hostname === 'localhost';
+    }
+
+    // 初期化
+    initialize(): void {
+        this.bindDOMElements();
+        this.setupEventListeners();
+        this.generateGameBoard();
+        this.updateUI();
+    }
+}

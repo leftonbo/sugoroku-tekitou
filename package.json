@@ -1,0 +1,17 @@
+{
+  "name": "sugoroku-incremental-game",
+  "version": "1.0.0",
+  "description": "すごろくをテーマにしたインクリメンタル・放置ブラウザゲーム",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^18.0.0"
+  },
+  "private": true
+}
