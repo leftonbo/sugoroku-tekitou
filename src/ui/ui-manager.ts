@@ -816,7 +816,18 @@ export class UIManager {
     initialize(): void {
         this.bindDOMElements();
         this.setupEventListeners();
+        this.initializeDebugMode();
         this.generateGameBoard();
         this.updateUI();
+    }
+
+    // デバッグモードの初期化
+    private initializeDebugMode(): void {
+        if (this.isDebugMode()) {
+            document.body.classList.add('debug-mode');
+            console.log('デバッグモードが有効になりました');
+        } else {
+            document.body.classList.remove('debug-mode');
+        }
     }
 }
