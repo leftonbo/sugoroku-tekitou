@@ -100,9 +100,9 @@ export class DiceSystem {
     // 自動ダイスの初期化（ゲーム開始時）
     initializeAutoDiceTimers(currentTime) {
         this.gameState.autoDice.forEach(dice => {
-            if (dice.lastRoll === 0) {
-                dice.lastRoll = currentTime;
-            }
+            // セーブデータ読み込み時に古いperformance.now()タイムスタンプが残っているため
+            // すべてのダイスのタイマーを現在時刻でリセット
+            dice.lastRoll = currentTime;
         });
     }
 
