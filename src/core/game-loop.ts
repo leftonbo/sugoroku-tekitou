@@ -258,9 +258,9 @@ export class GameLoop {
         const autoDiceInfo = this.gameState.autoDice.map((dice, index) => ({
             index,
             faces: dice.faces,
-            unlocked: dice.unlocked,
-            count: dice.count,
-            speedLevel: dice.speedLevel,
+            unlocked: dice.level > 0,
+            count: dice.count || 1,
+            speedLevel: dice.speedLevel || 0,
             lastRoll: dice.lastRoll,
             interval: this.systems.dice.getAutoDiceInterval(index)
         }));

@@ -71,3 +71,47 @@ export function calculatePrestigePointsForLevel(level: number, startLevel: numbe
     const points = basePoints * Math.exp(scalingPower * (level - startLevel));
     return Math.round(points);
 }
+
+// === 新しいレベルシステム用計算関数 ===
+
+// 自動ダイスの最大レベル計算
+export function calculateMaxLevel(ascensionLevel: number, baseMaxLevel: number, increment: number): number {
+    return baseMaxLevel + (ascensionLevel * increment);
+}
+
+// 自動ダイスレベルアップのコスト計算
+export function calculateLevelUpCost(diceIndex: number, currentLevel: number, ascensionLevel: number, 
+                                   baseCost: number, multiplier: number, ascensionCostMultiplier: number): number {
+    // 基本コスト = ダイス種類別の基本コスト * アセンションレベルによる基本コスト倍率
+    const baseForDice = baseCost * Math.pow(ascensionCostMultiplier, ascensionLevel);
+    
+    // ダイス種類別の基本コスト調整（高面数ダイスほど高コスト）
+    const diceMultiplier = Math.pow(2, diceIndex);
+    
+    // レベルによる乗数
+    const levelMultiplier = Math.pow(multiplier, currentLevel);
+    
+    return Math.floor(baseForDice * diceMultiplier * levelMultiplier);
+}
+
+// アセンションコスト計算
+export function calculateAscensionCost(diceIndex: number, currentLevel: number, ascensionLevel: number,
+                                     baseCost: number, multiplier: number, ascensionCostMultiplier: number,
+                                     ascensionPenalty: number): number {
+    const levelUpCost = calculateLevelUpCost(diceIndex, currentLevel, ascensionLevel, baseCost, multiplier, ascensionCostMultiplier);
+    return Math.floor(levelUpCost * ascensionPenalty);
+}
+
+// 自動ダイスの速度計算（レベルベース）
+export function calculateDiceSpeedFromLevel(level: number, baseInterval: number, maxSpeedMultiplier: number): number {
+    if (level === 0) return baseInterval; // 未解禁
+    
+    // レベル1 = 1倍、レベル100 = 10倍の速度でべき乗算増加
+    const speedMultiplier = Math.pow(maxSpeedMultiplier, (level - 1) / 99);
+    return Math.floor(baseInterval / speedMultiplier);
+}
+
+// 自動ダイスの個数計算（アセンションベース）
+export function calculateDiceCountFromAscension(ascensionLevel: number, baseCount: number, multiplier: number): number {
+    return baseCount * Math.pow(multiplier, ascensionLevel);
+}

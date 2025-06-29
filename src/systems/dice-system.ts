@@ -1,7 +1,10 @@
 // サイコロシステム（手動・自動サイコロ関連機能）
 
-import { calculateAutoDiceInterval } from '../utils/math-utils.js';
-import { GAME_CONFIG, MANUAL_DICE_CONFIG, BURDEN_CONFIG } from '../utils/constants.js';
+import { 
+    calculateDiceSpeedFromLevel, 
+    calculateDiceCountFromAscension 
+} from '../utils/math-utils.js';
+import { MANUAL_DICE_CONFIG, BURDEN_CONFIG, AUTO_DICE_LEVEL_CONFIG } from '../utils/constants.js';
 import type { GameState } from '../types/game-state.js';
 
 // ダイス結果の型定義
@@ -21,11 +24,17 @@ interface AutoDiceInfo {
     faces: number;
     count: number;
     unlocked: boolean;
-    speedLevel: number;
-    countLevel: number;
+    level: number;
+    ascensionLevel: number;
+    maxLevel: number;
     interval: number;
     rollsPerMinute: number;
     lastRoll: number;
+    canAscend: boolean;
+    
+    // 後方互換性のため
+    speedLevel?: number;
+    countLevel?: number;
 }
 
 interface ManualDiceInfo {
@@ -100,12 +109,19 @@ export class DiceSystem {
     // 自動ダイスを振る（種類別）
     rollAutoDice(diceIndex: number): number {
         const dice = this.gameState.autoDice[diceIndex];
-        if (!dice || !dice.unlocked) return 0;
+        if (!dice || dice.level === 0) return 0;
         
         let totalRoll = 0;
         
+        // ダイスの個数を計算（アセンションレベルベース）
+        const diceCount = calculateDiceCountFromAscension(
+            dice.ascensionLevel, 
+            AUTO_DICE_LEVEL_CONFIG.DICE_COUNT_BASE, 
+            AUTO_DICE_LEVEL_CONFIG.DICE_COUNT_MULTIPLIER
+        );
+        
         // 指定個数分振る
-        for (let i = 0; i < dice.count; i++) {
+        for (let i = 0; i < diceCount; i++) {
             let roll = Math.floor(Math.random() * dice.faces) + 1;
             
             // 負荷による出目補正を適用
@@ -135,10 +151,10 @@ export class DiceSystem {
         const dice = this.gameState.autoDice[diceIndex];
         if (!dice) return 0;
         
-        return calculateAutoDiceInterval(
-            dice.baseInterval, 
-            dice.speedLevel, 
-            GAME_CONFIG.MAX_SPEED_MULTIPLIER
+        return calculateDiceSpeedFromLevel(
+            dice.level,
+            dice.baseInterval,
+            AUTO_DICE_LEVEL_CONFIG.SPEED_MULTIPLIER_MAX
         );
     }
 
@@ -147,7 +163,7 @@ export class DiceSystem {
         const rolledDice: AutoDiceRoll[] = [];
         
         this.gameState.autoDice.forEach((dice, index) => {
-            if (!dice.unlocked) return;
+            if (dice.level === 0) return; // 未解禁
             
             const interval = this.getAutoDiceInterval(index);
             if (currentTick - dice.lastRoll >= interval) {
@@ -184,7 +200,7 @@ export class DiceSystem {
 
     // 自動ダイスの解禁状態チェック
     isAutoDiceUnlocked(diceIndex: number): boolean {
-        return this.gameState.autoDice[diceIndex]?.unlocked || false;
+        return (this.gameState.autoDice[diceIndex]?.level || 0) > 0;
     }
 
     // 自動ダイスの情報取得
@@ -193,17 +209,30 @@ export class DiceSystem {
         if (!dice) return null;
 
         const interval = this.getAutoDiceInterval(diceIndex);
-        const rollsPerMinute = Math.round(3600 / interval);  // 60fps × 60sec = 3600 ticks/min
+        const rollsPerMinute = interval > 0 ? Math.round(3600 / interval) : 0;  // 60fps × 60sec = 3600 ticks/min
+        const maxLevel = AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE + 
+                        (dice.ascensionLevel * AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT);
+        const diceCount = calculateDiceCountFromAscension(
+            dice.ascensionLevel, 
+            AUTO_DICE_LEVEL_CONFIG.DICE_COUNT_BASE, 
+            AUTO_DICE_LEVEL_CONFIG.DICE_COUNT_MULTIPLIER
+        );
         
         return {
             faces: dice.faces,
-            count: dice.count,
-            unlocked: dice.unlocked,
-            speedLevel: dice.speedLevel,
-            countLevel: dice.countLevel,
+            count: diceCount,
+            unlocked: dice.level > 0,
+            level: dice.level,
+            ascensionLevel: dice.ascensionLevel,
+            maxLevel: maxLevel,
             interval: interval,
             rollsPerMinute: rollsPerMinute,
-            lastRoll: dice.lastRoll
+            lastRoll: dice.lastRoll,
+            canAscend: dice.level >= maxLevel,
+            
+            // 後方互換性
+            speedLevel: dice.speedLevel || 0,
+            countLevel: dice.countLevel || 0
         };
     }
 

@@ -12,6 +12,7 @@ import type {
     UIConfig,
     PrestigeConfig,
     BurdenConfig,
+    AutoDiceLevelConfig,
     StorageKeys
 } from '../types/constants.js';
 
@@ -103,6 +104,19 @@ export const BURDEN_CONFIG: BurdenConfig = {
     LEVEL_1_START: 201,        // 負荷レベル1開始
     LEVEL_2_START: 501,        // 負荷レベル2開始
     LEVEL_3_START: 1001        // 負荷レベル3開始
+};
+
+// 自動ダイスレベルシステム設定
+export const AUTO_DICE_LEVEL_CONFIG: AutoDiceLevelConfig = {
+    MAX_LEVEL_BASE: 100,           // 基本最大レベル
+    ASCENSION_LEVEL_INCREMENT: 10, // アセンションごとのレベル上限増加
+    ASCENSION_COST_MULTIPLIER: 10, // アセンション時のコスト倍率
+    SPEED_MULTIPLIER_MAX: 10,      // レベル100時の速度倍率
+    DICE_COUNT_BASE: 1,            // レベル1時のダイス個数
+    DICE_COUNT_MULTIPLIER: 2,      // アセンションごとのダイス個数倍率
+    LEVEL_COST_BASE: 50,           // レベルアップ基本コスト
+    LEVEL_COST_MULTIPLIER: 1.15,   // レベルごとのコスト増加率
+    ASCENSION_COST_BASE_MULTIPLIER: 3 // アセンション後のコスト基本倍率増加
 };
 
 // 統計表示用定数
