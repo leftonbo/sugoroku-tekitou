@@ -57,6 +57,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 開発時の注意点
 
+- **作業ごとにコミット**: 小さな単位でのコミットを心がける
+  - 例: 新機能追加、バグ修正、UI改善など
+
 - **コミットメッセージ**: [gitmoji](https://gitmoji.dev/ja/) を使用
   - ✨️ 新機能追加
   - 🐛 バグ修正
