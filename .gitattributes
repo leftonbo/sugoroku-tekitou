@@ -1,0 +1,58 @@
+# 自動検出を無効にして明示的に言語を指定
+*.html linguist-language=HTML
+*.css linguist-language=CSS
+*.js linguist-language=JavaScript
+
+# テキストファイルの改行コード設定
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+
+# バイナリファイルの設定
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text eol=lf
+
+# アーカイブファイル
+*.zip binary
+*.tar binary
+*.gz binary
+
+# フォント
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+
+# 日本語ファイルのエンコーディング設定
+*.html charset=utf-8
+*.css charset=utf-8
+*.js charset=utf-8
+*.md charset=utf-8
+
+# Gitでの差分表示設定
+*.html diff=html
+*.css diff=css
+*.js diff=javascript
+*.md diff=markdown
+
+# 大きなファイルの追跡設定（将来的に画像やメディアファイルを追加する場合）
+*.mp3 filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+*.wav filter=lfs diff=lfs merge=lfs -text
+*.ogg filter=lfs diff=lfs merge=lfs -text
+
+# ゲーム関連の特殊ファイル
+*.save text eol=lf
+*.config text eol=lf
+
+# Webアセット最適化のマージ戦略
+*.min.js merge=ours
+*.min.css merge=ours
