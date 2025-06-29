@@ -20,6 +20,9 @@ export class UIManager {
             level: document.getElementById('level'),
             prestigeEarned: document.getElementById('prestige-earned'),
             prestigeAvailable: document.getElementById('prestige-available'),
+            burdenDisplay: document.getElementById('burden-display'),
+            burdenLevel: document.getElementById('burden-level'),
+            burdenEffects: document.getElementById('burden-effects'),
             
             // 手動ダイス
             manualDiceResult: document.getElementById('manual-dice-result'),
@@ -245,6 +248,39 @@ export class UIManager {
         }
         if (this.elements.prestigeAvailable) {
             this.elements.prestigeAvailable.textContent = this.gameState.prestigePoints.available;
+        }
+        
+        this.updateBurdenInfo();
+    }
+
+    // 負荷レベル情報の更新
+    updateBurdenInfo() {
+        const burdenInfo = this.systems.dice.getBurdenInfo();
+        
+        if (burdenInfo.level > 0) {
+            // 負荷レベルが発生している場合は表示
+            if (this.elements.burdenDisplay) {
+                this.elements.burdenDisplay.style.display = 'block';
+            }
+            if (this.elements.burdenLevel) {
+                this.elements.burdenLevel.textContent = burdenInfo.level;
+            }
+            if (this.elements.burdenEffects) {
+                let effectsText = '';
+                if (burdenInfo.diceReduction > 0) {
+                    effectsText += `出目-${burdenInfo.diceReduction}`;
+                }
+                if (burdenInfo.totalHalving) {
+                    if (effectsText) effectsText += ', ';
+                    effectsText += '総計半減';
+                }
+                this.elements.burdenEffects.textContent = effectsText;
+            }
+        } else {
+            // 負荷レベルが0の場合は非表示
+            if (this.elements.burdenDisplay) {
+                this.elements.burdenDisplay.style.display = 'none';
+            }
         }
     }
 

@@ -65,3 +65,11 @@ export function calculateForwardSteps(seed) {
 export function calculateBackwardRatio(position, baseRatio, maxRatio) {
     return Math.min(maxRatio, baseRatio + (position / 100) * 0.12);
 }
+
+// プレステージポイント計算（レベル50以降、べき乗算的増加）
+export function calculatePrestigePointsForLevel(level, startLevel, basePoints, scalingPower) {
+    if (level < startLevel) return 0;
+    
+    const points = basePoints * Math.exp(scalingPower * (level - startLevel));
+    return Math.round(points);
+}

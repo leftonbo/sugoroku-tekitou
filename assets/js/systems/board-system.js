@@ -6,9 +6,10 @@ import {
     calculateCreditAmount, 
     calculateBackwardSteps, 
     calculateForwardSteps, 
-    calculateBackwardRatio 
+    calculateBackwardRatio,
+    calculatePrestigePointsForLevel
 } from '../utils/math-utils.js';
-import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG, FIXED_BACKWARD_CONFIG } from '../utils/constants.js';
+import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG, FIXED_BACKWARD_CONFIG, PRESTIGE_CONFIG } from '../utils/constants.js';
 
 export class BoardSystem {
     constructor(gameState) {
@@ -115,12 +116,33 @@ export class BoardSystem {
             this.gameState.level += levelsCompleted;
             levelChanged = true;
             
-            // プレステージポイント獲得
-            this.gameState.prestigePoints.earned += levelsCompleted;
-            this.gameState.stats.totalPrestigePoints += levelsCompleted;
-            prestigeEarned = levelsCompleted;
-            
-            console.log(`レベル ${this.gameState.level} に到達！プレステージポイント +${levelsCompleted}`);
+            // プレステージポイント獲得（レベル50以降）
+            if (this.gameState.level >= PRESTIGE_CONFIG.START_LEVEL) {
+                const prestigePointsEarned = calculatePrestigePointsForLevel(
+                    this.gameState.level, 
+                    PRESTIGE_CONFIG.START_LEVEL, 
+                    PRESTIGE_CONFIG.BASE_POINTS, 
+                    PRESTIGE_CONFIG.SCALING_POWER
+                );
+                
+                // 前のレベルでのプレステージポイントを計算
+                const previousLevelPrestige = this.gameState.level > PRESTIGE_CONFIG.START_LEVEL ? 
+                    calculatePrestigePointsForLevel(
+                        this.gameState.level - levelsCompleted, 
+                        PRESTIGE_CONFIG.START_LEVEL, 
+                        PRESTIGE_CONFIG.BASE_POINTS, 
+                        PRESTIGE_CONFIG.SCALING_POWER
+                    ) : 0;
+                
+                const newPrestigePoints = prestigePointsEarned - previousLevelPrestige;
+                this.gameState.prestigePoints.earned += newPrestigePoints;
+                this.gameState.stats.totalPrestigePoints += newPrestigePoints;
+                prestigeEarned = newPrestigePoints;
+                
+                console.log(`レベル ${this.gameState.level} に到達！プレステージポイント +${newPrestigePoints}`);
+            } else {
+                console.log(`レベル ${this.gameState.level} に到達！`);
+            }
             
             // 位置をリセット（新しいレベルの盤面）
             this.gameState.position = newPosition % BOARD_CONFIG.TOTAL_CELLS;
@@ -200,8 +222,9 @@ export class BoardSystem {
                 
             case BOARD_CONFIG.CELL_TYPES.BACKWARD:
                 console.log(`${cellData.effect}マス戻る... (位置: ${position})`);
-                // 移動を実行（再帰的な効果は無視）
-                const backwardResult = this.movePlayerDirect(-cellData.effect);
+                // 移動を実行（再帰的な効果は無視、0マス目を下回らないよう制限）
+                const maxBackwardSteps = Math.min(cellData.effect, this.gameState.position);
+                const backwardResult = this.movePlayerDirect(-maxBackwardSteps);
                 effect.moveResult = backwardResult;
                 effect.applied = true;
                 break;

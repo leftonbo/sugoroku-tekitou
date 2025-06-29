@@ -48,7 +48,7 @@ export const GAME_CONFIG = {
     TICK_RATE: 1000 / 60,  // 60fps
     SAVE_INTERVAL: 30000,  // 30秒間隔で保存
     MAX_SPEED_MULTIPLIER: 10,
-    MAX_BACKWARD_STEPS: 5
+    MAX_BACKWARD_STEPS: 20
 };
 
 // 固定戻るマス設定
@@ -74,6 +74,20 @@ export const UI_CONFIG = {
     ANIMATION_DURATION: 800,
     DICE_ANIMATION_DURATION: 600,
     GLOW_EFFECT_DURATION: 1500
+};
+
+// プレステージシステム設定
+export const PRESTIGE_CONFIG = {
+    START_LEVEL: 50,           // プレステージポイント獲得開始レベル
+    BASE_POINTS: 1,            // 基準ポイント（レベル50で1ポイント）
+    SCALING_POWER: Math.log(2) / 50  // 50レベルで2倍になる指数
+};
+
+// 負荷システム設定
+export const BURDEN_CONFIG = {
+    LEVEL_1_START: 201,        // 負荷レベル1開始
+    LEVEL_2_START: 501,        // 負荷レベル2開始
+    LEVEL_3_START: 1001        // 負荷レベル3開始
 };
 
 // 統計表示用定数

@@ -1,7 +1,7 @@
 // サイコロシステム（手動・自動サイコロ関連機能）
 
 import { calculateAutoDiceInterval } from '../utils/math-utils.js';
-import { GAME_CONFIG, MANUAL_DICE_CONFIG } from '../utils/constants.js';
+import { GAME_CONFIG, MANUAL_DICE_CONFIG, BURDEN_CONFIG } from '../utils/constants.js';
 
 export class DiceSystem {
     constructor(gameState) {
@@ -17,9 +17,18 @@ export class DiceSystem {
         
         // 6面ダイスを指定個数振る
         for (let i = 0; i < diceCount; i++) {
-            const roll = Math.floor(Math.random() * MANUAL_DICE_CONFIG.BASE_FACES) + 1;
+            let roll = Math.floor(Math.random() * MANUAL_DICE_CONFIG.BASE_FACES) + 1;
+            
+            // 負荷による出目補正を適用
+            roll = this.applyBurdenEffect(roll);
+            
             this.manualDiceResults.push(roll);
             totalRoll += roll;
+        }
+        
+        // 負荷レベル3による総計半減
+        if (this.getBurdenLevel() >= 3) {
+            totalRoll = Math.floor(totalRoll / 2);
         }
         
         // 統計を更新
@@ -50,7 +59,17 @@ export class DiceSystem {
         
         // 指定個数分振る
         for (let i = 0; i < dice.count; i++) {
-            totalRoll += Math.floor(Math.random() * dice.faces) + 1;
+            let roll = Math.floor(Math.random() * dice.faces) + 1;
+            
+            // 負荷による出目補正を適用
+            roll = this.applyBurdenEffect(roll);
+            
+            totalRoll += roll;
+        }
+        
+        // 負荷レベル3による総計半減
+        if (this.getBurdenLevel() >= 3) {
+            totalRoll = Math.floor(totalRoll / 2);
         }
         
         // 統計を更新
@@ -148,5 +167,72 @@ export class DiceSystem {
             upgradeLevel: this.gameState.manualDice.upgradeLevel,
             faces: MANUAL_DICE_CONFIG.BASE_FACES
         };
+    }
+
+    // 負荷レベルの計算
+    getBurdenLevel() {
+        const level = this.gameState.level;
+        
+        if (level >= BURDEN_CONFIG.LEVEL_3_START) return 3;
+        if (level >= BURDEN_CONFIG.LEVEL_2_START) return 2;
+        if (level >= BURDEN_CONFIG.LEVEL_1_START) return 1;
+        
+        return 0;
+    }
+
+    // 負荷による出目補正の適用
+    applyBurdenEffect(roll) {
+        const burdenLevel = this.getBurdenLevel();
+        
+        if (burdenLevel === 0) {
+            return roll;
+        }
+        
+        // 負荷レベル1: -1、負荷レベル2: -2、負荷レベル3: -2（最小1）
+        let adjustedRoll = roll;
+        
+        if (burdenLevel >= 1) adjustedRoll -= 1;
+        if (burdenLevel >= 2) adjustedRoll -= 1;
+        
+        // 出目は最小1
+        return Math.max(1, adjustedRoll);
+    }
+
+    // 負荷レベルの詳細情報を取得
+    getBurdenInfo() {
+        const level = this.gameState.level;
+        const burdenLevel = this.getBurdenLevel();
+        
+        return {
+            level: burdenLevel,
+            diceReduction: burdenLevel >= 1 ? Math.min(burdenLevel, 2) : 0,
+            totalHalving: burdenLevel >= 3,
+            nextBurdenLevel: this.getNextBurdenLevelInfo(level)
+        };
+    }
+
+    // 次の負荷レベル情報を取得
+    getNextBurdenLevelInfo(currentLevel) {
+        if (currentLevel < BURDEN_CONFIG.LEVEL_1_START) {
+            return {
+                level: 1,
+                levelRequired: BURDEN_CONFIG.LEVEL_1_START,
+                levelsRemaining: BURDEN_CONFIG.LEVEL_1_START - currentLevel
+            };
+        } else if (currentLevel < BURDEN_CONFIG.LEVEL_2_START) {
+            return {
+                level: 2,
+                levelRequired: BURDEN_CONFIG.LEVEL_2_START,
+                levelsRemaining: BURDEN_CONFIG.LEVEL_2_START - currentLevel
+            };
+        } else if (currentLevel < BURDEN_CONFIG.LEVEL_3_START) {
+            return {
+                level: 3,
+                levelRequired: BURDEN_CONFIG.LEVEL_3_START,
+                levelsRemaining: BURDEN_CONFIG.LEVEL_3_START - currentLevel
+            };
+        }
+        
+        return null; // 最大負荷レベルに到達
     }
 }
