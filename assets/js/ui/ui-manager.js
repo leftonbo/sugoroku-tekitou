@@ -88,14 +88,13 @@ export class UIManager {
         // 盤面再生成が必要かチェック
         if (moveResult.levelChanged) {
             this.generateGameBoard();
-            // レベルアップ時のみUI全体を更新
-            this.updateUI();
         } else {
             this.updatePlayerPosition();
-            // 通常の移動時は基本情報のみ更新（自動ダイスUIは更新しない）
-            this.updateGameInfo();
-            this.updatePrestigeButton();
         }
+        
+        // 基本情報のみ更新
+        this.updateGameInfo();
+        this.updatePrestigeButton();
         
         // マス目の効果を適用
         const effect = this.systems.board.applySquareEffect(this.gameState.position);
