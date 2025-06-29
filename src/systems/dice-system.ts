@@ -122,8 +122,8 @@ export class DiceSystem {
         // 統計を更新
         this.gameState.stats.totalDiceRolls++;
         
-        // lastRollを更新
-        dice.lastRoll = performance.now();
+        // lastRollを更新（Tick-based）
+        // Note: この時点ではcurrentTickは利用できないため、GameLoopから設定される
         
         console.log(`自動${dice.faces}面ダイス: ${totalRoll}`);
         
@@ -142,17 +142,20 @@ export class DiceSystem {
         );
     }
 
-    // 自動ダイスのタイマーチェック
-    checkAutoDiceTimers(currentTime: number): AutoDiceRoll[] {
+    // 自動ダイスのタイマーチェック（Tick-based）
+    checkAutoDiceTimers(currentTick: number): AutoDiceRoll[] {
         const rolledDice: AutoDiceRoll[] = [];
         
         this.gameState.autoDice.forEach((dice, index) => {
             if (!dice.unlocked) return;
             
             const interval = this.getAutoDiceInterval(index);
-            if (currentTime - dice.lastRoll >= interval) {
+            if (currentTick - dice.lastRoll >= interval) {
                 const rollResult = this.rollAutoDice(index);
                 if (rollResult > 0) {
+                    // lastRollを現在のTickに更新
+                    dice.lastRoll = currentTick;
+                    
                     rolledDice.push({
                         index,
                         faces: dice.faces,
@@ -165,12 +168,12 @@ export class DiceSystem {
         return rolledDice;
     }
 
-    // 自動ダイスの初期化（ゲーム開始時）
-    initializeAutoDiceTimers(currentTime: number): void {
+    // 自動ダイスの初期化（ゲーム開始時）（Tick-based）
+    initializeAutoDiceTimers(currentTick: number): void {
         this.gameState.autoDice.forEach(dice => {
-            // セーブデータ読み込み時に古いperformance.now()タイムスタンプが残っているため
-            // すべてのダイスのタイマーを現在時刻でリセット
-            dice.lastRoll = currentTime;
+            // セーブデータ読み込み時に古いタイムスタンプが残っているため
+            // すべてのダイスのタイマーを現在Tickでリセット
+            dice.lastRoll = currentTick;
         });
     }
 
@@ -190,7 +193,7 @@ export class DiceSystem {
         if (!dice) return null;
 
         const interval = this.getAutoDiceInterval(diceIndex);
-        const rollsPerMinute = Math.round(60000 / interval);
+        const rollsPerMinute = Math.round(3600 / interval);  // 60fps × 60sec = 3600 ticks/min
         
         return {
             faces: dice.faces,

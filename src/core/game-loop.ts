@@ -36,6 +36,7 @@ interface GameLoopStatus {
 interface DebugInfo extends GameLoopStatus {
     fps: number;
     targetFrameTime: number;
+    currentTick: number;
     gameState: {
         position: number;
         level: number;
@@ -66,6 +67,7 @@ export class GameLoop {
     private isRunning: boolean;
     private animationId: number | null;
     private lastUpdateTime: number;
+    private currentTick: number;
 
     constructor(gameState: GameState, systems: Systems, uiManager: UIManager) {
         this.gameState = gameState;
@@ -74,6 +76,7 @@ export class GameLoop {
         this.isRunning = false;
         this.animationId = null;
         this.lastUpdateTime = 0;
+        this.currentTick = 0;
     }
 
     // ゲームループの開始
@@ -83,8 +86,8 @@ export class GameLoop {
         this.isRunning = true;
         this.lastUpdateTime = performance.now();
         
-        // 全自動ダイスのlastRollを初期化
-        this.systems.dice.initializeAutoDiceTimers(this.lastUpdateTime);
+        // 全自動ダイスのlastRollを初期化（Tick-based）
+        this.systems.dice.initializeAutoDiceTimers(this.currentTick);
         
         console.log('ゲームループを開始しました');
         this.animationId = requestAnimationFrame((time) => this.gameLoop(time));
@@ -112,6 +115,7 @@ export class GameLoop {
         
         // 更新頻度制御（60FPSを目標）
         if (deltaTime >= GAME_CONFIG.TICK_RATE) {
+            this.currentTick++; // ティックカウンターを増加
             this.update(currentTime, deltaTime);
             this.lastUpdateTime = currentTime;
         }
@@ -120,10 +124,10 @@ export class GameLoop {
         this.animationId = requestAnimationFrame((time) => this.gameLoop(time));
     }
 
-    // ゲーム状態の更新
-    private update(currentTime: number, _deltaTime: number): void {
-        // 自動ダイスのタイマーチェック
-        const rolledDice = this.systems.dice.checkAutoDiceTimers(currentTime);
+    // ゲーム状態の更新（Tick-based）
+    private update(_currentTime: number, _deltaTime: number): void {
+        // 自動ダイスのタイマーチェック（Tick-based）
+        const rolledDice = this.systems.dice.checkAutoDiceTimers(this.currentTick);
         
         // 自動ダイスが振られた場合の処理
         if (rolledDice.length > 0) {
@@ -201,6 +205,7 @@ export class GameLoop {
             ...status,
             fps: this.isRunning ? Math.round(1000 / GAME_CONFIG.TICK_RATE) : 0,
             targetFrameTime: GAME_CONFIG.TICK_RATE,
+            currentTick: this.currentTick,
             gameState: {
                 position: this.gameState.position,
                 level: this.gameState.level,
@@ -219,6 +224,7 @@ export class GameLoop {
     reset(): void {
         this.stop();
         this.lastUpdateTime = 0;
+        this.currentTick = 0;
         console.log('ゲームループをリセットしました');
     }
 
@@ -233,6 +239,7 @@ export class GameLoop {
         const deltaTime = GAME_CONFIG.TICK_RATE; // 固定デルタタイム
 
         console.log('デバッグ: 1Tick実行中...');
+        this.currentTick++; // ティックカウンターを増加
         this.update(currentTime, deltaTime);
         this.lastUpdateTime = currentTime;
         

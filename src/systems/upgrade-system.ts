@@ -67,7 +67,7 @@ export class UpgradeSystem {
         if (dice && this.gameState.credits >= cost && !dice.unlocked) {
             this.gameState.credits -= cost;
             dice.unlocked = true;
-            dice.lastRoll = performance.now();
+            dice.lastRoll = 0; // Tick-based: 解禁時は0に設定（次の更新で実行される）
             
             console.log(`${dice.faces}面自動ダイス解禁！`);
             return true;

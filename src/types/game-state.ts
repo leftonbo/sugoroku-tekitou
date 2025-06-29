@@ -25,8 +25,8 @@ export interface AutoDice {
     unlocked: boolean;     // 解禁状態
     speedLevel: number;    // 速度レベル
     countLevel: number;    // 個数レベル
-    baseInterval: number;  // 基本実行間隔
-    lastRoll: number;      // 最後にロールした時刻
+    baseInterval: number;  // 基本実行間隔（ティック数）
+    lastRoll: number;      // 最後にロールしたTick
 }
 
 export interface GameSettings {
