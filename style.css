@@ -1,0 +1,252 @@
+/* すごろくインクリメンタルゲーム カスタムスタイル */
+
+/* 全体的なスタイル */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ゲームボードのスタイル */
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 2px;
+    padding: 10px;
+    background-color: #ffffff;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    min-height: 400px;
+}
+
+/* マス目のスタイル */
+.board-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+/* マス目の種類別スタイル */
+.board-cell.normal {
+    background-color: #e9ecef;
+}
+
+.board-cell.credit {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.board-cell.special {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+}
+
+/* プレイヤーの位置 */
+.board-cell.player-position {
+    background-color: #0d6efd !important;
+    color: white;
+    transform: scale(1.1);
+    z-index: 10;
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+}
+
+/* プレイヤーアイコン */
+.player-icon {
+    font-size: 16px;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    z-index: 11;
+}
+
+/* マス目番号 */
+.cell-number {
+    font-size: 10px;
+    color: #6c757d;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+}
+
+/* マス目の効果表示 */
+.cell-effect {
+    font-size: 10px;
+    color: #495057;
+    text-align: center;
+}
+
+/* カードのスタイル調整 */
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 8px;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+/* アップグレードセクション */
+.upgrade-section {
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+.upgrade-item {
+    margin-bottom: 8px;
+}
+
+.upgrade-item button {
+    transition: all 0.2s ease;
+}
+
+.upgrade-item button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.upgrade-item button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* サイコロ結果の表示 */
+#dice-result {
+    color: #0d6efd;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    animation: diceRoll 0.5s ease-in-out;
+}
+
+/* サイコロアニメーション */
+@keyframes diceRoll {
+    0% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.2) rotate(180deg); }
+    100% { transform: scale(1) rotate(360deg); }
+}
+
+/* サイコロボタンのアニメーション */
+#roll-dice:active {
+    transform: scale(0.95);
+}
+
+/* バッジのスタイル調整 */
+.badge {
+    font-size: 14px;
+    padding: 6px 12px;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .game-board {
+        grid-template-columns: repeat(8, 1fr);
+        gap: 1px;
+        padding: 5px;
+    }
+    
+    .board-cell {
+        font-size: 10px;
+    }
+    
+    .cell-number {
+        font-size: 8px;
+    }
+    
+    .cell-effect {
+        font-size: 8px;
+    }
+    
+    .player-icon {
+        width: 16px;
+        height: 16px;
+        font-size: 8px;
+    }
+}
+
+@media (max-width: 576px) {
+    .game-board {
+        grid-template-columns: repeat(6, 1fr);
+    }
+    
+    .board-cell {
+        font-size: 9px;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+}
+
+/* ホバー効果 */
+.board-cell:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* アニメーション用クラス */
+.credit-gain {
+    animation: creditGain 0.8s ease-out;
+}
+
+@keyframes creditGain {
+    0% { 
+        transform: scale(1); 
+        background-color: inherit; 
+    }
+    50% { 
+        transform: scale(1.1); 
+        background-color: #28a745; 
+        color: white; 
+    }
+    100% { 
+        transform: scale(1); 
+        background-color: inherit; 
+        color: inherit; 
+    }
+}
+
+/* 自動サイコロ時の視覚効果 */
+.auto-rolling #dice-result {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* プレステージボタンのスタイル */
+#prestige-btn:not(:disabled) {
+    background: linear-gradient(45deg, #ffc107, #fd7e14);
+    border: none;
+    color: white;
+    font-weight: bold;
+}
+
+#prestige-btn:not(:disabled):hover {
+    background: linear-gradient(45deg, #fd7e14, #dc3545);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

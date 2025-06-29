@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>すごろくインクリメンタルゲーム</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- カスタムCSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- ヘッダー -->
+        <header class="row bg-primary text-white py-3 mb-4">
+            <div class="col-12">
+                <h1 class="text-center mb-0">🎲 すごろくインクリメンタルゲーム</h1>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="row">
+            <!-- ゲーム情報パネル -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">💰 ゲーム情報</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>クレジット:</strong>
+                            <span id="credits" class="badge bg-success fs-6">0</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>現在位置:</strong>
+                            <span id="position" class="badge bg-info fs-6">0</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>プレステージポイント:</strong>
+                            <span id="prestige-points" class="badge bg-warning fs-6">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- サイコロ操作パネル -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">🎲 サイコロ</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <div id="dice-result" class="display-4 mb-2">-</div>
+                            <small class="text-muted">サイコロの目</small>
+                        </div>
+                        <button id="roll-dice" class="btn btn-primary btn-lg w-100 mb-2">
+                            🎲 サイコロを振る
+                        </button>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="auto-roll">
+                            <label class="form-check-label" for="auto-roll">
+                                自動でサイコロを振る
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ゲームボード -->
+            <div class="col-lg-6 col-md-8 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">🎯 すごろく盤面</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="game-board" class="game-board">
+                            <!-- ゲーム盤面はJavaScriptで動的に生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- アップグレードパネル -->
+            <div class="col-lg-3 col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">⬆️ アップグレード</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- サイコロ自動化アップグレード -->
+                        <div class="upgrade-section mb-4">
+                            <h6 class="text-primary">🤖 自動化</h6>
+                            <div class="upgrade-item">
+                                <button id="upgrade-auto-speed" class="btn btn-outline-primary btn-sm w-100 mb-2">
+                                    自動化速度向上
+                                    <br><small>コスト: <span id="auto-speed-cost">100</span>💰</small>
+                                </button>
+                                <small class="text-muted">現在の間隔: <span id="auto-interval">3.0</span>秒</small>
+                            </div>
+                        </div>
+
+                        <!-- サイコロ追加アップグレード -->
+                        <div class="upgrade-section mb-4">
+                            <h6 class="text-success">🎲 サイコロ追加</h6>
+                            <div id="dice-upgrades">
+                                <!-- サイコロアップグレードはJavaScriptで動的に生成 -->
+                            </div>
+                        </div>
+
+                        <!-- プレステージ -->
+                        <div class="upgrade-section">
+                            <h6 class="text-warning">✨ プレステージ</h6>
+                            <button id="prestige-btn" class="btn btn-warning btn-sm w-100" disabled>
+                                転生する
+                                <br><small>100マス到達で解放</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="row mt-4">
+            <div class="col-12 text-center text-muted">
+                <small>© 2024 すごろくインクリメンタルゲーム - 放置して楽しもう！</small>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- ゲームロジック -->
+    <script src="game.js"></script>
+</body>
+</html>
