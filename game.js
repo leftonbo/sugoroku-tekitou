@@ -6,8 +6,23 @@ class SugorokuGame {
         this.gameState = {
             credits: 0,                 // クレジット
             position: 0,                // 現在位置
-            prestigePoints: 0,          // プレステージポイント
-            totalMoves: 0,              // 総移動数
+            level: 1,                   // 現在のレベル
+            rebirthCount: 0,            // 転生回数
+            
+            // プレステージポイント（分離）
+            prestigePoints: {
+                earned: 0,              // 転生時に獲得予定
+                available: 0            // 使用可能ポイント
+            },
+            
+            // 統計情報
+            stats: {
+                totalDiceRolls: 0,      // サイコロを振った総回数
+                totalMoves: 0,          // 進んだマスの総計
+                totalCreditsEarned: 0,  // 総獲得クレジット
+                totalRebirths: 0,       // 転生回数
+                totalPrestigePoints: 0  // 総獲得プレステージポイント
+            },
             
             // サイコロ関連
             dice: [
@@ -62,7 +77,9 @@ class SugorokuGame {
             // ゲーム情報
             credits: document.getElementById('credits'),
             position: document.getElementById('position'),
-            prestigePoints: document.getElementById('prestige-points'),
+            level: document.getElementById('level'),
+            prestigeEarned: document.getElementById('prestige-earned'),
+            prestigeAvailable: document.getElementById('prestige-available'),
             
             // サイコロ
             diceResult: document.getElementById('dice-result'),
@@ -79,7 +96,16 @@ class SugorokuGame {
             diceUpgrades: document.getElementById('dice-upgrades'),
             
             // プレステージ
-            prestigeBtn: document.getElementById('prestige-btn')
+            prestigeBtn: document.getElementById('prestige-btn'),
+            
+            // 統計
+            statsBtn: document.getElementById('stats-btn'),
+            statDiceRolls: document.getElementById('stat-dice-rolls'),
+            statTotalMoves: document.getElementById('stat-total-moves'),
+            statTotalCredits: document.getElementById('stat-total-credits'),
+            statRebirths: document.getElementById('stat-rebirths'),
+            statTotalPrestige: document.getElementById('stat-total-prestige'),
+            statCurrentLevel: document.getElementById('stat-current-level')
         };
     }
     
@@ -113,6 +139,11 @@ class SugorokuGame {
             this.prestige();
         });
         
+        // 統計ボタン
+        this.elements.statsBtn.addEventListener('click', () => {
+            this.showStats();
+        });
+        
         // 定期保存（30秒ごと）
         setInterval(() => {
             this.saveGameState();
@@ -122,6 +153,51 @@ class SugorokuGame {
         window.addEventListener('beforeunload', () => {
             this.saveGameState();
         });
+    }
+    
+    // ランダム値生成（シード対応）
+    seededRandom(seed) {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+    }
+    
+    // 盤面用シード生成
+    getBoardSeed() {
+        return this.gameState.rebirthCount * 1000 + this.gameState.level;
+    }
+    
+    // マス種類の決定
+    getCellType(position, level) {
+        const seed = this.getBoardSeed() + position;
+        const rand = this.seededRandom(seed);
+        
+        // 盤面の後半ほど戻るマスが多くなる
+        const backwardRatio = Math.min(0.25, 0.1 + (position / 100) * 0.15);
+        const forwardRatio = 0.15;
+        const creditRatio = 0.45;
+        const emptyRatio = 1 - backwardRatio - forwardRatio - creditRatio;
+        
+        if (rand < emptyRatio) {
+            return { type: 'empty', effect: null };
+        } else if (rand < emptyRatio + creditRatio) {
+            // レベルと位置に応じてクレジット量を決定
+            const baseAmount = Math.max(1, Math.floor(position / 10) + 1);
+            const levelBonus = Math.floor(level / 2);
+            const randomBonus = Math.floor(this.seededRandom(seed + 1000) * 3); // 0-2の追加ランダム
+            return { 
+                type: 'credit', 
+                effect: baseAmount + levelBonus + randomBonus 
+            };
+        } else if (rand < emptyRatio + creditRatio + forwardRatio) {
+            // 進むマス（1-3マス）
+            const steps = Math.floor(this.seededRandom(seed + 2000) * 3) + 1;
+            return { type: 'forward', effect: steps };
+        } else {
+            // 戻るマス（1-4マス、レベルに応じて強化）
+            const baseSteps = Math.floor(this.seededRandom(seed + 3000) * 4) + 1;
+            const levelPenalty = Math.floor(level / 3); // レベルが高いほど戻る距離増加
+            return { type: 'backward', effect: baseSteps + levelPenalty };
+        }
     }
     
     // ゲームボードの生成
@@ -141,14 +217,35 @@ class SugorokuGame {
             cellNumber.textContent = i;
             cell.appendChild(cellNumber);
             
-            // マスの種類を決定（現在は全てクレジットマス）
+            // マスの種類を決定
+            const cellData = this.getCellType(i, this.gameState.level);
+            cell.dataset.cellType = cellData.type;
+            cell.dataset.cellEffect = cellData.effect;
+            
+            // マスの効果表示
             const effectDiv = document.createElement('div');
             effectDiv.className = 'cell-effect';
-            effectDiv.textContent = '💰+' + Math.max(1, Math.floor(i / 10) + 1);
+            
+            switch (cellData.type) {
+                case 'empty':
+                    effectDiv.textContent = '　';
+                    cell.classList.add('normal');
+                    break;
+                case 'credit':
+                    effectDiv.textContent = `💰+${cellData.effect}`;
+                    cell.classList.add('credit');
+                    break;
+                case 'forward':
+                    effectDiv.textContent = `⬆️+${cellData.effect}`;
+                    cell.classList.add('forward');
+                    break;
+                case 'backward':
+                    effectDiv.textContent = `⬇️-${cellData.effect}`;
+                    cell.classList.add('backward');
+                    break;
+            }
+            
             cell.appendChild(effectDiv);
-            
-            cell.classList.add('credit');
-            
             board.appendChild(cell);
         }
         
@@ -189,6 +286,9 @@ class SugorokuGame {
             }
         });
         
+        // 統計を更新
+        this.gameState.stats.totalDiceRolls++;
+        
         // サイコロ結果を表示
         this.elements.diceResult.textContent = totalRoll;
         this.elements.diceResult.style.animation = 'none';
@@ -205,18 +305,33 @@ class SugorokuGame {
     // プレイヤーの移動
     movePlayer(steps) {
         const oldPosition = this.gameState.position;
-        this.gameState.position = (this.gameState.position + steps) % 100;
-        this.gameState.totalMoves += steps;
+        const newPosition = oldPosition + steps;
+        
+        // 統計を更新
+        this.gameState.stats.totalMoves += steps;
+        
+        // レベルアップの処理
+        if (newPosition >= 100) {
+            const levelsCompleted = Math.floor(newPosition / 100);
+            this.gameState.level += levelsCompleted;
+            
+            // プレステージポイント獲得
+            this.gameState.prestigePoints.earned += levelsCompleted;
+            this.gameState.stats.totalPrestigePoints += levelsCompleted;
+            
+            console.log(`レベル ${this.gameState.level} に到達！プレステージポイント +${levelsCompleted}`);
+            
+            // 位置をリセット（新しいレベルの盤面）
+            this.gameState.position = newPosition % 100;
+            
+            // 新しい盤面を生成
+            this.generateGameBoard();
+        } else {
+            this.gameState.position = newPosition;
+        }
         
         // マス目の効果を適用
         this.applySquareEffect(this.gameState.position);
-        
-        // 100マス到達でプレステージポイント獲得
-        if (oldPosition + steps >= 100) {
-            const lapsCompleted = Math.floor((oldPosition + steps) / 100);
-            this.gameState.prestigePoints += lapsCompleted;
-            console.log(`${lapsCompleted}周完了！プレステージポイント +${lapsCompleted}`);
-        }
         
         // UI更新
         this.updatePlayerPosition();
@@ -225,20 +340,95 @@ class SugorokuGame {
     
     // マス目の効果を適用
     applySquareEffect(position) {
-        // 現在は全てクレジットマス
-        const creditGain = Math.max(1, Math.floor(position / 10) + 1);
-        this.gameState.credits += creditGain;
-        
-        // マス目にアニメーション効果
         const cell = document.querySelector(`[data-position="${position}"]`);
-        if (cell) {
-            cell.classList.add('credit-gain');
-            setTimeout(() => {
-                cell.classList.remove('credit-gain');
-            }, 800);
+        if (!cell) return;
+        
+        const cellType = cell.dataset.cellType;
+        const cellEffect = parseInt(cell.dataset.cellEffect);
+        
+        switch (cellType) {
+            case 'empty':
+                // 何も起こらない
+                console.log(`何もなし (位置: ${position})`);
+                break;
+                
+            case 'credit':
+                this.gameState.credits += cellEffect;
+                this.gameState.stats.totalCreditsEarned += cellEffect;
+                
+                // アニメーション効果
+                cell.classList.add('credit-gain');
+                setTimeout(() => {
+                    cell.classList.remove('credit-gain');
+                }, 800);
+                
+                console.log(`クレジット +${cellEffect} (位置: ${position})`);
+                break;
+                
+            case 'forward':
+                // 進むマス（無限ループ防止のため、移動先の進む・戻るマスは無視）
+                console.log(`${cellEffect}マス進む! (位置: ${position})`);
+                
+                // アニメーション効果
+                cell.classList.add('forward-effect');
+                setTimeout(() => {
+                    cell.classList.remove('forward-effect');
+                }, 800);
+                
+                // 移動を実行（再帰的な効果は無視）
+                this.movePlayerDirect(cellEffect);
+                break;
+                
+            case 'backward':
+                // 戻るマス（無限ループ防止のため、移動先の進む・戻るマスは無視）
+                console.log(`${cellEffect}マス戻る... (位置: ${position})`);
+                
+                // アニメーション効果
+                cell.classList.add('backward-effect');
+                setTimeout(() => {
+                    cell.classList.remove('backward-effect');
+                }, 800);
+                
+                // 移動を実行（再帰的な効果は無視）
+                this.movePlayerDirect(-cellEffect);
+                break;
+        }
+    }
+    
+    // 直接移動（マス効果を適用しない）
+    movePlayerDirect(steps) {
+        const oldPosition = this.gameState.position;
+        let newPosition = oldPosition + steps;
+        
+        // 範囲チェック
+        if (newPosition < 0) {
+            newPosition = 0;
+        } else if (newPosition >= 100) {
+            // レベルアップの処理
+            const levelsCompleted = Math.floor(newPosition / 100);
+            this.gameState.level += levelsCompleted;
+            
+            // プレステージポイント獲得
+            this.gameState.prestigePoints.earned += levelsCompleted;
+            this.gameState.stats.totalPrestigePoints += levelsCompleted;
+            
+            console.log(`レベル ${this.gameState.level} に到達！プレステージポイント +${levelsCompleted}`);
+            
+            // 位置をリセット（新しいレベルの盤面）
+            newPosition = newPosition % 100;
+            
+            // 新しい盤面を生成
+            this.generateGameBoard();
         }
         
-        console.log(`クレジット +${creditGain} (位置: ${position})`);
+        this.gameState.position = newPosition;
+        
+        // 統計を更新
+        this.gameState.stats.totalMoves += Math.abs(steps);
+        
+        // UI更新
+        this.updatePlayerPosition();
+        this.updateUI();
     }
     
     // 自動化速度アップグレードの購入
@@ -274,40 +464,41 @@ class SugorokuGame {
     
     // プレステージ（転生）
     prestige() {
-        if (this.gameState.prestigePoints === 0) return;
+        if (this.gameState.prestigePoints.earned === 0) return;
         
-        const stats = this.getGameStats();
         const confirmText = `転生しますか？\n\n` +
             `現在の統計:\n` +
-            `・獲得プレステージポイント: ${this.gameState.prestigePoints}\n` +
+            `・獲得予定プレステージポイント: ${this.gameState.prestigePoints.earned}\n` +
             `・総クレジット獲得: ${this.formatNumber(this.gameState.credits)}\n` +
-            `・総移動距離: ${stats.totalDistance}マス\n` +
-            `・完了周回数: ${stats.completedLaps}周\n\n` +
+            `・現在レベル: ${this.gameState.level}\n` +
+            `・サイコロ振り回数: ${this.gameState.stats.totalDiceRolls}\n\n` +
             `注意: 現在の進行状況はリセットされますが、\n` +
-            `プレステージポイントは永続的に保持されます。`;
+            `プレステージポイントは使用可能になります。`;
         
         const confirmed = confirm(confirmText);
         
         if (confirmed) {
-            // プレステージポイントを保存
-            const earnedPrestige = this.gameState.prestigePoints;
+            // プレステージポイントを使用可能に移動
+            const earnedPrestige = this.gameState.prestigePoints.earned;
+            this.gameState.prestigePoints.available += earnedPrestige;
             
-            // 統計情報を保存
-            this.updatePrestigeStats(stats);
+            // 転生統計を更新
+            this.gameState.rebirthCount++;
+            this.gameState.stats.totalRebirths++;
             
             // ゲーム状態をリセット
             this.resetGameState();
-            this.gameState.prestigePoints = earnedPrestige;
             
             // UI更新
             this.generateGameBoard();
             this.updateUI();
             this.saveGameState();
             
-            console.log(`転生完了！プレステージポイント: ${earnedPrestige}`);
+            console.log(`転生完了！プレステージポイント: ${earnedPrestige} 獲得`);
             
             const resultText = `転生しました！\n\n` +
                 `獲得プレステージポイント: ${earnedPrestige}\n` +
+                `使用可能PP: ${this.gameState.prestigePoints.available}\n` +
                 `新しい冒険が始まります！`;
             alert(resultText);
         }
@@ -373,16 +564,32 @@ class SugorokuGame {
     
     // ゲーム状態のリセット
     resetGameState() {
+        // 転生回数と使用可能PPは保持
+        const preservedRebirthCount = this.gameState.rebirthCount;
+        const preservedAvailablePP = this.gameState.prestigePoints.available;
+        const preservedStats = { ...this.gameState.stats };
+        
+        // 基本状態をリセット
         this.gameState.credits = 0;
         this.gameState.position = 0;
-        this.gameState.totalMoves = 0;
+        this.gameState.level = 1;
+        this.gameState.prestigePoints.earned = 0;
+        
+        // サイコロとアップグレードをリセット
         this.gameState.dice = [{ faces: 6, count: 1, unlocked: true }];
         this.gameState.upgrades = {
             autoSpeed: 0,
             diceUpgrades: { d2: 0, d4: 0, d6: 1, d8: 0, d10: 0, d12: 0, d20: 0 }
         };
+        
+        // 自動化設定をリセット
         this.gameState.autoRoll = false;
         this.gameState.autoRollInterval = 3000;
+        
+        // 保持する値を復元
+        this.gameState.rebirthCount = preservedRebirthCount;
+        this.gameState.prestigePoints.available = preservedAvailablePP;
+        this.gameState.stats = preservedStats;
     }
     
     // UI更新
@@ -390,7 +597,9 @@ class SugorokuGame {
         // ゲーム情報の更新
         this.elements.credits.textContent = this.formatNumber(this.gameState.credits);
         this.elements.position.textContent = this.gameState.position;
-        this.elements.prestigePoints.textContent = this.gameState.prestigePoints;
+        this.elements.level.textContent = this.gameState.level;
+        this.elements.prestigeEarned.textContent = this.gameState.prestigePoints.earned;
+        this.elements.prestigeAvailable.textContent = this.gameState.prestigePoints.available;
         
         // 自動化チェックボックス
         this.elements.autoRollCheck.checked = this.gameState.autoRoll;
@@ -407,14 +616,29 @@ class SugorokuGame {
         this.updateDiceUpgradeUI();
         
         // プレステージボタンの状態
-        this.elements.prestigeBtn.disabled = this.gameState.prestigePoints === 0;
+        this.elements.prestigeBtn.disabled = this.gameState.prestigePoints.earned === 0;
         
         // プレステージボタンのテキスト更新
-        if (this.gameState.prestigePoints > 0) {
-            this.elements.prestigeBtn.innerHTML = `✨ 転生する<br><small>プレステージポイント: ${this.gameState.prestigePoints}</small>`;
+        if (this.gameState.prestigePoints.earned > 0) {
+            this.elements.prestigeBtn.innerHTML = `✨ 転生する<br><small>獲得PP: ${this.gameState.prestigePoints.earned}</small>`;
         } else {
-            this.elements.prestigeBtn.innerHTML = `転生する<br><small>100マス到達で解放</small>`;
+            this.elements.prestigeBtn.innerHTML = `転生する<br><small>レベルアップで解放</small>`;
         }
+    }
+    
+    // 統計表示
+    showStats() {
+        // 統計データを更新
+        this.elements.statDiceRolls.textContent = this.formatNumber(this.gameState.stats.totalDiceRolls);
+        this.elements.statTotalMoves.textContent = this.formatNumber(this.gameState.stats.totalMoves);
+        this.elements.statTotalCredits.textContent = this.formatNumber(this.gameState.stats.totalCreditsEarned);
+        this.elements.statRebirths.textContent = this.gameState.stats.totalRebirths;
+        this.elements.statTotalPrestige.textContent = this.gameState.stats.totalPrestigePoints;
+        this.elements.statCurrentLevel.textContent = this.gameState.level;
+        
+        // モーダルを表示
+        const modal = new bootstrap.Modal(document.getElementById('statsModal'));
+        modal.show();
     }
     
     // サイコロアップグレードUIの更新
@@ -425,7 +649,7 @@ class SugorokuGame {
         const diceTypes = [
             { key: 'd2', faces: 2, name: '2面', basePrice: 50, emoji: '🎯' },
             { key: 'd4', faces: 4, name: '4面', basePrice: 200, emoji: '🔹' },
-            { key: 'd6', faces: 6, name: '6面', basePrice: 0, emoji: '🎲' },
+            { key: 'd6', faces: 6, name: '6面', basePrice: 100, emoji: '🎲' },
             { key: 'd8', faces: 8, name: '8面', basePrice: 800, emoji: '🔸' },
             { key: 'd10', faces: 10, name: '10面', basePrice: 2000, emoji: '🔟' },
             { key: 'd12', faces: 12, name: '12面', basePrice: 5000, emoji: '🔵' },
@@ -481,7 +705,11 @@ class SugorokuGame {
     // サイコロアップグレードのコスト計算
     getDiceUpgradeCost(diceKey, basePrice) {
         const currentLevel = this.gameState.upgrades.diceUpgrades[diceKey] || 0;
-        if (diceKey === 'd6') return Math.floor(basePrice * Math.pow(1.5, currentLevel));
+        
+        // 6面ダイスは最初から解放済みなので、追加購入のコスト計算
+        if (diceKey === 'd6') {
+            return Math.floor(basePrice * Math.pow(1.5, currentLevel - 1));
+        }
         
         // 初回解放コストは固定、その後は段階的に上昇
         const dice = this.gameState.dice.find(d => d.faces === parseInt(diceKey.slice(1)));

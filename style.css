@@ -15,7 +15,9 @@ body {
     background-color: #ffffff;
     border: 2px solid #dee2e6;
     border-radius: 8px;
-    min-height: 400px;
+    max-height: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 /* マス目のスタイル */
@@ -48,6 +50,16 @@ body {
 .board-cell.special {
     background-color: #fff3cd;
     border-color: #ffeaa7;
+}
+
+.board-cell.forward {
+    background-color: #cfe2ff;
+    border-color: #9ec5fe;
+}
+
+.board-cell.backward {
+    background-color: #f8d7da;
+    border-color: #f1aeb5;
 }
 
 /* プレイヤーの位置 */
@@ -217,6 +229,50 @@ body {
     50% { 
         transform: scale(1.1); 
         background-color: #28a745; 
+        color: white; 
+    }
+    100% { 
+        transform: scale(1); 
+        background-color: inherit; 
+        color: inherit; 
+    }
+}
+
+/* 進むマスの効果アニメーション */
+.forward-effect {
+    animation: forwardEffect 0.8s ease-out;
+}
+
+@keyframes forwardEffect {
+    0% { 
+        transform: scale(1); 
+        background-color: inherit; 
+    }
+    50% { 
+        transform: scale(1.2) rotateY(180deg); 
+        background-color: #0d6efd; 
+        color: white; 
+    }
+    100% { 
+        transform: scale(1); 
+        background-color: inherit; 
+        color: inherit; 
+    }
+}
+
+/* 戻るマスの効果アニメーション */
+.backward-effect {
+    animation: backwardEffect 0.8s ease-out;
+}
+
+@keyframes backwardEffect {
+    0% { 
+        transform: scale(1); 
+        background-color: inherit; 
+    }
+    50% { 
+        transform: scale(1.1) rotateX(180deg); 
+        background-color: #dc3545; 
         color: white; 
     }
     100% { 
