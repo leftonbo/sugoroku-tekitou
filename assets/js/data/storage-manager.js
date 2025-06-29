@@ -108,12 +108,12 @@ export function restoreFromBackup(backupData) {
 }
 
 // デバッグ: セーブデータの削除
-export function clearSaveData(createBackup = true) {
+export function clearSaveData(shouldCreateBackup = true) {
     try {
         let backupData = null;
         
         // バックアップを作成（オプション）
-        if (createBackup) {
+        if (shouldCreateBackup) {
             backupData = createBackup();
             if (backupData) {
                 console.log('削除前のバックアップを作成しました');
