@@ -77,6 +77,7 @@ interface Systems {
         resume: () => void;
         step: () => void;
         isPaused: () => boolean;
+        getDebugInfo: () => { currentTick: number; [key: string]: any };
     };
 }
 
@@ -550,11 +551,26 @@ export class UIManager {
                 </button>
             `;
         } else {
-            // 解禁済み状態
+            // 解禁済み状態 - 進捗ゲージと間隔情報を追加
+            const autoDiceInfo = this.systems.dice.getAutoDiceInfo(diceInfo.index);
+            const intervalSeconds = autoDiceInfo ? this.ticksToSeconds(autoDiceInfo.interval) : 0;
+            const progressInfo = this.calculateAutoDiceProgress(diceInfo.index);
+            
             panel.innerHTML = `
                 <h6 class="text-success">${config.emoji} ${diceInfo.faces}面ダイス</h6>
                 <div class="mb-2">
                     <small class="text-muted">個数: ${diceInfo.count} | 速度Lv: ${diceInfo.speedLevel}</small>
+                    <br><small class="text-info">間隔: ${intervalSeconds.toFixed(1)}秒 | 毎分: ${autoDiceInfo?.rollsPerMinute || 0}回</small>
+                </div>
+                <div class="mb-2">
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar progress-bar-striped" 
+                             role="progressbar" 
+                             style="width: ${(progressInfo.progress * 100).toFixed(1)}%"
+                             data-dice-progress="${diceInfo.index}">
+                        </div>
+                    </div>
+                    <small class="text-muted">残り: <span data-dice-timer="${diceInfo.index}">${this.ticksToSeconds(progressInfo.timeLeft).toFixed(1)}s</span></small>
                 </div>
                 <div class="d-grid gap-1">
                     <button class="btn btn-outline-primary btn-sm" 
@@ -614,6 +630,7 @@ export class UIManager {
             const diceInfo = upgradeInfo.auto[index];
             if (!diceInfo) return;
             
+            // ボタンの更新
             const buttons = panel.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
             buttons.forEach(button => {
                 const action = button.dataset.action;
@@ -643,7 +660,29 @@ export class UIManager {
                     upgradeInfo.totalCredits
                 );
             });
+            
+            // 進捗ゲージとタイマーの更新（解禁済みダイスのみ）
+            if (diceInfo.unlocked) {
+                this.updateAutoDiceProgress(diceInfo.index, panel as HTMLElement);
+            }
         });
+    }
+
+    // 自動ダイスの進捗ゲージ・タイマー更新（public）
+    updateAutoDiceProgress(diceIndex: number, panel: HTMLElement): void {
+        const progressInfo = this.calculateAutoDiceProgress(diceIndex);
+        
+        // 進捗バーの更新
+        const progressBar = panel.querySelector(`[data-dice-progress="${diceIndex}"]`) as HTMLElement;
+        if (progressBar) {
+            progressBar.style.width = `${(progressInfo.progress * 100).toFixed(1)}%`;
+        }
+        
+        // タイマーの更新
+        const timerElement = panel.querySelector(`[data-dice-timer="${diceIndex}"]`) as HTMLElement;
+        if (timerElement) {
+            timerElement.textContent = `${this.ticksToSeconds(progressInfo.timeLeft).toFixed(1)}s`;
+        }
     }
 
     // プレステージボタンの更新
@@ -723,6 +762,36 @@ export class UIManager {
         });
         
         // その他のデバッグ機能は省略...
+    }
+
+    // 現在のTickを取得
+    getCurrentTick(): number {
+        return this.systems.gameLoop.getDebugInfo().currentTick;
+    }
+
+    // 自動ダイスの進捗を計算
+    calculateAutoDiceProgress(diceIndex: number): { progress: number; timeLeft: number; interval: number } {
+        const currentTick = this.getCurrentTick();
+        const autoDiceInfo = this.systems.dice.getAutoDiceInfo(diceIndex);
+        
+        if (!autoDiceInfo || !autoDiceInfo.unlocked) {
+            return { progress: 0, timeLeft: 0, interval: 0 };
+        }
+        
+        const ticksSinceLastRoll = currentTick - autoDiceInfo.lastRoll;
+        const progress = Math.min(ticksSinceLastRoll / autoDiceInfo.interval, 1);
+        const timeLeft = Math.max(autoDiceInfo.interval - ticksSinceLastRoll, 0);
+        
+        return { 
+            progress, 
+            timeLeft,
+            interval: autoDiceInfo.interval
+        };
+    }
+
+    // Tick数を秒数に変換（60fps基準）
+    ticksToSeconds(ticks: number): number {
+        return ticks / 60;
     }
 
     // デバッグモードの判定

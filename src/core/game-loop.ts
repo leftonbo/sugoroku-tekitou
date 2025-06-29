@@ -134,9 +134,8 @@ export class GameLoop {
             this.handleAutoDiceRolls(rolledDice);
         }
         
-        // UI更新（クールダウンゲージ用）
-        // 注意: UIManagerでこのメソッドが定義されていない場合はコメントアウト
-        // this.uiManager.updateAutoDiceCooldowns();
+        // UI更新（自動ダイス進捗ゲージ用）
+        this.updateAutoDiceUI();
     }
 
     // 自動ダイスの結果処理
@@ -218,6 +217,12 @@ export class GameLoop {
     // 強制的なUI更新
     forceUIUpdate(): void {
         this.uiManager.updateUI();
+    }
+
+    // 自動ダイスUI更新（毎Tick呼び出し）
+    private updateAutoDiceUI(): void {
+        // 軽量な自動ダイス進捗更新のみ
+        this.uiManager.updateExistingAutoDice();
     }
 
     // ゲームループのリセット
