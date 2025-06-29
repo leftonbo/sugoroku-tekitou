@@ -106,3 +106,67 @@ export function restoreFromBackup(backupData) {
         return false;
     }
 }
+
+// デバッグ: セーブデータの削除
+export function clearSaveData(createBackup = true) {
+    try {
+        let backupData = null;
+        
+        // バックアップを作成（オプション）
+        if (createBackup) {
+            backupData = createBackup();
+            if (backupData) {
+                console.log('削除前のバックアップを作成しました');
+            }
+        }
+        
+        // セーブデータを削除
+        localStorage.removeItem(STORAGE_KEYS.GAME_STATE);
+        console.log('セーブデータを削除しました');
+        
+        return {
+            success: true,
+            backup: backupData
+        };
+    } catch (error) {
+        console.error('セーブデータの削除に失敗しました:', error);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// デバッグ: LocalStorage内のすべてのゲーム関連データを表示
+export function debugShowStorageData() {
+    try {
+        const gameData = localStorage.getItem(STORAGE_KEYS.GAME_STATE);
+        
+        if (gameData) {
+            const parsed = JSON.parse(gameData);
+            console.log('現在のセーブデータ:', parsed);
+            
+            // データサイズの計算
+            const dataSize = new Blob([gameData]).size;
+            console.log(`データサイズ: ${dataSize} bytes (${(dataSize / 1024).toFixed(2)} KB)`);
+            
+            return {
+                exists: true,
+                data: parsed,
+                size: dataSize,
+                lastModified: new Date(parsed.timestamp || 0).toLocaleString()
+            };
+        } else {
+            console.log('セーブデータが存在しません');
+            return {
+                exists: false
+            };
+        }
+    } catch (error) {
+        console.error('セーブデータの取得に失敗しました:', error);
+        return {
+            exists: false,
+            error: error.message
+        };
+    }
+}

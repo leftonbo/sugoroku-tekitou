@@ -1,7 +1,7 @@
 // すごろくインクリメンタルゲーム メインクラス
 
 // モジュールのインポート
-import { loadGameState, setupAutoSave, saveGameState } from '../data/storage-manager.js';
+import { loadGameState, setupAutoSave, saveGameState, clearSaveData, debugShowStorageData } from '../data/storage-manager.js';
 import { DiceSystem } from '../systems/dice-system.js';
 import { BoardSystem } from '../systems/board-system.js';
 import { UpgradeSystem } from '../systems/upgrade-system.js';
@@ -60,10 +60,8 @@ export class SugorokuGame {
             board: new BoardSystem(this.gameState),
             upgrade: new UpgradeSystem(this.gameState),
             prestige: new PrestigeSystem(this.gameState),
-            storage: { 
-                saveGameState: () => this.saveGame(),
-                gameState: this.gameState
-            }
+            storage: null, // 後で設定
+            gameLoop: null // 後で設定
         };
     }
     
@@ -93,12 +91,32 @@ export class SugorokuGame {
     // ゲームループ開始
     startGameLoop() {
         this.gameLoop = new GameLoop(this.gameState, this.systems, this.uiManager);
+        
+        // デバッグ用にsystemsにstorageとgameLoopの参照を追加
+        this.systems.storage = {
+            saveGameState: () => this.saveGame(),
+            clearSaveData: this.clearSaveData.bind(this),
+            debugShowStorageData: this.debugShowStorageData.bind(this),
+            gameState: this.gameState
+        };
+        this.systems.gameLoop = this.gameLoop;
+        
         this.gameLoop.start();
     }
     
     // ゲーム保存
     saveGame() {
         return saveGameState(this.gameState);
+    }
+
+    // デバッグ: セーブデータ削除
+    clearSaveData(createBackup = true) {
+        return clearSaveData(createBackup);
+    }
+
+    // デバッグ: ストレージデータ表示
+    debugShowStorageData() {
+        return debugShowStorageData();
     }
     
     // 初期化エラーの処理

@@ -146,4 +146,44 @@ export class GameLoop {
         this.lastUpdateTime = 0;
         console.log('ゲームループをリセットしました');
     }
+
+    // デバッグ: 1Tick分だけ進める
+    stepOneTick() {
+        if (this.isRunning) {
+            console.warn('ゲームが実行中です。一時停止してから使用してください。');
+            return false;
+        }
+
+        const currentTime = performance.now();
+        const deltaTime = GAME_CONFIG.TICK_RATE; // 固定デルタタイム
+
+        console.log('デバッグ: 1Tick実行中...');
+        this.update(currentTime, deltaTime);
+        this.lastUpdateTime = currentTime;
+        
+        console.log('デバッグ: 1Tick完了');
+        return true;
+    }
+
+    // デバッグ: ゲーム状態の詳細情報取得
+    getDetailedDebugInfo() {
+        const baseInfo = this.getDebugInfo();
+        const autoDiceInfo = this.gameState.autoDice.map((dice, index) => ({
+            index,
+            faces: dice.faces,
+            unlocked: dice.unlocked,
+            count: dice.count,
+            speedLevel: dice.speedLevel,
+            lastRoll: dice.lastRoll,
+            interval: this.systems.dice.getAutoDiceInterval(index)
+        }));
+
+        return {
+            ...baseInfo,
+            timestamp: Date.now(),
+            autoDice: autoDiceInfo,
+            prestigeInfo: this.systems.prestige.getPrestigeInfo(),
+            upgradeInfo: this.systems.upgrade.getAllUpgradeInfo()
+        };
+    }
 }

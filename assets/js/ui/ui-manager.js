@@ -47,7 +47,22 @@ export class UIManager {
             statTotalCredits: document.getElementById('stat-total-credits'),
             statRebirths: document.getElementById('stat-rebirths'),
             statTotalPrestige: document.getElementById('stat-total-prestige'),
-            statCurrentLevel: document.getElementById('stat-current-level')
+            statCurrentLevel: document.getElementById('stat-current-level'),
+            
+            // デバッグパネル
+            debugPanel: document.getElementById('debug-panel'),
+            debugToggle: document.getElementById('debug-toggle'),
+            debugContent: document.getElementById('debug-content'),
+            debugPause: document.getElementById('debug-pause'),
+            debugResume: document.getElementById('debug-resume'),
+            debugStep: document.getElementById('debug-step'),
+            debugShowData: document.getElementById('debug-show-data'),
+            debugClearData: document.getElementById('debug-clear-data'),
+            debugGameStatus: document.getElementById('debug-game-status'),
+            debugFps: document.getElementById('debug-fps'),
+            debugLastUpdate: document.getElementById('debug-last-update'),
+            debugAutoDice: document.getElementById('debug-auto-dice'),
+            debugLog: document.getElementById('debug-log')
         };
     }
 
@@ -84,6 +99,9 @@ export class UIManager {
         this.elements.statsBtn?.addEventListener('click', () => {
             this.showStats();
         });
+        
+        // デバッグパネルのイベントリスナー
+        this.setupDebugEventListeners();
     }
 
     // プレイヤー移動の処理
@@ -574,5 +592,188 @@ export class UIManager {
         // モーダルを表示
         const modal = new bootstrap.Modal(document.getElementById('statsModal'));
         modal.show();
+    }
+
+    // デバッグ機能のイベントリスナー設定
+    setupDebugEventListeners() {
+        // デバッグモードの判定（localhost または debug=true パラメータ）
+        const isDebugMode = this.isDebugMode();
+        if (isDebugMode) {
+            document.body.classList.add('debug-mode');
+            this.initializeDebugPanel();
+        }
+    }
+
+    // デバッグモードの判定
+    isDebugMode() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const debugParam = urlParams.get('debug') === 'true';
+        
+        return isLocalhost || debugParam;
+    }
+
+    // デバッグパネルの初期化
+    initializeDebugPanel() {
+        // デバッグログ配列
+        this.debugLogs = [];
+        this.maxLogEntries = 20;
+
+        // デバッグトグルボタン
+        this.elements.debugToggle?.addEventListener('click', () => {
+            this.toggleDebugPanel();
+        });
+
+        // ゲーム制御ボタン
+        this.elements.debugPause?.addEventListener('click', () => {
+            this.debugPauseGame();
+        });
+
+        this.elements.debugResume?.addEventListener('click', () => {
+            this.debugResumeGame();
+        });
+
+        this.elements.debugStep?.addEventListener('click', () => {
+            this.debugStepOneTick();
+        });
+
+        // データ管理ボタン
+        this.elements.debugShowData?.addEventListener('click', () => {
+            this.debugShowData();
+        });
+
+        this.elements.debugClearData?.addEventListener('click', () => {
+            this.debugClearData();
+        });
+
+        // デバッグステータスの定期更新
+        this.debugUpdateInterval = setInterval(() => {
+            this.updateDebugStatus();
+        }, 1000);
+
+        this.addDebugLog('デバッグモードが有効になりました');
+    }
+
+    // デバッグパネルの表示切り替え
+    toggleDebugPanel() {
+        const content = this.elements.debugContent;
+        if (!content) return;
+
+        const isVisible = content.style.display !== 'none';
+        content.style.display = isVisible ? 'none' : 'block';
+        
+        this.addDebugLog(`デバッグパネル: ${isVisible ? '非表示' : '表示'}`);
+    }
+
+    // ゲーム一時停止
+    debugPauseGame() {
+        if (this.systems.gameLoop && this.systems.gameLoop.pause) {
+            this.systems.gameLoop.pause();
+            this.addDebugLog('ゲームを一時停止しました');
+        }
+    }
+
+    // ゲーム再開
+    debugResumeGame() {
+        if (this.systems.gameLoop && this.systems.gameLoop.resume) {
+            this.systems.gameLoop.resume();
+            this.addDebugLog('ゲームを再開しました');
+        }
+    }
+
+    // 1Tick進める
+    debugStepOneTick() {
+        if (this.systems.gameLoop && this.systems.gameLoop.stepOneTick) {
+            const result = this.systems.gameLoop.stepOneTick();
+            if (result) {
+                this.addDebugLog('1Tick実行しました');
+                this.updateUI(); // UI更新
+            } else {
+                this.addDebugLog('1Tick実行失敗（ゲームが実行中）');
+            }
+        }
+    }
+
+    // データ表示
+    debugShowData() {
+        if (this.systems.storage && this.systems.storage.debugShowStorageData) {
+            const data = this.systems.storage.debugShowStorageData();
+            this.addDebugLog(`データ表示: ${data.exists ? 'あり' : 'なし'}`);
+            if (data.exists) {
+                this.addDebugLog(`サイズ: ${(data.size / 1024).toFixed(2)} KB`);
+            }
+        }
+    }
+
+    // セーブデータ削除
+    debugClearData() {
+        if (confirm('セーブデータを削除しますか？\n※バックアップが作成されます')) {
+            if (this.systems.storage && this.systems.storage.clearSaveData) {
+                const result = this.systems.storage.clearSaveData(true);
+                if (result.success) {
+                    this.addDebugLog('セーブデータを削除しました');
+                    // ページリロードを提案
+                    if (confirm('削除完了。ページをリロードしますか？')) {
+                        window.location.reload();
+                    }
+                } else {
+                    this.addDebugLog(`削除失敗: ${result.error}`);
+                }
+            }
+        }
+    }
+
+    // デバッグステータス更新
+    updateDebugStatus() {
+        if (!this.systems.gameLoop) return;
+
+        const status = this.systems.gameLoop.getStatus();
+        const debugInfo = this.systems.gameLoop.getDebugInfo();
+
+        if (this.elements.debugGameStatus) {
+            this.elements.debugGameStatus.textContent = status.isRunning ? '実行中' : '停止中';
+        }
+
+        if (this.elements.debugFps) {
+            this.elements.debugFps.textContent = debugInfo.fps || 0;
+        }
+
+        if (this.elements.debugLastUpdate) {
+            this.elements.debugLastUpdate.textContent = new Date(status.lastUpdateTime).toLocaleTimeString();
+        }
+
+        if (this.elements.debugAutoDice) {
+            const unlockedCount = this.gameState.autoDice.filter(d => d.unlocked).length;
+            this.elements.debugAutoDice.textContent = `${unlockedCount}/7`;
+        }
+    }
+
+    // デバッグログ追加
+    addDebugLog(message) {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = `[${timestamp}] ${message}`;
+        
+        this.debugLogs.push(logEntry);
+        
+        // ログ数制限
+        if (this.debugLogs.length > this.maxLogEntries) {
+            this.debugLogs.shift();
+        }
+
+        // ログ表示更新
+        if (this.elements.debugLog) {
+            this.elements.debugLog.textContent = this.debugLogs.join('\n');
+            this.elements.debugLog.scrollTop = this.elements.debugLog.scrollHeight;
+        }
+
+        // コンソールにも出力
+        console.log(`[DEBUG] ${message}`);
+    }
+
+    // デバッグパネルのクリーンアップ
+    cleanupDebugPanel() {
+        if (this.debugUpdateInterval) {
+            clearInterval(this.debugUpdateInterval);
+        }
     }
 }
