@@ -394,7 +394,6 @@ body {
 }
 
 .progress-bar {
-    transition: width 0.2s ease;
     background: linear-gradient(45deg, #007bff, #0056b3);
     box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
 }
