@@ -59,3 +59,6 @@ public/
 # 統計・分析ファイル
 coverage/
 .nyc_output/
+
+# Claude ローカル設定ファイル
+.claude/settings.local.json
