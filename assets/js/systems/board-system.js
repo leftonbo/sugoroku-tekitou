@@ -8,7 +8,7 @@ import {
     calculateForwardSteps, 
     calculateBackwardRatio 
 } from '../utils/math-utils.js';
-import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG } from '../utils/constants.js';
+import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG, FIXED_BACKWARD_CONFIG } from '../utils/constants.js';
 
 export class BoardSystem {
     constructor(gameState) {
@@ -17,6 +17,14 @@ export class BoardSystem {
 
     // マス種類の決定
     getCellType(position, level) {
+        // レベル10以降の固定戻るマス処理
+        if (level >= FIXED_BACKWARD_CONFIG.START_LEVEL) {
+            const fixedBackwardCell = this.checkFixedBackwardCell(position, level);
+            if (fixedBackwardCell) {
+                return fixedBackwardCell;
+            }
+        }
+        
         const seed = getBoardSeed(this.gameState.rebirthCount, level) + position;
         const rand = seededRandom(seed);
         
@@ -48,6 +56,34 @@ export class BoardSystem {
             const steps = calculateBackwardSteps(level, seed, GAME_CONFIG.MAX_BACKWARD_STEPS);
             return { type: BOARD_CONFIG.CELL_TYPES.BACKWARD, effect: steps };
         }
+    }
+
+    // 固定戻るマスのチェック
+    checkFixedBackwardCell(position, level) {
+        // 固定配置エリア外は対象外
+        if (position < FIXED_BACKWARD_CONFIG.AREA_START || position > FIXED_BACKWARD_CONFIG.AREA_END) {
+            return null;
+        }
+        
+        // レベルに応じた固定配置数を計算
+        const levelProgress = Math.floor((level - FIXED_BACKWARD_CONFIG.START_LEVEL) / FIXED_BACKWARD_CONFIG.LEVEL_INCREMENT);
+        const fixedCount = Math.min(levelProgress + 1, FIXED_BACKWARD_CONFIG.MAX_COUNT);
+        
+        // 固定配置する位置を決定（後ろから配置）
+        const areaSize = FIXED_BACKWARD_CONFIG.AREA_END - FIXED_BACKWARD_CONFIG.AREA_START + 1;
+        const startFixedPosition = FIXED_BACKWARD_CONFIG.AREA_END - fixedCount + 1;
+        
+        if (position >= startFixedPosition) {
+            // 固定戻るマスとして配置
+            const seed = getBoardSeed(this.gameState.rebirthCount, level) + position + 9999; // 異なるシードを使用
+            const steps = Math.floor(seededRandom(seed) * 3) + 2; // 2-4マス戻る（通常より強め）
+            return { 
+                type: BOARD_CONFIG.CELL_TYPES.BACKWARD, 
+                effect: Math.min(steps, GAME_CONFIG.MAX_BACKWARD_STEPS) 
+            };
+        }
+        
+        return null;
     }
 
     // プレイヤーの移動

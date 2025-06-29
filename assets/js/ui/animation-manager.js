@@ -32,14 +32,14 @@ export class AnimationManager {
         // 結果表示の構築
         let displayContent = '';
         if (diceCount === 1) {
-            displayContent = `<div class="${resultClass}">${total}</div>`;
+            displayContent = `<div class="${resultClass} fs-4">${total}</div>`;
         } else {
             displayContent = `<div class="small text-muted">${results.join(' + ')}</div>`;
-            displayContent += `<div class="${resultClass} fs-3">${total}</div>`;
+            displayContent += `<div class="${resultClass} fs-4">${total}</div>`;
         }
         
         if (resultText) {
-            displayContent += `<div class="small ${resultClass}">${resultText}</div>`;
+            displayContent += `<div class="small text-muted fw-normal" style="font-size: 0.7rem;">${resultText}</div>`;
         }
         
         element.innerHTML = displayContent;

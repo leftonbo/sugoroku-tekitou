@@ -51,6 +51,15 @@ export const GAME_CONFIG = {
     MAX_BACKWARD_STEPS: 5
 };
 
+// 固定戻るマス設定
+export const FIXED_BACKWARD_CONFIG = {
+    START_LEVEL: 10,       // 固定配置開始レベル
+    AREA_START: 90,        // 固定配置エリア開始位置
+    AREA_END: 99,          // 固定配置エリア終了位置
+    MAX_COUNT: 10,         // 最大固定配置数
+    LEVEL_INCREMENT: 10    // レベル増加間隔
+};
+
 // クレジット計算設定
 export const CREDIT_CONFIG = {
     BASE_AMOUNT_DIVISOR: 8,
