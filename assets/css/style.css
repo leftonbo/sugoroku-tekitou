@@ -394,6 +394,11 @@ body {
 }
 
 .progress-bar {
+    -webkit-transition: none;
+    -moz-transition: none;
+    -ms-transition: none;
+    -o-transition: none;
+    transition: none;
     background: linear-gradient(45deg, #007bff, #0056b3);
     box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
 }
