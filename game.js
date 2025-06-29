@@ -276,11 +276,24 @@ class SugorokuGame {
     prestige() {
         if (this.gameState.prestigePoints === 0) return;
         
-        const confirmed = confirm(`転生しますか？\n\n獲得プレステージポイント: ${this.gameState.prestigePoints}\n\n注意: 現在の進行状況はリセットされます。`);
+        const stats = this.getGameStats();
+        const confirmText = `転生しますか？\n\n` +
+            `現在の統計:\n` +
+            `・獲得プレステージポイント: ${this.gameState.prestigePoints}\n` +
+            `・総クレジット獲得: ${this.formatNumber(this.gameState.credits)}\n` +
+            `・総移動距離: ${stats.totalDistance}マス\n` +
+            `・完了周回数: ${stats.completedLaps}周\n\n` +
+            `注意: 現在の進行状況はリセットされますが、\n` +
+            `プレステージポイントは永続的に保持されます。`;
+        
+        const confirmed = confirm(confirmText);
         
         if (confirmed) {
             // プレステージポイントを保存
             const earnedPrestige = this.gameState.prestigePoints;
+            
+            // 統計情報を保存
+            this.updatePrestigeStats(stats);
             
             // ゲーム状態をリセット
             this.resetGameState();
@@ -292,7 +305,69 @@ class SugorokuGame {
             this.saveGameState();
             
             console.log(`転生完了！プレステージポイント: ${earnedPrestige}`);
-            alert(`転生しました！\nプレステージポイント: ${earnedPrestige}`);
+            
+            const resultText = `転生しました！\n\n` +
+                `獲得プレステージポイント: ${earnedPrestige}\n` +
+                `新しい冒険が始まります！`;
+            alert(resultText);
+        }
+    }
+    
+    // ゲーム統計の取得
+    getGameStats() {
+        const completedLaps = Math.floor(this.gameState.totalMoves / 100);
+        return {
+            totalCredits: this.gameState.credits,
+            totalDistance: this.gameState.totalMoves,
+            completedLaps: completedLaps,
+            currentPosition: this.gameState.position,
+            diceTypes: this.gameState.dice.filter(d => d.unlocked).length,
+            upgradesPurchased: this.getTotalUpgradesPurchased()
+        };
+    }
+    
+    // 購入したアップグレードの総数を取得
+    getTotalUpgradesPurchased() {
+        let total = this.gameState.upgrades.autoSpeed;
+        Object.values(this.gameState.upgrades.diceUpgrades).forEach(level => {
+            total += level;
+        });
+        return total;
+    }
+    
+    // プレステージ統計の更新
+    updatePrestigeStats(stats) {
+        if (!this.gameState.prestigeStats) {
+            this.gameState.prestigeStats = {
+                totalRuns: 0,
+                totalCreditsEarned: 0,
+                totalDistanceTraveled: 0,
+                totalLapsCompleted: 0,
+                bestSingleRun: {
+                    credits: 0,
+                    distance: 0,
+                    laps: 0
+                }
+            };
+        }
+        
+        const prestigeStats = this.gameState.prestigeStats;
+        
+        // 総計を更新
+        prestigeStats.totalRuns++;
+        prestigeStats.totalCreditsEarned += stats.totalCredits;
+        prestigeStats.totalDistanceTraveled += stats.totalDistance;
+        prestigeStats.totalLapsCompleted += stats.completedLaps;
+        
+        // 最高記録を更新
+        if (stats.totalCredits > prestigeStats.bestSingleRun.credits) {
+            prestigeStats.bestSingleRun.credits = stats.totalCredits;
+        }
+        if (stats.totalDistance > prestigeStats.bestSingleRun.distance) {
+            prestigeStats.bestSingleRun.distance = stats.totalDistance;
+        }
+        if (stats.completedLaps > prestigeStats.bestSingleRun.laps) {
+            prestigeStats.bestSingleRun.laps = stats.completedLaps;
         }
     }
     
@@ -333,6 +408,13 @@ class SugorokuGame {
         
         // プレステージボタンの状態
         this.elements.prestigeBtn.disabled = this.gameState.prestigePoints === 0;
+        
+        // プレステージボタンのテキスト更新
+        if (this.gameState.prestigePoints > 0) {
+            this.elements.prestigeBtn.innerHTML = `✨ 転生する<br><small>プレステージポイント: ${this.gameState.prestigePoints}</small>`;
+        } else {
+            this.elements.prestigeBtn.innerHTML = `転生する<br><small>100マス到達で解放</small>`;
+        }
     }
     
     // サイコロアップグレードUIの更新
