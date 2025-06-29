@@ -6,6 +6,12 @@ import { createDefaultGameState, mergeGameState } from './game-state.js';
 // ゲーム状態の保存
 export function saveGameState(gameState) {
     try {
+        // データ削除フラグをチェック
+        if (sessionStorage.getItem('game-data-cleared') === 'true') {
+            console.log('データ削除後のため保存をスキップしました');
+            return false;
+        }
+        
         localStorage.setItem(STORAGE_KEYS.GAME_STATE, JSON.stringify(gameState));
         console.log('ゲーム状態を保存しました');
         return true;
@@ -18,6 +24,15 @@ export function saveGameState(gameState) {
 // ゲーム状態の読み込み
 export function loadGameState() {
     try {
+        // 削除フラグをチェック
+        const wasCleared = sessionStorage.getItem('game-data-cleared') === 'true';
+        if (wasCleared) {
+            // 削除フラグをクリア
+            sessionStorage.removeItem('game-data-cleared');
+            console.log('データ削除後の初回読み込み。初期状態から開始します。');
+            return createDefaultGameState();
+        }
+        
         const savedState = localStorage.getItem(STORAGE_KEYS.GAME_STATE);
         if (savedState) {
             const parsed = JSON.parse(savedState);
@@ -120,6 +135,8 @@ window.debugRestoreBackup = function(backupData) {
     try {
         const result = restoreFromBackup(backupData);
         if (result) {
+            // 削除フラグもクリア
+            sessionStorage.removeItem('game-data-cleared');
             console.log('復元完了！ページをリロードしてください。');
             return true;
         } else {
@@ -131,6 +148,13 @@ window.debugRestoreBackup = function(backupData) {
         return false;
     }
 };
+
+// デバッグ: 保存機能の再有効化
+export function enableAutoSave() {
+    sessionStorage.removeItem('game-data-cleared');
+    console.log('自動保存機能を再有効化しました');
+    return true;
+}
 
 // デバッグ: セーブデータの削除
 export function clearSaveData(shouldCreateBackup = true) {
@@ -149,6 +173,9 @@ export function clearSaveData(shouldCreateBackup = true) {
         
         // セーブデータを削除
         localStorage.removeItem(STORAGE_KEYS.GAME_STATE);
+        
+        // 削除フラグを設定（ページ離脱時の自動保存を防ぐ）
+        sessionStorage.setItem('game-data-cleared', 'true');
         console.log('セーブデータを削除しました - 次回読み込み時は初期状態から開始されます');
         
         return {

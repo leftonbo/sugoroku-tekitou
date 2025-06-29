@@ -58,6 +58,7 @@ export class UIManager {
             debugStep: document.getElementById('debug-step'),
             debugShowData: document.getElementById('debug-show-data'),
             debugClearData: document.getElementById('debug-clear-data'),
+            debugEnableSave: document.getElementById('debug-enable-save'),
             debugGameStatus: document.getElementById('debug-game-status'),
             debugFps: document.getElementById('debug-fps'),
             debugLastUpdate: document.getElementById('debug-last-update'),
@@ -646,6 +647,10 @@ export class UIManager {
             this.debugClearData();
         });
 
+        this.elements.debugEnableSave?.addEventListener('click', () => {
+            this.debugEnableSave();
+        });
+
         // デバッグステータスの定期更新
         this.debugUpdateInterval = setInterval(() => {
             this.updateDebugStatus();
@@ -722,6 +727,16 @@ export class UIManager {
                 } else {
                     this.addDebugLog(`削除失敗: ${result.error}`);
                 }
+            }
+        }
+    }
+
+    // 保存機能再有効化
+    debugEnableSave() {
+        if (this.systems.storage && this.systems.storage.enableAutoSave) {
+            const result = this.systems.storage.enableAutoSave();
+            if (result) {
+                this.addDebugLog('自動保存機能を再有効化しました');
             }
         }
     }

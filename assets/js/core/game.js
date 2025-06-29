@@ -1,7 +1,7 @@
 // すごろくインクリメンタルゲーム メインクラス
 
 // モジュールのインポート
-import { loadGameState, setupAutoSave, saveGameState, clearSaveData, debugShowStorageData } from '../data/storage-manager.js';
+import { loadGameState, setupAutoSave, saveGameState, clearSaveData, debugShowStorageData, enableAutoSave } from '../data/storage-manager.js';
 import { DiceSystem } from '../systems/dice-system.js';
 import { BoardSystem } from '../systems/board-system.js';
 import { UpgradeSystem } from '../systems/upgrade-system.js';
@@ -97,6 +97,7 @@ export class SugorokuGame {
             saveGameState: () => this.saveGame(),
             clearSaveData: this.clearSaveData.bind(this),
             debugShowStorageData: this.debugShowStorageData.bind(this),
+            enableAutoSave: this.enableAutoSave.bind(this),
             gameState: this.gameState
         };
         this.systems.gameLoop = this.gameLoop;
@@ -117,6 +118,11 @@ export class SugorokuGame {
     // デバッグ: ストレージデータ表示
     debugShowStorageData() {
         return debugShowStorageData();
+    }
+
+    // デバッグ: 自動保存再有効化
+    enableAutoSave() {
+        return enableAutoSave();
     }
     
     // 初期化エラーの処理
