@@ -107,26 +107,54 @@ export function restoreFromBackup(backupData) {
     }
 }
 
+// デバッグ: コンソールからのバックアップ復元用ヘルパー
+export function debugRestoreFromConsole() {
+    console.log('使用方法:');
+    console.log('1. 削除時にコンソールに出力されたバックアップデータをコピー');
+    console.log('2. debugRestoreBackup("バックアップデータ") を実行');
+    console.log('3. ページをリロード');
+}
+
+// デバッグ: バックアップデータからの復元（コンソール用）
+window.debugRestoreBackup = function(backupData) {
+    try {
+        const result = restoreFromBackup(backupData);
+        if (result) {
+            console.log('復元完了！ページをリロードしてください。');
+            return true;
+        } else {
+            console.log('復元に失敗しました。');
+            return false;
+        }
+    } catch (error) {
+        console.error('復元エラー:', error);
+        return false;
+    }
+};
+
 // デバッグ: セーブデータの削除
 export function clearSaveData(shouldCreateBackup = true) {
     try {
         let backupData = null;
         
-        // バックアップを作成（オプション）
+        // バックアップを作成（削除前に実行）
         if (shouldCreateBackup) {
             backupData = createBackup();
             if (backupData) {
                 console.log('削除前のバックアップを作成しました');
+                // バックアップをコンソールに出力（手動復元用）
+                console.log('バックアップデータ（手動復元用）:', backupData);
             }
         }
         
         // セーブデータを削除
         localStorage.removeItem(STORAGE_KEYS.GAME_STATE);
-        console.log('セーブデータを削除しました');
+        console.log('セーブデータを削除しました - 次回読み込み時は初期状態から開始されます');
         
         return {
             success: true,
-            backup: backupData
+            backup: backupData,
+            message: '削除完了。リロード後は初期状態から開始されます。'
         };
     } catch (error) {
         console.error('セーブデータの削除に失敗しました:', error);

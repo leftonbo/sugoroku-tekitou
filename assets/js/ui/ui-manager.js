@@ -707,13 +707,16 @@ export class UIManager {
 
     // セーブデータ削除
     debugClearData() {
-        if (confirm('セーブデータを削除しますか？\n※バックアップが作成されます')) {
+        if (confirm('セーブデータを削除しますか？\n※バックアップがコンソールに出力されます\n※リロード後は初期状態から開始されます')) {
             if (this.systems.storage && this.systems.storage.clearSaveData) {
                 const result = this.systems.storage.clearSaveData(true);
                 if (result.success) {
                     this.addDebugLog('セーブデータを削除しました');
+                    if (result.backup) {
+                        this.addDebugLog('バックアップをコンソールに出力しました');
+                    }
                     // ページリロードを提案
-                    if (confirm('削除完了。ページをリロードしますか？')) {
+                    if (confirm('削除完了。ページをリロードして初期状態から開始しますか？')) {
                         window.location.reload();
                     }
                 } else {
