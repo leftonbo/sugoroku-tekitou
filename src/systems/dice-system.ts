@@ -31,10 +31,6 @@ interface AutoDiceInfo {
     rollsPerMinute: number;
     lastRoll: number;
     canAscend: boolean;
-    
-    // 後方互換性のため
-    speedLevel?: number;
-    countLevel?: number;
 }
 
 interface ManualDiceInfo {
@@ -228,11 +224,7 @@ export class DiceSystem {
             interval: interval,
             rollsPerMinute: rollsPerMinute,
             lastRoll: dice.lastRoll,
-            canAscend: dice.level >= maxLevel,
-            
-            // 後方互換性
-            speedLevel: dice.speedLevel || 0,
-            countLevel: dice.countLevel || 0
+            canAscend: dice.level >= maxLevel
         };
     }
 

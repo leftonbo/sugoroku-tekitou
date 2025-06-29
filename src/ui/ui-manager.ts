@@ -596,17 +596,6 @@ export class UIManager {
                         this.updateUI();
                     }
                     break;
-                // 後方互換性のため旧システムのアクションも残す
-                case 'speed':
-                    if (this.systems.upgrade.levelUpAutoDice(index)) {
-                        this.updateUI();
-                    }
-                    break;
-                case 'count':
-                    if (this.systems.upgrade.levelUpAutoDice(index)) {
-                        this.updateUI();
-                    }
-                    break;
             }
         });
         
@@ -644,15 +633,6 @@ export class UIManager {
                     case 'ascend':
                         canAfford = diceInfo.canAscend;
                         cost = diceInfo.ascensionCost;
-                        break;
-                    // 後方互換性のため
-                    case 'speed':
-                        canAfford = diceInfo.canLevelUp;
-                        cost = diceInfo.levelUpCost;
-                        break;
-                    case 'count':
-                        canAfford = diceInfo.canLevelUp;
-                        cost = diceInfo.levelUpCost;
                         break;
                 }
                 

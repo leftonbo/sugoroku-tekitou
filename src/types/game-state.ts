@@ -25,12 +25,6 @@ export interface AutoDice {
     ascensionLevel: number; // アセンションレベル
     baseInterval: number;  // 基本実行間隔（ティック数）
     lastRoll: number;      // 最後にロールしたTick
-    
-    // 後方互換性のための旧システムプロパティ（マイグレーション用）
-    unlocked?: boolean;     // 解禁状態（旧）
-    speedLevel?: number;    // 速度レベル（旧）
-    countLevel?: number;    // 個数レベル（旧）
-    count?: number;         // ダイスの個数（旧）
 }
 
 export interface GameSettings {

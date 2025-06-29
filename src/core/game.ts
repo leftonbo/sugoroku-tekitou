@@ -299,7 +299,7 @@ export class SugorokuGame {
             isRunning: debugInfo.gameLoop?.isRunning || false,
             totalCredits: this.gameState?.credits || 0,
             currentLevel: this.gameState?.level || 1,
-            autoDiceCount: this.gameState?.autoDice?.filter(d => d.unlocked).length || 0,
+            autoDiceCount: this.gameState?.autoDice?.filter(d => d.level > 0).length || 0,
             totalStats: this.gameState?.stats || {}
         };
     }

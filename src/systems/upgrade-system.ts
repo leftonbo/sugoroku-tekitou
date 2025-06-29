@@ -29,16 +29,6 @@ interface AutoDiceUpgradeInfo {
     canUnlock: boolean;
     canLevelUp: boolean;
     canAscend: boolean;
-    
-    // 後方互換性のため
-    count?: number;
-    speedLevel?: number;
-    countLevel?: number;
-    unlockCost?: number;
-    speedUpgradeCost?: number;
-    countUpgradeCost?: number;
-    canUpgradeSpeed?: boolean;
-    canUpgradeCount?: boolean;
 }
 
 interface AllUpgradeInfo {
@@ -183,18 +173,6 @@ export class UpgradeSystem {
         );
     }
 
-    // 旧システム互換用のコスト計算（後方互換性のため残す）
-    getAutoDiceUnlockCost(diceIndex: number): number {
-        return this.getAutoDiceLevelUpCost(diceIndex);
-    }
-
-    getAutoDiceSpeedUpgradeCost(diceIndex: number): number {
-        return this.getAutoDiceLevelUpCost(diceIndex);
-    }
-
-    getAutoDiceCountUpgradeCost(diceIndex: number): number {
-        return this.getAutoDiceLevelUpCost(diceIndex);
-    }
 
     // アップグレード可能性チェック
     canUpgradeManualDice(): boolean {
@@ -234,14 +212,6 @@ export class UpgradeSystem {
         return dice.level >= maxLevel && this.gameState.credits >= this.getAutoDiceAscensionCost(diceIndex);
     }
 
-    // 旧システム互換用（後方互換性のため残す）
-    canUpgradeAutoDiceSpeed(diceIndex: number): boolean {
-        return this.canLevelUpAutoDice(diceIndex);
-    }
-
-    canUpgradeAutoDiceCount(diceIndex: number): boolean {
-        return this.canLevelUpAutoDice(diceIndex);
-    }
 
     // 全アップグレード情報の取得
     getAllUpgradeInfo(): AllUpgradeInfo {
@@ -270,17 +240,7 @@ export class UpgradeSystem {
                 ascensionCost: this.getAutoDiceAscensionCost(index),
                 canUnlock: this.canUnlockAutoDice(index),
                 canLevelUp: this.canLevelUpAutoDice(index),
-                canAscend: this.canAscendAutoDice(index),
-                
-                // 後方互換性
-                count: dice.count || 1,
-                speedLevel: dice.speedLevel || 0,
-                countLevel: dice.countLevel || 0,
-                unlockCost: this.getAutoDiceUnlockCost(index),
-                speedUpgradeCost: this.getAutoDiceSpeedUpgradeCost(index),
-                countUpgradeCost: this.getAutoDiceCountUpgradeCost(index),
-                canUpgradeSpeed: this.canUpgradeAutoDiceSpeed(index),
-                canUpgradeCount: this.canUpgradeAutoDiceCount(index)
+                canAscend: this.canAscendAutoDice(index)
             };
         });
 
@@ -297,11 +257,6 @@ export class UpgradeSystem {
         
         this.gameState.autoDice.forEach(dice => {
             total += dice.level + dice.ascensionLevel; // レベル + アセンション数
-            
-            // 後方互換性のため旧システムのカウントも含める
-            if (dice.speedLevel) total += dice.speedLevel;
-            if (dice.countLevel) total += dice.countLevel;
-            if (dice.unlocked) total += 1; // 旧システムの解禁もカウント
         });
         
         return total;

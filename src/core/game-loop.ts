@@ -209,7 +209,7 @@ export class GameLoop {
                 position: this.gameState.position,
                 level: this.gameState.level,
                 credits: this.gameState.credits,
-                autoDiceCount: this.gameState.autoDice.filter(d => d.unlocked).length
+                autoDiceCount: this.gameState.autoDice.filter(d => d.level > 0).length
             }
         };
     }
@@ -255,15 +255,18 @@ export class GameLoop {
     // デバッグ: ゲーム状態の詳細情報取得
     getDetailedDebugInfo(): DetailedDebugInfo {
         const baseInfo = this.getDebugInfo();
-        const autoDiceInfo = this.gameState.autoDice.map((dice, index) => ({
-            index,
-            faces: dice.faces,
-            unlocked: dice.level > 0,
-            count: dice.count || 1,
-            speedLevel: dice.speedLevel || 0,
-            lastRoll: dice.lastRoll,
-            interval: this.systems.dice.getAutoDiceInterval(index)
-        }));
+        const autoDiceInfo = this.gameState.autoDice.map((dice, index) => {
+            const diceInfo = this.systems.dice.getAutoDiceInfo(index);
+            return {
+                index,
+                faces: dice.faces,
+                unlocked: dice.level > 0,
+                count: diceInfo?.count || 1,
+                speedLevel: dice.level,
+                lastRoll: dice.lastRoll,
+                interval: this.systems.dice.getAutoDiceInterval(index)
+            };
+        });
 
         return {
             ...baseInfo,

@@ -38,13 +38,7 @@ export function createDefaultGameState(): GameState {
             level: 0,               // 0=未解禁、1以上=解禁済み
             ascensionLevel: 0,      // アセンションレベル
             baseInterval: config.baseInterval,
-            lastRoll: 0,
-            
-            // 後方互換性のための旧プロパティ（マイグレーション用）
-            count: 1,
-            unlocked: false,
-            speedLevel: 0,
-            countLevel: 0
+            lastRoll: 0
         })),
         
         // ゲーム設定
@@ -76,13 +70,6 @@ export function resetGameStateForPrestige(currentState: GameState): GameState {
 export function mergeGameState(defaultState: GameState, savedState: Partial<GameState>): GameState {
     const merged = { ...defaultState };
     
-    // 新システム対応：古いデータ構造を検出した場合は初期化
-    const savedStateAny = savedState as any;
-    if (savedStateAny.dice || savedStateAny.upgrades) {
-        console.log('古いダイスシステムのデータを検出。新システムで初期化します。');
-        return merged; // デフォルト状態を返す
-    }
-    
     // トップレベルプロパティのマージ
     Object.keys(savedState).forEach(key => {
         const typedKey = key as keyof GameState;
@@ -101,50 +88,6 @@ export function mergeGameState(defaultState: GameState, savedState: Partial<Game
             }
         }
     });
-    
-    // 自動ダイスの旧システムから新システムへのマイグレーション
-    if (savedState.autoDice && Array.isArray(savedState.autoDice)) {
-        merged.autoDice = savedState.autoDice.map((savedDice, index) => {
-            const defaultDice = defaultState.autoDice[index];
-            if (!defaultDice || !savedDice) return defaultDice;
-            
-            // 旧システムのプロパティが存在する場合、新システムに変換
-            if (savedDice.unlocked !== undefined || savedDice.speedLevel !== undefined || savedDice.countLevel !== undefined) {
-                console.log(`自動ダイス${index}を旧システムから新システムに変換中...`);
-                
-                const newDice = { ...defaultDice };
-                
-                // 旧システムから新システムへの変換ロジック
-                if (savedDice.unlocked) {
-                    // 解禁済みの場合、旧speedLevelとcountLevelからlevelを計算
-                    const oldSpeedLevel = savedDice.speedLevel || 0;
-                    const oldCountLevel = savedDice.countLevel || 0;
-                    newDice.level = Math.max(1, Math.max(oldSpeedLevel, oldCountLevel) + 1);
-                    newDice.ascensionLevel = 0; // 初期アセンションレベル
-                } else {
-                    // 未解禁の場合
-                    newDice.level = 0;
-                    newDice.ascensionLevel = 0;
-                }
-                
-                // その他のプロパティを引き継ぎ
-                newDice.faces = savedDice.faces || defaultDice.faces;
-                newDice.baseInterval = savedDice.baseInterval || defaultDice.baseInterval;
-                newDice.lastRoll = savedDice.lastRoll || 0;
-                
-                // 後方互換性のため旧プロパティも保持
-                newDice.count = savedDice.count || 1;
-                newDice.unlocked = savedDice.unlocked || false;
-                newDice.speedLevel = savedDice.speedLevel || 0;
-                newDice.countLevel = savedDice.countLevel || 0;
-                
-                return newDice;
-            } else {
-                // 新システムのプロパティが既に存在する場合、そのまま利用
-                return { ...defaultDice, ...savedDice };
-            }
-        }).filter(Boolean) as any[];
-    }
     
     return merged;
 }
