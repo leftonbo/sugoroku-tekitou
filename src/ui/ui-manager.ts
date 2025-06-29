@@ -72,7 +72,7 @@ interface Systems {
     storage: {
         saveGameState: (gameState: GameState) => boolean;
     };
-    gameLoop: {
+    gameLoop?: {  // GameLoopは初期化時に存在しない可能性がある
         pause: () => void;
         resume: () => void;
         step: () => void;
@@ -750,15 +750,15 @@ export class UIManager {
         
         // ゲーム制御
         this.elements.debugPause?.addEventListener('click', () => {
-            this.systems.gameLoop.pause();
+            this.systems.gameLoop?.pause();
         });
         
         this.elements.debugResume?.addEventListener('click', () => {
-            this.systems.gameLoop.resume();
+            this.systems.gameLoop?.resume();
         });
         
         this.elements.debugStep?.addEventListener('click', () => {
-            this.systems.gameLoop.step();
+            this.systems.gameLoop?.step();
         });
         
         // その他のデバッグ機能は省略...
@@ -766,6 +766,9 @@ export class UIManager {
 
     // 現在のTickを取得
     getCurrentTick(): number {
+        if (!this.systems.gameLoop?.getDebugInfo) {
+            return 0; // GameLoop未初期化時は0を返す
+        }
         return this.systems.gameLoop.getDebugInfo().currentTick;
     }
 
@@ -776,6 +779,15 @@ export class UIManager {
         
         if (!autoDiceInfo || !autoDiceInfo.unlocked) {
             return { progress: 0, timeLeft: 0, interval: 0 };
+        }
+        
+        // GameLoop未初期化時は進捗0として扱う
+        if (currentTick === 0) {
+            return { 
+                progress: 0, 
+                timeLeft: autoDiceInfo.interval,
+                interval: autoDiceInfo.interval
+            };
         }
         
         const ticksSinceLastRoll = currentTick - autoDiceInfo.lastRoll;
