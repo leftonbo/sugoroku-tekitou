@@ -57,24 +57,24 @@
                     </div>
                 </div>
 
-                <!-- サイコロ操作パネル -->
+                <!-- 手動ダイスパネル -->
                 <div class="card mt-3">
                     <div class="card-header">
-                        <h5 class="mb-0">🎲 サイコロ</h5>
+                        <h5 class="mb-0">🎲 手動ダイス</h5>
                     </div>
                     <div class="card-body text-center">
                         <div class="mb-3">
-                            <div id="dice-result" class="display-4 mb-2">-</div>
-                            <small class="text-muted">サイコロの目</small>
+                            <div id="manual-dice-result" class="display-4 mb-2">-</div>
+                            <small class="text-muted">6面ダイス結果</small>
                         </div>
-                        <button id="roll-dice" class="btn btn-primary btn-lg w-100 mb-2">
-                            🎲 サイコロを振る
+                        <button id="roll-manual-dice" class="btn btn-primary btn-lg w-100 mb-2">
+                            🎲 ダイスを振る
                         </button>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="auto-roll">
-                            <label class="form-check-label" for="auto-roll">
-                                自動でサイコロを振る
-                            </label>
+                        <div class="d-grid">
+                            <button id="upgrade-manual-count" class="btn btn-outline-success btn-sm">
+                                個数アップグレード
+                                <br><small>現在: <span id="manual-dice-count">1</span>個 | コスト: <span id="manual-upgrade-cost">100</span>💰</small>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -94,39 +94,23 @@
                 </div>
             </div>
 
-            <!-- アップグレードパネル -->
+            <!-- 自動ダイスパネル -->
             <div class="col-lg-3 col-md-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">⬆️ アップグレード</h5>
+                        <h5 class="mb-0">🤖 自動ダイス</h5>
                     </div>
                     <div class="card-body">
-                        <!-- サイコロ自動化アップグレード -->
-                        <div class="upgrade-section mb-4">
-                            <h6 class="text-primary">🤖 自動化</h6>
-                            <div class="upgrade-item">
-                                <button id="upgrade-auto-speed" class="btn btn-outline-primary btn-sm w-100 mb-2">
-                                    自動化速度向上
-                                    <br><small>コスト: <span id="auto-speed-cost">100</span>💰</small>
-                                </button>
-                                <small class="text-muted">現在の間隔: <span id="auto-interval">3.0</span>秒</small>
-                            </div>
+                        <div id="auto-dice-container">
+                            <!-- 自動ダイスはJavaScriptで動的に生成 -->
                         </div>
-
-                        <!-- サイコロ追加アップグレード -->
-                        <div class="upgrade-section mb-4">
-                            <h6 class="text-success">🎲 サイコロ追加</h6>
-                            <div id="dice-upgrades">
-                                <!-- サイコロアップグレードはJavaScriptで動的に生成 -->
-                            </div>
-                        </div>
-
+                        
                         <!-- プレステージ -->
-                        <div class="upgrade-section">
+                        <div class="upgrade-section mt-4">
                             <h6 class="text-warning">✨ プレステージ</h6>
                             <button id="prestige-btn" class="btn btn-warning btn-sm w-100" disabled>
                                 転生する
-                                <br><small>100マス到達で解放</small>
+                                <br><small>レベルアップで解放</small>
                             </button>
                         </div>
                     </div>

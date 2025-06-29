@@ -24,22 +24,22 @@ class SugorokuGame {
                 totalPrestigePoints: 0  // 総獲得プレステージポイント
             },
             
-            // サイコロ関連
-            dice: [
-                { faces: 6, count: 1, unlocked: true }  // 6面ダイス x1個
-            ],
-            
-            // アップグレード状態
-            upgrades: {
-                autoSpeed: 0,           // 自動化速度レベル
-                diceUpgrades: {         // サイコロアップグレード
-                    d2: 0, d4: 0, d6: 1, d8: 0, d10: 0, d12: 0, d20: 0
-                }
+            // 手動ダイス（プレイヤーが操作）
+            manualDice: {
+                count: 1,               // 6面ダイスの個数
+                upgradeLevel: 0         // アップグレードレベル
             },
             
-            // 自動化設定
-            autoRoll: false,
-            autoRollInterval: 3000,     // ミリ秒
+            // 自動ダイス（7種類独立）
+            autoDice: [
+                { faces: 2,  count: 1, unlocked: false, speedLevel: 0, countLevel: 0, baseInterval: 1500,  lastRoll: 0 },
+                { faces: 4,  count: 1, unlocked: false, speedLevel: 0, countLevel: 0, baseInterval: 2500,  lastRoll: 0 },
+                { faces: 6,  count: 1, unlocked: false, speedLevel: 0, countLevel: 0, baseInterval: 3500,  lastRoll: 0 },
+                { faces: 8,  count: 1, unlocked: false, speedLevel: 0, countLevel: 0, baseInterval: 5000,  lastRoll: 0 },
+                { faces: 10, count: 1, unlocked: false, speedLevel: 0, countLevel: 0, baseInterval: 6500,  lastRoll: 0 },
+                { faces: 12, count: 1, unlocked: false, speedLevel: 0, countLevel: 0, baseInterval: 8000,  lastRoll: 0 },
+                { faces: 20, count: 1, unlocked: false, speedLevel: 0, countLevel: 0, baseInterval: 12000, lastRoll: 0 }
+            ],
             
             // ゲーム設定
             settings: {
@@ -49,8 +49,8 @@ class SugorokuGame {
         
         // 内部状態
         this.isRunning = false;
-        this.lastAutoRoll = 0;
         this.animationId = null;
+        this.manualDiceResults = [];    // 手動ダイスの結果表示用
         
         // DOM要素の参照
         this.elements = {};
@@ -81,19 +81,18 @@ class SugorokuGame {
             prestigeEarned: document.getElementById('prestige-earned'),
             prestigeAvailable: document.getElementById('prestige-available'),
             
-            // サイコロ
-            diceResult: document.getElementById('dice-result'),
-            rollDiceBtn: document.getElementById('roll-dice'),
-            autoRollCheck: document.getElementById('auto-roll'),
+            // 手動ダイス
+            manualDiceResult: document.getElementById('manual-dice-result'),
+            rollManualDiceBtn: document.getElementById('roll-manual-dice'),
+            upgradeManualCountBtn: document.getElementById('upgrade-manual-count'),
+            manualDiceCount: document.getElementById('manual-dice-count'),
+            manualUpgradeCost: document.getElementById('manual-upgrade-cost'),
+            
+            // 自動ダイス
+            autoDiceContainer: document.getElementById('auto-dice-container'),
             
             // ゲームボード
             gameBoard: document.getElementById('game-board'),
-            
-            // アップグレード
-            upgradeAutoSpeed: document.getElementById('upgrade-auto-speed'),
-            autoSpeedCost: document.getElementById('auto-speed-cost'),
-            autoInterval: document.getElementById('auto-interval'),
-            diceUpgrades: document.getElementById('dice-upgrades'),
             
             // プレステージ
             prestigeBtn: document.getElementById('prestige-btn'),
@@ -111,27 +110,15 @@ class SugorokuGame {
     
     // イベントリスナーの設定
     setupEventListeners() {
-        // サイコロを振るボタン
-        this.elements.rollDiceBtn.addEventListener('click', () => {
+        // 手動ダイスを振るボタン
+        this.elements.rollManualDiceBtn.addEventListener('click', () => {
             if (!this.isRunning) return;
-            this.rollDice();
+            this.rollManualDice();
         });
         
-        // 自動サイコロチェックボックス
-        this.elements.autoRollCheck.addEventListener('change', (e) => {
-            this.gameState.autoRoll = e.target.checked;
-            this.saveGameState();
-            
-            if (this.gameState.autoRoll) {
-                document.body.classList.add('auto-rolling');
-            } else {
-                document.body.classList.remove('auto-rolling');
-            }
-        });
-        
-        // 自動化速度アップグレード
-        this.elements.upgradeAutoSpeed.addEventListener('click', () => {
-            this.purchaseAutoSpeedUpgrade();
+        // 手動ダイス個数アップグレード
+        this.elements.upgradeManualCountBtn.addEventListener('click', () => {
+            this.upgradeManualDiceCount();
         });
         
         // プレステージボタン
@@ -171,19 +158,19 @@ class SugorokuGame {
         const seed = this.getBoardSeed() + position;
         const rand = this.seededRandom(seed);
         
-        // 盤面の後半ほど戻るマスが多くなる
-        const backwardRatio = Math.min(0.25, 0.1 + (position / 100) * 0.15);
-        const forwardRatio = 0.15;
-        const creditRatio = 0.45;
+        // 盤面の後半ほど戻るマスが多くなる（バランス調整済み）
+        const backwardRatio = Math.min(0.2, 0.08 + (position / 100) * 0.12);
+        const forwardRatio = 0.18;
+        const creditRatio = 0.55;
         const emptyRatio = 1 - backwardRatio - forwardRatio - creditRatio;
         
         if (rand < emptyRatio) {
             return { type: 'empty', effect: null };
         } else if (rand < emptyRatio + creditRatio) {
-            // レベルと位置に応じてクレジット量を決定
-            const baseAmount = Math.max(1, Math.floor(position / 10) + 1);
-            const levelBonus = Math.floor(level / 2);
-            const randomBonus = Math.floor(this.seededRandom(seed + 1000) * 3); // 0-2の追加ランダム
+            // レベルと位置に応じてクレジット量を決定（バランス調整済み）
+            const baseAmount = Math.max(2, Math.floor(position / 8) + 2);
+            const levelBonus = Math.floor(level * 0.8);
+            const randomBonus = Math.floor(this.seededRandom(seed + 1000) * 4) + 1; // 1-4の追加ランダム
             return { 
                 type: 'credit', 
                 effect: baseAmount + levelBonus + randomBonus 
@@ -193,10 +180,10 @@ class SugorokuGame {
             const steps = Math.floor(this.seededRandom(seed + 2000) * 3) + 1;
             return { type: 'forward', effect: steps };
         } else {
-            // 戻るマス（1-4マス、レベルに応じて強化）
-            const baseSteps = Math.floor(this.seededRandom(seed + 3000) * 4) + 1;
-            const levelPenalty = Math.floor(level / 3); // レベルが高いほど戻る距離増加
-            return { type: 'backward', effect: baseSteps + levelPenalty };
+            // 戻るマス（1-3マス、レベルペナルティ軽減）
+            const baseSteps = Math.floor(this.seededRandom(seed + 3000) * 3) + 1;
+            const levelPenalty = Math.floor(level / 5); // レベルペナルティを軽減
+            return { type: 'backward', effect: Math.min(baseSteps + levelPenalty, 5) }; // 最大5マス戻り制限
         }
     }
     
@@ -273,33 +260,130 @@ class SugorokuGame {
         }
     }
     
-    // サイコロを振る
-    rollDice() {
+    // 手動ダイスを振る
+    rollManualDice() {
+        const diceCount = this.gameState.manualDice.count;
         let totalRoll = 0;
+        this.manualDiceResults = [];
         
-        // 各サイコロを振る
-        this.gameState.dice.forEach(diceType => {
-            if (diceType.unlocked && diceType.count > 0) {
-                for (let i = 0; i < diceType.count; i++) {
-                    totalRoll += Math.floor(Math.random() * diceType.faces) + 1;
-                }
-            }
-        });
+        // 6面ダイスを指定個数振る
+        for (let i = 0; i < diceCount; i++) {
+            const roll = Math.floor(Math.random() * 6) + 1;
+            this.manualDiceResults.push(roll);
+            totalRoll += roll;
+        }
         
         // 統計を更新
         this.gameState.stats.totalDiceRolls++;
         
-        // サイコロ結果を表示
-        this.elements.diceResult.textContent = totalRoll;
-        this.elements.diceResult.style.animation = 'none';
-        setTimeout(() => {
-            this.elements.diceResult.style.animation = 'diceRoll 0.5s ease-in-out';
-        }, 10);
+        // 結果を表示
+        this.updateManualDiceDisplay();
         
         // プレイヤーを移動
         this.movePlayer(totalRoll);
         
-        console.log(`サイコロの目: ${totalRoll}`);
+        console.log(`手動ダイス: ${this.manualDiceResults.join(', ')} = ${totalRoll}`);
+    }
+    
+    // 自動ダイスを振る（種類別）
+    rollAutoDice(diceIndex) {
+        const dice = this.gameState.autoDice[diceIndex];
+        if (!dice.unlocked) return;
+        
+        let totalRoll = 0;
+        
+        // 指定個数分振る
+        for (let i = 0; i < dice.count; i++) {
+            totalRoll += Math.floor(Math.random() * dice.faces) + 1;
+        }
+        
+        // 統計を更新
+        this.gameState.stats.totalDiceRolls++;
+        
+        // プレイヤーを移動
+        this.movePlayer(totalRoll);
+        
+        // lastRollを更新
+        dice.lastRoll = performance.now();
+        
+        console.log(`自動${dice.faces}面ダイス: ${totalRoll}`);
+    }
+    
+    // 手動ダイス表示の更新（アニメーション強化版）
+    updateManualDiceDisplay(rollQuality = 0.5) {
+        if (!this.elements.manualDiceResult) return;
+        
+        const diceCount = this.gameState.manualDice.count;
+        const total = this.manualDiceResults.reduce((sum, roll) => sum + roll, 0);
+        
+        // 結果品質に応じた表示色とアニメーション
+        let resultClass = '';
+        let resultText = '';
+        
+        if (rollQuality >= 0.9) {
+            resultClass = 'text-warning fw-bold';
+            resultText = '✨ EXCELLENT! ✨';
+        } else if (rollQuality >= 0.75) {
+            resultClass = 'text-success fw-bold';
+            resultText = '🎯 GREAT!';
+        } else if (rollQuality >= 0.5) {
+            resultClass = 'text-primary';
+            resultText = '👍 GOOD';
+        } else {
+            resultClass = 'text-muted';
+            resultText = '';
+        }
+        
+        // 結果表示の構築
+        let displayContent = '';
+        if (diceCount === 1) {
+            displayContent = `<div class="${resultClass}">${total}</div>`;
+        } else {
+            displayContent = `<div class="small text-muted">${this.manualDiceResults.join(' + ')}</div>`;
+            displayContent += `<div class="${resultClass} fs-3">${total}</div>`;
+        }
+        
+        if (resultText) {
+            displayContent += `<div class="small ${resultClass}">${resultText}</div>`;
+        }
+        
+        this.elements.manualDiceResult.innerHTML = displayContent;
+        
+        // 品質に応じたアニメーション効果
+        this.elements.manualDiceResult.style.animation = 'none';
+        setTimeout(() => {
+            const animationType = rollQuality >= 0.8 ? 'diceRolling' : 'diceRoll';
+            this.elements.manualDiceResult.style.animation = `${animationType} 0.6s ease-in-out`;
+            
+            // 特別演出（優秀な結果の場合）
+            if (rollQuality >= 0.9) {
+                this.elements.manualDiceResult.style.textShadow = '0 0 20px gold';
+                setTimeout(() => {
+                    this.elements.manualDiceResult.style.textShadow = '';
+                }, 1500);
+            }
+        }, 10);
+    }
+    
+    // 自動ダイスの間隔計算
+    getAutoDiceInterval(diceIndex) {
+        const dice = this.gameState.autoDice[diceIndex];
+        const speedMultiplier = Math.pow(1.2, dice.speedLevel);  // 1.2^レベル倍の速度
+        const maxSpeedMultiplier = 10; // 最大10倍速
+        const actualMultiplier = Math.min(speedMultiplier, maxSpeedMultiplier);
+        return dice.baseInterval / actualMultiplier;
+    }
+    
+    // 自動ダイスのタイマーチェック
+    checkAutoDiceTimers(currentTime) {
+        this.gameState.autoDice.forEach((dice, index) => {
+            if (!dice.unlocked) return;
+            
+            const interval = this.getAutoDiceInterval(index);
+            if (currentTime - dice.lastRoll >= interval) {
+                this.rollAutoDice(index);
+            }
+        });
     }
     
     // プレイヤーの移動
@@ -431,36 +515,101 @@ class SugorokuGame {
         this.updateUI();
     }
     
-    // 自動化速度アップグレードの購入
-    purchaseAutoSpeedUpgrade() {
-        const cost = this.getAutoSpeedUpgradeCost();
+    // 手動ダイス個数アップグレード
+    upgradeManualDiceCount() {
+        const cost = this.getManualDiceUpgradeCost();
         
         if (this.gameState.credits >= cost) {
             this.gameState.credits -= cost;
-            this.gameState.upgrades.autoSpeed++;
+            this.gameState.manualDice.count++;
+            this.gameState.manualDice.upgradeLevel++;
             
-            // 自動化間隔を短縮
-            this.updateAutoRollInterval();
             this.updateUI();
             this.saveGameState();
             
-            console.log(`自動化速度アップグレード購入！レベル: ${this.gameState.upgrades.autoSpeed}`);
+            console.log(`手動ダイス個数アップグレード！現在: ${this.gameState.manualDice.count}個`);
         }
     }
     
-    // 自動化速度アップグレードのコスト計算
-    getAutoSpeedUpgradeCost() {
-        const basePrice = 100;
-        const level = this.gameState.upgrades.autoSpeed;
-        return Math.floor(basePrice * Math.pow(1.5, level));
+    // 自動ダイス解禁
+    unlockAutoDice(diceIndex) {
+        const cost = this.getAutoDiceUnlockCost(diceIndex);
+        
+        if (this.gameState.credits >= cost) {
+            this.gameState.credits -= cost;
+            this.gameState.autoDice[diceIndex].unlocked = true;
+            this.gameState.autoDice[diceIndex].lastRoll = performance.now();
+            
+            this.updateUI();
+            this.saveGameState();
+            
+            const faces = this.gameState.autoDice[diceIndex].faces;
+            console.log(`${faces}面自動ダイス解禁！`);
+        }
     }
     
-    // 自動サイコロの間隔更新
-    updateAutoRollInterval() {
-        const baseInterval = 3000; // 3秒
-        const reduction = this.gameState.upgrades.autoSpeed * 200; // レベル毎に0.2秒短縮
-        this.gameState.autoRollInterval = Math.max(200, baseInterval - reduction); // 最小0.2秒
+    // 自動ダイス速度アップグレード
+    upgradeAutoDiceSpeed(diceIndex) {
+        const cost = this.getAutoDiceSpeedUpgradeCost(diceIndex);
+        
+        if (this.gameState.credits >= cost) {
+            this.gameState.credits -= cost;
+            this.gameState.autoDice[diceIndex].speedLevel++;
+            
+            this.updateUI();
+            this.saveGameState();
+            
+            const faces = this.gameState.autoDice[diceIndex].faces;
+            const level = this.gameState.autoDice[diceIndex].speedLevel;
+            console.log(`${faces}面ダイス速度アップグレード！レベル: ${level}`);
+        }
     }
+    
+    // 自動ダイス個数アップグレード
+    upgradeAutoDiceCount(diceIndex) {
+        const cost = this.getAutoDiceCountUpgradeCost(diceIndex);
+        
+        if (this.gameState.credits >= cost) {
+            this.gameState.credits -= cost;
+            this.gameState.autoDice[diceIndex].count++;
+            this.gameState.autoDice[diceIndex].countLevel++;
+            
+            this.updateUI();
+            this.saveGameState();
+            
+            const faces = this.gameState.autoDice[diceIndex].faces;
+            const count = this.gameState.autoDice[diceIndex].count;
+            console.log(`${faces}面ダイス個数アップグレード！現在: ${count}個`);
+        }
+    }
+    
+    // 手動ダイスアップグレードのコスト計算
+    getManualDiceUpgradeCost() {
+        const basePrice = 75;
+        const level = this.gameState.manualDice.upgradeLevel;
+        return Math.floor(basePrice * Math.pow(1.6, level));
+    }
+    
+    // 自動ダイス解禁のコスト計算
+    getAutoDiceUnlockCost(diceIndex) {
+        const basePrices = [30, 120, 300, 750, 1800, 4500, 12000]; // 2,4,6,8,10,12,20面
+        return basePrices[diceIndex];
+    }
+    
+    // 自動ダイス速度アップグレードのコスト計算
+    getAutoDiceSpeedUpgradeCost(diceIndex) {
+        const dice = this.gameState.autoDice[diceIndex];
+        const basePrices = [15, 60, 150, 375, 900, 2250, 6000]; // 2,4,6,8,10,12,20面
+        return Math.floor(basePrices[diceIndex] * Math.pow(1.5, dice.speedLevel));
+    }
+    
+    // 自動ダイス個数アップグレードのコスト計算
+    getAutoDiceCountUpgradeCost(diceIndex) {
+        const dice = this.gameState.autoDice[diceIndex];
+        const basePrices = [60, 240, 600, 1500, 3600, 9000, 24000]; // 2,4,6,8,10,12,20面
+        return Math.floor(basePrices[diceIndex] * Math.pow(2.5, dice.countLevel));
+    }
+    
     
     // プレステージ（転生）
     prestige() {
@@ -575,21 +724,28 @@ class SugorokuGame {
         this.gameState.level = 1;
         this.gameState.prestigePoints.earned = 0;
         
-        // サイコロとアップグレードをリセット
-        this.gameState.dice = [{ faces: 6, count: 1, unlocked: true }];
-        this.gameState.upgrades = {
-            autoSpeed: 0,
-            diceUpgrades: { d2: 0, d4: 0, d6: 1, d8: 0, d10: 0, d12: 0, d20: 0 }
+        // 手動ダイスをリセット
+        this.gameState.manualDice = {
+            count: 1,
+            upgradeLevel: 0
         };
         
-        // 自動化設定をリセット
-        this.gameState.autoRoll = false;
-        this.gameState.autoRollInterval = 3000;
+        // 自動ダイスをリセット
+        this.gameState.autoDice.forEach(dice => {
+            dice.unlocked = false;
+            dice.count = 1;
+            dice.speedLevel = 0;
+            dice.countLevel = 0;
+            dice.lastRoll = 0;
+        });
         
         // 保持する値を復元
         this.gameState.rebirthCount = preservedRebirthCount;
         this.gameState.prestigePoints.available = preservedAvailablePP;
         this.gameState.stats = preservedStats;
+        
+        // 手動ダイス結果をリセット
+        this.manualDiceResults = [];
     }
     
     // UI更新
@@ -601,19 +757,14 @@ class SugorokuGame {
         this.elements.prestigeEarned.textContent = this.gameState.prestigePoints.earned;
         this.elements.prestigeAvailable.textContent = this.gameState.prestigePoints.available;
         
-        // 自動化チェックボックス
-        this.elements.autoRollCheck.checked = this.gameState.autoRoll;
+        // 手動ダイス情報の更新
+        this.elements.manualDiceCount.textContent = this.gameState.manualDice.count;
+        const manualUpgradeCost = this.getManualDiceUpgradeCost();
+        this.elements.manualUpgradeCost.textContent = this.formatNumber(manualUpgradeCost);
+        this.elements.upgradeManualCountBtn.disabled = this.gameState.credits < manualUpgradeCost;
         
-        // アップグレード情報の更新
-        const autoSpeedCost = this.getAutoSpeedUpgradeCost();
-        this.elements.autoSpeedCost.textContent = this.formatNumber(autoSpeedCost);
-        this.elements.autoInterval.textContent = (this.gameState.autoRollInterval / 1000).toFixed(1);
-        
-        // アップグレードボタンの状態
-        this.elements.upgradeAutoSpeed.disabled = this.gameState.credits < autoSpeedCost;
-        
-        // サイコロアップグレードUIの更新
-        this.updateDiceUpgradeUI();
+        // 自動ダイスUIの更新
+        this.updateAutoDiceUI();
         
         // プレステージボタンの状態
         this.elements.prestigeBtn.disabled = this.gameState.prestigePoints.earned === 0;
@@ -641,118 +792,215 @@ class SugorokuGame {
         modal.show();
     }
     
-    // サイコロアップグレードUIの更新
-    updateDiceUpgradeUI() {
-        const container = this.elements.diceUpgrades;
+    // 自動ダイスUIの更新
+    updateAutoDiceUI() {
+        const container = this.elements.autoDiceContainer;
         container.innerHTML = '';
         
-        const diceTypes = [
-            { key: 'd2', faces: 2, name: '2面', basePrice: 50, emoji: '🎯' },
-            { key: 'd4', faces: 4, name: '4面', basePrice: 200, emoji: '🔹' },
-            { key: 'd6', faces: 6, name: '6面', basePrice: 100, emoji: '🎲' },
-            { key: 'd8', faces: 8, name: '8面', basePrice: 800, emoji: '🔸' },
-            { key: 'd10', faces: 10, name: '10面', basePrice: 2000, emoji: '🔟' },
-            { key: 'd12', faces: 12, name: '12面', basePrice: 5000, emoji: '🔵' },
-            { key: 'd20', faces: 20, name: '20面', basePrice: 20000, emoji: '⭐' }
-        ];
+        const diceEmojis = ['🎯', '🔹', '🎲', '🔸', '🔟', '🔵', '⭐'];
         
-        diceTypes.forEach(diceType => {
-            const currentCount = this.getDiceCount(diceType.faces);
-            const isUnlocked = this.isDiceUnlocked(diceType.faces);
-            const cost = this.getDiceUpgradeCost(diceType.key, diceType.basePrice);
-            
-            const diceDiv = document.createElement('div');
-            diceDiv.className = 'upgrade-item mb-2';
-            
-            let buttonText, buttonClass, isDisabled;
-            
-            if (!isUnlocked && diceType.key !== 'd6') {
-                buttonText = `${diceType.emoji} ${diceType.name}ダイス解放<br><small>コスト: ${this.formatNumber(cost)}💰</small>`;
-                buttonClass = 'btn btn-outline-success btn-sm w-100';
-                isDisabled = this.gameState.credits < cost;
+        this.gameState.autoDice.forEach((dice, index) => {
+            const dicePanel = document.createElement('div');
+            // CSS class management for locked/unlocked states
+            let panelClasses = 'auto-dice-panel mb-3 p-2 border rounded';
+            if (dice.unlocked) {
+                panelClasses += ' unlocked';
             } else {
-                buttonText = `${diceType.emoji} ${diceType.name}ダイス追加<br><small>現在: ${currentCount}個 | コスト: ${this.formatNumber(cost)}💰</small>`;
-                buttonClass = 'btn btn-outline-primary btn-sm w-100';
-                isDisabled = this.gameState.credits < cost;
+                panelClasses += ' locked';
+            }
+            dicePanel.className = panelClasses;
+            
+            // Add visual feedback data attributes
+            dicePanel.setAttribute('data-dice-index', index);
+            dicePanel.setAttribute('data-dice-faces', dice.faces);
+            dicePanel.setAttribute('data-unlocked', dice.unlocked);
+            
+            // ダイスタイトル
+            const title = document.createElement('h6');
+            title.className = 'text-center mb-2';
+            // Enhanced title with status indicator
+            const statusIndicator = dice.unlocked ? '✅' : '🔒';
+            title.innerHTML = `${statusIndicator} ${diceEmojis[index]} ${dice.faces}面ダイス`;
+            dicePanel.appendChild(title);
+            
+            if (!dice.unlocked) {
+                // 未解禁状態
+                const unlockCost = this.getAutoDiceUnlockCost(index);
+                const unlockBtn = document.createElement('button');
+                // Enhanced button styling with visual feedback
+                let buttonClass = 'btn btn-outline-success btn-sm w-100';
+                if (this.gameState.credits >= unlockCost) {
+                    buttonClass += ' btn-ripple'; // Add ripple effect for affordable upgrades
+                }
+                unlockBtn.className = buttonClass;
+                unlockBtn.innerHTML = `🔓 解禁<br><small>コスト: ${this.formatNumber(unlockCost)}💰</small>`;
+                unlockBtn.disabled = this.gameState.credits < unlockCost;
+                unlockBtn.addEventListener('click', () => this.unlockAutoDice(index));
+                
+                // Add affordability indicator
+                if (this.gameState.credits >= unlockCost) {
+                    unlockBtn.title = '解禁可能！クリックして解禁してください';
+                    unlockBtn.style.animation = 'pulse 2s infinite';
+                } else {
+                    unlockBtn.title = `解禁には ${this.formatNumber(unlockCost - this.gameState.credits)} 💰 不足`;
+                }
+                
+                dicePanel.appendChild(unlockBtn);
+            } else {
+                // 解禁済み状態
+                
+                // クールダウンゲージ
+                const cooldownContainer = document.createElement('div');
+                cooldownContainer.className = 'cooldown-container mb-2';
+                
+                const cooldownLabel = document.createElement('small');
+                cooldownLabel.className = 'd-block text-center text-muted';
+                const interval = this.getAutoDiceInterval(index);
+                cooldownLabel.textContent = `間隔: ${(interval / 1000).toFixed(1)}秒`;
+                cooldownContainer.appendChild(cooldownLabel);
+                
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress';
+                progressBar.style.height = '8px';
+                
+                const progressFill = document.createElement('div');
+                progressFill.className = 'progress-bar bg-info';
+                progressFill.id = `cooldown-${index}`;
+                progressBar.appendChild(progressFill);
+                
+                cooldownContainer.appendChild(progressBar);
+                dicePanel.appendChild(cooldownContainer);
+                
+                // アップグレードボタン群
+                const upgradeRow = document.createElement('div');
+                upgradeRow.className = 'row g-1';
+                
+                // 速度アップグレード
+                const speedCol = document.createElement('div');
+                speedCol.className = 'col-6';
+                const speedCost = this.getAutoDiceSpeedUpgradeCost(index);
+                const speedBtn = document.createElement('button');
+                // Enhanced button styling with visual feedback
+                let speedButtonClass = 'btn btn-outline-primary btn-sm w-100';
+                if (this.gameState.credits >= speedCost) {
+                    speedButtonClass += ' btn-ripple';
+                }
+                speedBtn.className = speedButtonClass;
+                speedBtn.innerHTML = `⚡ 速度<br><small>${this.formatNumber(speedCost)}💰</small>`;
+                speedBtn.disabled = this.gameState.credits < speedCost;
+                speedBtn.addEventListener('click', () => this.upgradeAutoDiceSpeed(index));
+                
+                // Add affordability indicator
+                if (this.gameState.credits >= speedCost) {
+                    speedBtn.title = 'アップグレード可能！';
+                    speedBtn.style.borderColor = '#0056b3';
+                } else {
+                    speedBtn.title = `アップグレードには ${this.formatNumber(speedCost - this.gameState.credits)} 💰 不足`;
+                }
+                
+                speedCol.appendChild(speedBtn);
+                
+                // 個数アップグレード
+                const countCol = document.createElement('div');
+                countCol.className = 'col-6';
+                const countCost = this.getAutoDiceCountUpgradeCost(index);
+                const countBtn = document.createElement('button');
+                // Enhanced button styling with visual feedback
+                let countButtonClass = 'btn btn-outline-warning btn-sm w-100';
+                if (this.gameState.credits >= countCost) {
+                    countButtonClass += ' btn-ripple';
+                }
+                countBtn.className = countButtonClass;
+                countBtn.innerHTML = `🎯 個数<br><small>${this.formatNumber(countCost)}💰</small>`;
+                countBtn.disabled = this.gameState.credits < countCost;
+                countBtn.addEventListener('click', () => this.upgradeAutoDiceCount(index));
+                
+                // Add affordability indicator
+                if (this.gameState.credits >= countCost) {
+                    countBtn.title = 'アップグレード可能！';
+                    countBtn.style.borderColor = '#e0a800';
+                } else {
+                    countBtn.title = `アップグレードには ${this.formatNumber(countCost - this.gameState.credits)} 💰 不足`;
+                }
+                
+                countCol.appendChild(countBtn);
+                
+                upgradeRow.appendChild(speedCol);
+                upgradeRow.appendChild(countCol);
+                dicePanel.appendChild(upgradeRow);
+                
+                // 現在のステータス表示（強化版）
+                const statusDiv = document.createElement('div');
+                statusDiv.className = 'text-center mt-2 p-2 bg-light rounded';
+                
+                // Status information with enhanced visual feedback
+                const statusInfo = document.createElement('small');
+                statusInfo.className = 'text-muted d-block';
+                const currentInterval = this.getAutoDiceInterval(index);
+                const rollsPerMinute = Math.round(60000 / currentInterval);
+                
+                statusInfo.innerHTML = `
+                    📊 <strong>ステータス</strong><br>
+                    🎯 個数: <span class="text-primary fw-bold">${dice.count}</span> | 
+                    ⚡ 速度Lv: <span class="text-info fw-bold">${dice.speedLevel}</span><br>
+                    ⏱️ 間隔: <span class="text-success">${(currentInterval / 1000).toFixed(1)}秒</span> | 
+                    📈 毎分: <span class="text-warning fw-bold">${rollsPerMinute}回</span>
+                `;
+                statusDiv.appendChild(statusInfo);
+                
+                // Performance indicator
+                const performanceDiv = document.createElement('div');
+                performanceDiv.className = 'mt-1';
+                
+                let performanceClass = '';
+                let performanceText = '';
+                if (rollsPerMinute >= 30) {
+                    performanceClass = 'badge bg-success';
+                    performanceText = '🚀 高性能';
+                } else if (rollsPerMinute >= 15) {
+                    performanceClass = 'badge bg-warning';
+                    performanceText = '⚡ 標準';
+                } else {
+                    performanceClass = 'badge bg-secondary';
+                    performanceText = '🐌 低速';
+                }
+                
+                const performanceBadge = document.createElement('span');
+                performanceBadge.className = performanceClass;
+                performanceBadge.textContent = performanceText;
+                performanceDiv.appendChild(performanceBadge);
+                
+                statusDiv.appendChild(performanceDiv);
+                dicePanel.appendChild(statusDiv);
             }
             
-            const button = document.createElement('button');
-            button.className = buttonClass;
-            button.innerHTML = buttonText;
-            button.disabled = isDisabled;
-            
-            button.addEventListener('click', () => {
-                this.purchaseDiceUpgrade(diceType.key, diceType.faces, diceType.basePrice);
-            });
-            
-            diceDiv.appendChild(button);
-            container.appendChild(diceDiv);
+            container.appendChild(dicePanel);
         });
     }
     
-    // サイコロの所持数を取得
-    getDiceCount(faces) {
-        const dice = this.gameState.dice.find(d => d.faces === faces);
-        return dice ? dice.count : 0;
-    }
-    
-    // サイコロが解放されているかチェック
-    isDiceUnlocked(faces) {
-        const dice = this.gameState.dice.find(d => d.faces === faces);
-        return dice ? dice.unlocked : false;
-    }
-    
-    // サイコロアップグレードのコスト計算
-    getDiceUpgradeCost(diceKey, basePrice) {
-        const currentLevel = this.gameState.upgrades.diceUpgrades[diceKey] || 0;
+    // クールダウンゲージの更新
+    updateAutoDiceCooldowns() {
+        const currentTime = performance.now();
         
-        // 6面ダイスは最初から解放済みなので、追加購入のコスト計算
-        if (diceKey === 'd6') {
-            return Math.floor(basePrice * Math.pow(1.5, currentLevel - 1));
-        }
-        
-        // 初回解放コストは固定、その後は段階的に上昇
-        const dice = this.gameState.dice.find(d => d.faces === parseInt(diceKey.slice(1)));
-        if (!dice || !dice.unlocked) {
-            return basePrice; // 解放コスト
-        } else {
-            return Math.floor(basePrice * Math.pow(2, currentLevel - 1)); // 追加コスト
-        }
-    }
-    
-    // サイコロアップグレードの購入
-    purchaseDiceUpgrade(diceKey, faces, basePrice) {
-        const cost = this.getDiceUpgradeCost(diceKey, basePrice);
-        
-        if (this.gameState.credits >= cost) {
-            this.gameState.credits -= cost;
+        this.gameState.autoDice.forEach((dice, index) => {
+            if (!dice.unlocked) return;
             
-            // サイコロデータを更新
-            let dice = this.gameState.dice.find(d => d.faces === faces);
+            const progressBar = document.getElementById(`cooldown-${index}`);
+            if (!progressBar) return;
             
-            if (!dice) {
-                // 新しいサイコロタイプを追加
-                dice = { faces: faces, count: 0, unlocked: false };
-                this.gameState.dice.push(dice);
-            }
+            const interval = this.getAutoDiceInterval(index);
+            const elapsed = currentTime - dice.lastRoll;
+            const progress = Math.min(100, (elapsed / interval) * 100);
             
-            if (!dice.unlocked) {
-                // サイコロタイプを解放
-                dice.unlocked = true;
-                dice.count = 1;
-                console.log(`${faces}面ダイスを解放しました！`);
+            progressBar.style.width = `${progress}%`;
+            
+            // 満タンになったら色を変更
+            if (progress >= 100) {
+                progressBar.className = 'progress-bar bg-success';
             } else {
-                // サイコロ数を増加
-                dice.count++;
-                console.log(`${faces}面ダイスを追加しました！現在: ${dice.count}個`);
+                progressBar.className = 'progress-bar bg-info';
             }
-            
-            // アップグレードレベルを増加
-            this.gameState.upgrades.diceUpgrades[diceKey]++;
-            
-            this.updateUI();
-            this.saveGameState();
-        }
+        });
     }
     
     // 数値のフォーマット
@@ -767,12 +1015,11 @@ class SugorokuGame {
     gameLoop(currentTime) {
         if (!this.isRunning) return;
         
-        // 自動サイコロの処理
-        if (this.gameState.autoRoll && 
-            currentTime - this.lastAutoRoll >= this.gameState.autoRollInterval) {
-            this.rollDice();
-            this.lastAutoRoll = currentTime;
-        }
+        // 自動ダイスのタイマーチェック
+        this.checkAutoDiceTimers(currentTime);
+        
+        // UI更新（クールダウンゲージ用）
+        this.updateAutoDiceCooldowns();
         
         // 次のフレームをスケジュール
         this.animationId = requestAnimationFrame((time) => this.gameLoop(time));
@@ -781,7 +1028,15 @@ class SugorokuGame {
     // ゲームループの開始
     startGameLoop() {
         this.isRunning = true;
-        this.lastAutoRoll = performance.now();
+        const currentTime = performance.now();
+        
+        // 全自動ダイスのlastRollを初期化
+        this.gameState.autoDice.forEach(dice => {
+            if (dice.lastRoll === 0) {
+                dice.lastRoll = currentTime;
+            }
+        });
+        
         this.animationId = requestAnimationFrame((time) => this.gameLoop(time));
     }
     
@@ -824,9 +1079,15 @@ class SugorokuGame {
     mergeGameState(defaultState, savedState) {
         const merged = { ...defaultState };
         
+        // 新システム対応：古いデータ構造を検出した場合は初期化
+        if (savedState.dice || savedState.upgrades) {
+            console.log('古いダイスシステムのデータを検出。新システムで初期化します。');
+            return merged; // デフォルト状態を返す
+        }
+        
         // トップレベルプロパティのマージ
         Object.keys(savedState).forEach(key => {
-            if (typeof defaultState[key] === 'object' && !Array.isArray(defaultState[key])) {
+            if (typeof defaultState[key] === 'object' && !Array.isArray(defaultState[key]) && !Array.isArray(savedState[key])) {
                 merged[key] = { ...defaultState[key], ...savedState[key] };
             } else {
                 merged[key] = savedState[key];

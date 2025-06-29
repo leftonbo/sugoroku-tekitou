@@ -151,6 +151,32 @@ body {
     animation: diceRoll 0.5s ease-in-out;
 }
 
+/* 手動ダイスローリング状態 */
+#manual-dice-result.rolling {
+    animation: diceRolling 0.6s ease-in-out infinite;
+    color: #6c757d;
+    font-size: 2rem;
+}
+
+/* 結果品質別アニメーション */
+.result-excellent {
+    animation: excellentGlow 2s ease-in-out;
+}
+
+@keyframes excellentGlow {
+    0%, 100% { text-shadow: 0 0 5px gold; }
+    50% { text-shadow: 0 0 20px gold, 0 0 30px orange; }
+}
+
+.result-great {
+    animation: greatPulse 1.5s ease-in-out;
+}
+
+@keyframes greatPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
 /* サイコロアニメーション */
 @keyframes diceRoll {
     0% { transform: scale(1) rotate(0deg); }
@@ -214,6 +240,28 @@ body {
 .board-cell:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* アップグレードボタンのアフォーダブル状態 */
+.btn-affordable {
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
+    border-color: #28a745 !important;
+}
+
+.btn-affordable:hover {
+    box-shadow: 0 0 12px rgba(40, 167, 69, 0.6);
+    transform: translateY(-2px);
+}
+
+/* アップグレード成功時のアニメーション */
+.upgrade-success {
+    animation: upgradeSuccess 0.8s ease-out;
+}
+
+@keyframes upgradeSuccess {
+    0% { transform: scale(1); background-color: inherit; }
+    50% { transform: scale(1.1); background-color: #28a745; color: white; }
+    100% { transform: scale(1); background-color: inherit; color: inherit; }
 }
 
 /* アニメーション用クラス */
@@ -299,10 +347,231 @@ body {
     border: none;
     color: white;
     font-weight: bold;
+    animation: prestigeGlow 3s ease-in-out infinite;
 }
 
 #prestige-btn:not(:disabled):hover {
     background: linear-gradient(45deg, #fd7e14, #dc3545);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    animation: none;
+}
+
+@keyframes prestigeGlow {
+    0%, 100% { box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3); }
+    50% { box-shadow: 0 2px 4px rgba(255, 193, 7, 0.6), 0 0 12px rgba(255, 193, 7, 0.4); }
+}
+
+/* 自動ダイスパネルのスタイル */
+.auto-dice-panel {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6 !important;
+    transition: all 0.3s ease;
+    transform: translateY(0);
+}
+
+.auto-dice-panel:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.auto-dice-panel.locked {
+    opacity: 0.6;
+    filter: grayscale(0.3);
+}
+
+/* クールダウンゲージのスタイル */
+.cooldown-container {
+    background-color: #ffffff;
+    padding: 5px;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progress {
+    background-color: #e9ecef;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+    transition: width 0.2s ease;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+/* 手動ダイス結果のスタイル */
+#manual-dice-result {
+    color: #0d6efd;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ダイスアップグレードボタンのスタイル */
+.auto-dice-panel .btn {
+    font-size: 11px;
+    padding: 4px 8px;
+    transition: all 0.2s ease;
+}
+
+.auto-dice-panel .btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.auto-dice-panel .btn:active {
+    transform: translateY(0);
+}
+
+.auto-dice-panel h6 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #495057;
+}
+
+/* 解禁されたダイスのハイライト効果 */
+.auto-dice-panel.unlocked {
+    border-color: #28a745 !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e8f5e8 100%);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
+}
+
+.auto-dice-panel.unlocked h6 {
+    color: #28a745;
+    text-shadow: 0 1px 2px rgba(40, 167, 69, 0.2);
+}
+
+/* Enhanced locked state visual feedback */
+.auto-dice-panel.locked {
+    opacity: 0.7;
+    filter: grayscale(0.4);
+    border-color: #6c757d !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.auto-dice-panel.locked h6 {
+    color: #6c757d;
+}
+
+/* Affordable upgrade button animation */
+.btn-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ripple:hover:not(:disabled) {
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Pulse animation for affordable items */
+@keyframes affordablePulse {
+    0% { 
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 0 8px rgba(40, 167, 69, 0);
+        transform: scale(1.02);
+    }
+    100% { 
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+        transform: scale(1);
+    }
+}
+
+/* Enhanced status display */
+.auto-dice-panel .bg-light {
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.auto-dice-panel.unlocked .bg-light {
+    background: linear-gradient(90deg, #f8f9fa 0%, #e8f5e8 100%) !important;
+    border-color: #c3e6cb;
+}
+
+/* Performance badges with glow effects */
+.badge.bg-success {
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+    animation: performanceGlow 3s ease-in-out infinite;
+}
+
+.badge.bg-warning {
+    box-shadow: 0 0 6px rgba(255, 193, 7, 0.3);
+}
+
+.badge.bg-secondary {
+    opacity: 0.8;
+}
+
+@keyframes performanceGlow {
+    0%, 100% { 
+        box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+    }
+    50% { 
+        box-shadow: 0 0 12px rgba(40, 167, 69, 0.5);
+    }
+}
+
+/* Enhanced cooldown progress bar */
+.progress-bar.bg-success {
+    background: linear-gradient(45deg, #28a745, #20c997) !important;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+    animation: readyPulse 1s ease-in-out infinite;
+}
+
+@keyframes readyPulse {
+    0%, 100% { 
+        opacity: 1;
+    }
+    50% { 
+        opacity: 0.8;
+    }
+}
+
+/* Enhanced button interactions */
+.auto-dice-panel .btn:not(:disabled):hover {
+    transform: translateY(-2px);
+    transition: all 0.2s ease;
+}
+
+.auto-dice-panel .btn:not(:disabled):active {
+    transform: translateY(0);
+    transition: all 0.1s ease;
+}
+
+/* 手動ダイス結果のアニメーション強化 */
+#manual-dice-result.rolling {
+    animation: diceRolling 0.6s ease-in-out;
+}
+
+@keyframes diceRolling {
+    0% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.1) rotate(90deg); }
+    50% { transform: scale(1.2) rotate(180deg); }
+    75% { transform: scale(1.1) rotate(270deg); }
+    100% { transform: scale(1) rotate(360deg); }
+}
+
+/* ボタンのリップル効果（メインリップル） */
+.btn-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+}
+
+.btn-ripple:active::after {
+    width: 300px;
+    height: 300px;
 }
