@@ -51,9 +51,7 @@ export function calculateCreditAmount(position, level, seed) {
 
 // 戻るマスのステップ数計算
 export function calculateBackwardSteps(level, seed, maxSteps) {
-    const baseSteps = Math.floor(seededRandom(seed + 3000) * 3) + 1;
-    const levelPenalty = Math.floor(level / 5);
-    return Math.min(baseSteps + levelPenalty, maxSteps);
+    return Math.floor(seededRandom(seed + 3000) * 3 + Math.min(level / 5, maxSteps)) + 1;
 }
 
 // 進むマスのステップ数計算

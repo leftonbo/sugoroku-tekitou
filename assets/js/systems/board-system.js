@@ -77,10 +77,10 @@ export class BoardSystem {
         if (position >= startFixedPosition) {
             // 固定戻るマスとして配置
             const seed = getBoardSeed(this.gameState.rebirthCount, level) + position + 9999; // 異なるシードを使用
-            const steps = Math.floor(seededRandom(seed) * 3) + 2; // 2-4マス戻る（通常より強め）
+            const steps = calculateBackwardSteps(level, seed, GAME_CONFIG.MAX_BACKWARD_STEPS) + 1; // 2-4マス戻る（通常より強め）
             return { 
                 type: BOARD_CONFIG.CELL_TYPES.BACKWARD, 
-                effect: Math.min(steps, GAME_CONFIG.MAX_BACKWARD_STEPS) 
+                effect: steps
             };
         }
         
