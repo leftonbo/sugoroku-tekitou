@@ -57,7 +57,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 開発時の注意点
 
-**コミットメッセージ**: 必ずgitmojiを使用（🎉 🆕 🐛 ♻️ 📝）
+- **コミットメッセージ**: [gitmoji](https://gitmoji.dev/ja/) を使用
+  - ✨️ 新機能追加
+  - 🐛 バグ修正
+  - 📝 ドキュメント更新
+  - ♻️ リファクタリング
+  - 🎨 コードスタイル改善
+  - ⚡️ パフォーマンス改善
+  - 🚀 デプロイ関連
+  - 🔧 設定変更
+  - 🗃️ 内部データベース更新
+  - 💄 UI/UX改善
+  - 🚚 ファイル・フォルダ整理
 
 **日本語でのコメント**: すべてのコード内コメントは日本語で記述
 
