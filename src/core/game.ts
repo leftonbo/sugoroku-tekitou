@@ -140,17 +140,8 @@ export class SugorokuGame {
             this.animationManager
         );
         
-        // DOM要素のバインド
-        this.uiManager.bindDOMElements();
-        
-        // イベントリスナーの設定
-        this.uiManager.setupEventListeners();
-        
-        // ゲームボードの生成
-        this.uiManager.generateGameBoard();
-        
-        // UI更新
-        this.uiManager.updateUI();
+        // UIManagerの初期化（デバッグモード設定を含む）
+        this.uiManager.initialize();
     }
     
     // 自動保存設定
