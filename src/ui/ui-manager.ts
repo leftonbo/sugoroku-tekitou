@@ -467,14 +467,28 @@ export class UIManager {
             return true;
         }
         
-        // 解禁状態が変わった場合は再生成
+        // 解禁状態またはアセンション可能状態が変わった場合は再生成
         for (let i = 0; i < upgradeInfo.auto.length; i++) {
             const panel = currentPanels[i] as HTMLElement;
-            const wasUnlocked = panel.dataset.unlocked === 'true';
-            const isUnlocked = upgradeInfo.auto[i]?.unlocked || false;
+            const diceInfo = upgradeInfo.auto[i];
+            if (!diceInfo) continue;
             
+            const wasUnlocked = panel.dataset.unlocked === 'true';
+            const isUnlocked = diceInfo.unlocked;
+            
+            // 解禁状態の変更
             if (wasUnlocked !== isUnlocked) {
                 return true;
+            }
+            
+            // アセンション可能状態の変更（解禁済みダイスのみ）
+            if (isUnlocked) {
+                const wasCanAscend = panel.dataset.canAscend === 'true';
+                const canAscend = diceInfo.level >= diceInfo.maxLevel;
+                
+                if (wasCanAscend !== canAscend) {
+                    return true;
+                }
             }
         }
         
@@ -488,6 +502,11 @@ export class UIManager {
         } else {
             this.updateExistingAutoDice();
         }
+    }
+    
+    // 自動ダイスUIの強制再生成（レベルアップ・アセンション後に使用）
+    forceRegenerateAutoDiceUI(): void {
+        this.generateAutoDiceUI();
     }
 
     // 自動ダイスUIの生成
@@ -517,6 +536,11 @@ export class UIManager {
         panel.dataset.diceIndex = diceInfo.index.toString();
         panel.dataset.unlocked = diceInfo.unlocked.toString();
         
+        // アセンション可能状態も記録
+        if (diceInfo.unlocked) {
+            panel.dataset.canAscend = (diceInfo.level >= diceInfo.maxLevel).toString();
+        }
+        
         if (!diceInfo.unlocked) {
             // 未解禁状態
             panel.innerHTML = `
@@ -539,8 +563,8 @@ export class UIManager {
             panel.innerHTML = `
                 <h6 class="text-success">${config.emoji} ${diceInfo.faces}面ダイス</h6>
                 <div class="mb-2">
-                    <small class="text-muted">レベル: ${diceInfo.level}/${diceInfo.maxLevel} | アセンション: ${diceInfo.ascensionLevel}</small>
-                    <br><small class="text-muted">個数: ${autoDiceInfo?.count || 1}</small>
+                    <small class="text-muted dice-level-info">レベル: ${diceInfo.level}/${diceInfo.maxLevel} | アセンション: ${diceInfo.ascensionLevel}</small>
+                    <br><small class="text-muted dice-count-info">個数: ${autoDiceInfo?.count || 1}</small>
                     <br><small class="text-info">間隔: ${intervalSeconds.toFixed(1)}秒 | 毎分: ${autoDiceInfo?.rollsPerMinute || 0}回</small>
                 </div>
                 <div class="mb-2">
@@ -583,16 +607,22 @@ export class UIManager {
             switch (action) {
                 case 'unlock':
                     if (this.systems.upgrade.unlockAutoDice(index)) {
+                        // 解禁時は自動ダイスUIを強制再生成
+                        this.forceRegenerateAutoDiceUI();
                         this.updateUI();
                     }
                     break;
                 case 'levelup':
                     if (this.systems.upgrade.levelUpAutoDice(index)) {
+                        // レベルアップ時は自動ダイスUIを強制再生成
+                        this.forceRegenerateAutoDiceUI();
                         this.updateUI();
                     }
                     break;
                 case 'ascend':
                     if (this.systems.upgrade.ascendAutoDice(index)) {
+                        // アセンション時は自動ダイスUIを強制再生成
+                        this.forceRegenerateAutoDiceUI();
                         this.updateUI();
                     }
                     break;
@@ -648,6 +678,43 @@ export class UIManager {
             // 進捗ゲージとタイマーの更新（解禁済みダイスのみ）
             if (diceInfo.unlocked) {
                 this.updateAutoDiceProgress(diceInfo.index, panel as HTMLElement);
+                
+                // レベル情報の更新
+                this.updateAutoDiceLevelInfo(diceInfo, panel as HTMLElement);
+            }
+        });
+    }
+
+    // 自動ダイスのレベル情報更新
+    updateAutoDiceLevelInfo(diceInfo: any, panel: HTMLElement): void {
+        const autoDiceInfo = this.systems.dice.getAutoDiceInfo(diceInfo.index);
+        
+        // レベル情報のテキスト更新
+        const levelInfoElement = panel.querySelector('.dice-level-info');
+        if (levelInfoElement) {
+            levelInfoElement.textContent = `レベル: ${diceInfo.level}/${diceInfo.maxLevel} | アセンション: ${diceInfo.ascensionLevel}`;
+        }
+        
+        // ダイス個数の更新
+        const countInfoElement = panel.querySelector('.dice-count-info');
+        if (countInfoElement && autoDiceInfo) {
+            countInfoElement.textContent = `個数: ${autoDiceInfo.count}`;
+        }
+        
+        // ボタンテキストとコストの更新
+        const buttons = panel.querySelectorAll('button[data-action]') as NodeListOf<HTMLButtonElement>;
+        buttons.forEach(button => {
+            const action = button.dataset.action;
+            if (action === 'levelup') {
+                const costElement = button.querySelector('small');
+                if (costElement) {
+                    costElement.textContent = `コスト: ${formatNumber(diceInfo.levelUpCost)}💰`;
+                }
+            } else if (action === 'ascend') {
+                const costElement = button.querySelector('small');
+                if (costElement) {
+                    costElement.textContent = `コスト: ${formatNumber(diceInfo.ascensionCost)}💰`;
+                }
             }
         });
     }
