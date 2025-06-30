@@ -26,22 +26,6 @@ export function calculateManualDiceUpgradeCost(level: number, baseCost: number, 
     return Math.floor(baseCost * Math.pow(multiplier, level));
 }
 
-// 自動ダイス速度アップグレードのコスト計算
-export function calculateAutoDiceSpeedUpgradeCost(baseCost: number, level: number, multiplier: number): number {
-    return Math.floor(baseCost * Math.pow(multiplier, level));
-}
-
-// 自動ダイス個数アップグレードのコスト計算
-export function calculateAutoDiceCountUpgradeCost(baseCost: number, level: number, multiplier: number): number {
-    return Math.floor(baseCost * Math.pow(multiplier, level));
-}
-
-// 自動ダイスの間隔計算
-export function calculateAutoDiceInterval(baseInterval: number, speedLevel: number, maxMultiplier: number): number {
-    const speedMultiplier = Math.pow(1.2, speedLevel);
-    const actualMultiplier = Math.min(speedMultiplier, maxMultiplier);
-    return baseInterval / actualMultiplier;
-}
 
 // クレジット獲得量の計算
 export function calculateCreditAmount(position: number, level: number, seed: number): number {

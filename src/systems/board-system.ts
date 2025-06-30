@@ -10,10 +10,12 @@ import {
     calculatePrestigePointsForLevel
 } from '../utils/math-utils.js';
 import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG, FIXED_BACKWARD_CONFIG, PRESTIGE_CONFIG, CALCULATION_CONSTANTS } from '../utils/constants.js';
-import type { GameState, CellType } from '../types/game-state.js';
+import type { GameState } from '../types/game-state.js';
 import type { PrestigeSystem } from './prestige-system.js';
 
 // ボード関連の型定義
+type CellType = 'empty' | 'credit' | 'forward' | 'backward';
+
 interface CellData {
     type: CellType;
     effect: number | null;

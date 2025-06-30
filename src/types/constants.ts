@@ -10,12 +10,6 @@ export interface DiceConfig {
     emoji: string;
 }
 
-// アップグレード乗数設定の型定義
-export interface UpgradeMultipliers {
-    MANUAL_DICE: number;
-    AUTO_SPEED: number;
-    AUTO_COUNT: number;
-}
 
 // 手動ダイス設定の型定義
 export interface ManualDiceConfig {
@@ -116,17 +110,3 @@ export interface BurdenEffect {
     diceModifier: number;  // ダイス結果に対する乗数
 }
 
-// 数学ユーティリティ関連の型定義
-export interface RandomGenerator {
-    seed: number;
-    next(): number;
-}
-
-// イベント関連の型定義
-export type GameEventType = 'diceRoll' | 'move' | 'creditGain' | 'levelUp' | 'prestige' | 'upgrade';
-
-export interface GameEvent {
-    type: GameEventType;
-    data: any;
-    timestamp: number;
-}

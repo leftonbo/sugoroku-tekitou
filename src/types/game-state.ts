@@ -56,32 +56,6 @@ export interface GameState {
     settings: GameSettings;             // ゲーム設定
 }
 
-// ボード関連の型定義
-export type CellType = 'empty' | 'credit' | 'forward' | 'backward';
-
-export interface Cell {
-    type: CellType;
-    value?: number;  // クレジット量や移動数（オプション）
-}
-
-export interface Board {
-    cells: Cell[];
-    level: number;
-    seed: number;
-}
-
-// ダイス結果の型定義
-export interface DiceRoll {
-    value: number;
-    faces: number;
-    timestamp: number;
-}
-
-export interface DiceRollResult {
-    rolls: DiceRoll[];
-    totalValue: number;
-    isManual: boolean;
-}
 
 // アップグレード関連の型定義
 export interface UpgradeInfo {
