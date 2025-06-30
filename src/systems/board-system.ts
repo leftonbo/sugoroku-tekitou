@@ -159,28 +159,17 @@ export class BoardSystem {
             
             // プレステージポイント獲得（レベル50以降）
             if (this.gameState.level >= PRESTIGE_CONFIG.START_LEVEL) {
-                const prestigePointsEarned = calculatePrestigePointsForLevel(
+                prestigeEarned = calculatePrestigePointsForLevel(
                     this.gameState.level, 
                     PRESTIGE_CONFIG.START_LEVEL, 
                     PRESTIGE_CONFIG.BASE_POINTS, 
                     PRESTIGE_CONFIG.SCALING_POWER
                 );
                 
-                // 前のレベルでのプレステージポイントを計算
-                const previousLevelPrestige = this.gameState.level > PRESTIGE_CONFIG.START_LEVEL ? 
-                    calculatePrestigePointsForLevel(
-                        this.gameState.level - levelsCompleted, 
-                        PRESTIGE_CONFIG.START_LEVEL, 
-                        PRESTIGE_CONFIG.BASE_POINTS, 
-                        PRESTIGE_CONFIG.SCALING_POWER
-                    ) : 0;
+                this.gameState.prestigePoints.earned += prestigeEarned;
+                this.gameState.stats.totalPrestigePoints += prestigeEarned;
                 
-                const newPrestigePoints = prestigePointsEarned - previousLevelPrestige;
-                this.gameState.prestigePoints.earned += newPrestigePoints;
-                this.gameState.stats.totalPrestigePoints += newPrestigePoints;
-                prestigeEarned = newPrestigePoints;
-                
-                console.log(`レベル ${this.gameState.level} に到達！プレステージポイント +${newPrestigePoints}`);
+                console.log(`レベル ${this.gameState.level} に到達！プレステージポイント +${prestigeEarned}`);
             } else {
                 console.log(`レベル ${this.gameState.level} に到達！`);
             }

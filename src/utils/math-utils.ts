@@ -46,9 +46,9 @@ export function calculateCreditAmount(position: number, level: number, seed: num
     // 基礎値: 2
     const baseAmount = 2;
     // レベルボーナス: レベルに応じて増加、べき乗算
-    const multLevel = Math.pow(1000, level / 100);
+    const multLevel = Math.pow(1000.0, level / 100.0);
     // 位置ボーナス: 位置に応じて増加
-    const multPosition = 1 + ((position + 1) / 100);
+    const multPosition = 1.0 + ((position + 1.0) / 100.0);
     // ランダムボーナス: 0.8 - 1.2の範囲でランダム
     const randomBonus = seededRandom(seed) * 0.4 + 0.8
     // クレジット量の計算
@@ -74,7 +74,7 @@ export function calculateBackwardRatio(position: number, baseRatio: number, maxR
 export function calculatePrestigePointsForLevel(level: number, startLevel: number, basePoints: number, scalingPower: number): number {
     if (level < startLevel) return 0;
     
-    const points = basePoints * Math.exp(scalingPower * (level - startLevel));
+    const points = basePoints * Math.pow(2, (level - startLevel) / 50.0);
     return Math.round(points);
 }
 
