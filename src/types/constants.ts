@@ -89,6 +89,19 @@ export interface BurdenConfig {
     LEVEL_3_START: number;
 }
 
+// 自動ダイスレベルシステム設定の型定義
+export interface AutoDiceLevelConfig {
+    MAX_LEVEL_BASE: number;
+    ASCENSION_LEVEL_INCREMENT: number;
+    ASCENSION_COST_MULTIPLIER: number;
+    SPEED_MULTIPLIER_MAX: number;
+    DICE_COUNT_BASE: number;
+    DICE_COUNT_MULTIPLIER: number;
+    LEVEL_COST_BASE: number;
+    LEVEL_COST_MULTIPLIER: number;
+    ASCENSION_COST_BASE_MULTIPLIER: number;
+}
+
 // ストレージキー設定の型定義
 export interface StorageKeys {
     GAME_STATE: string;

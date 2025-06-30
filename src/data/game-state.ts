@@ -32,13 +32,11 @@ export function createDefaultGameState(): GameState {
             upgradeLevel: 0         // アップグレードレベル
         },
         
-        // 自動ダイス（7種類独立）
+        // 自動ダイス（7種類独立）- 新しいレベルシステム
         autoDice: DICE_CONFIGS.map(config => ({
             faces: config.faces,
-            count: 1,
-            unlocked: false,
-            speedLevel: 0,
-            countLevel: 0,
+            level: 0,               // 0=未解禁、1以上=解禁済み
+            ascensionLevel: 0,      // アセンションレベル
             baseInterval: config.baseInterval,
             lastRoll: 0
         })),
@@ -71,13 +69,6 @@ export function resetGameStateForPrestige(currentState: GameState): GameState {
 // ゲーム状態の検証とマージ
 export function mergeGameState(defaultState: GameState, savedState: Partial<GameState>): GameState {
     const merged = { ...defaultState };
-    
-    // 新システム対応：古いデータ構造を検出した場合は初期化
-    const savedStateAny = savedState as any;
-    if (savedStateAny.dice || savedStateAny.upgrades) {
-        console.log('古いダイスシステムのデータを検出。新システムで初期化します。');
-        return merged; // デフォルト状態を返す
-    }
     
     // トップレベルプロパティのマージ
     Object.keys(savedState).forEach(key => {

@@ -103,30 +103,6 @@ interface SquareEffect {
     moveResult?: MoveResult;
 }
 
-// アップグレード情報の型定義
-interface UpgradeInfo {
-    manual: {
-        cost: number;
-        canAfford: boolean;
-        currentCount: number;
-        currentLevel: number;
-    };
-    auto: Array<{
-        index: number;
-        faces: number;
-        unlocked: boolean;
-        count: number;
-        speedLevel: number;
-        countLevel: number;
-        unlockCost: number;
-        speedUpgradeCost: number;
-        countUpgradeCost: number;
-        canUnlock: boolean;
-        canUpgradeSpeed: boolean;
-        canUpgradeCount: boolean;
-    }>;
-    totalCredits: number;
-}
 
 export class UIManager {
     private gameState: GameState;
@@ -491,14 +467,28 @@ export class UIManager {
             return true;
         }
         
-        // 解禁状態が変わった場合は再生成
+        // 解禁状態またはアセンション可能状態が変わった場合は再生成
         for (let i = 0; i < upgradeInfo.auto.length; i++) {
             const panel = currentPanels[i] as HTMLElement;
-            const wasUnlocked = panel.dataset.unlocked === 'true';
-            const isUnlocked = upgradeInfo.auto[i]?.unlocked || false;
+            const diceInfo = upgradeInfo.auto[i];
+            if (!diceInfo) continue;
             
+            const wasUnlocked = panel.dataset.unlocked === 'true';
+            const isUnlocked = diceInfo.unlocked;
+            
+            // 解禁状態の変更
             if (wasUnlocked !== isUnlocked) {
                 return true;
+            }
+            
+            // アセンション可能状態の変更（解禁済みダイスのみ）
+            if (isUnlocked) {
+                const wasCanAscend = panel.dataset.canAscend === 'true';
+                const canAscend = diceInfo.level >= diceInfo.maxLevel;
+                
+                if (wasCanAscend !== canAscend) {
+                    return true;
+                }
             }
         }
         
@@ -512,6 +502,11 @@ export class UIManager {
         } else {
             this.updateExistingAutoDice();
         }
+    }
+    
+    // 自動ダイスUIの強制再生成（レベルアップ・アセンション後に使用）
+    forceRegenerateAutoDiceUI(): void {
+        this.generateAutoDiceUI();
     }
 
     // 自動ダイスUIの生成
@@ -530,7 +525,7 @@ export class UIManager {
     }
 
     // 自動ダイスパネルの作成
-    createAutoDicePanel(diceInfo: UpgradeInfo['auto'][0]): HTMLElement {
+    createAutoDicePanel(diceInfo: any): HTMLElement {
         const config = DICE_CONFIGS[diceInfo.index];
         if (!config) {
             return document.createElement('div');
@@ -541,26 +536,35 @@ export class UIManager {
         panel.dataset.diceIndex = diceInfo.index.toString();
         panel.dataset.unlocked = diceInfo.unlocked.toString();
         
+        // アセンション可能状態も記録
+        if (diceInfo.unlocked) {
+            panel.dataset.canAscend = (diceInfo.level >= diceInfo.maxLevel).toString();
+        }
+        
         if (!diceInfo.unlocked) {
             // 未解禁状態
             panel.innerHTML = `
                 <h6 class="text-muted">${config.emoji} ${diceInfo.faces}面ダイス</h6>
                 <button class="btn btn-outline-warning btn-sm w-100" 
                         data-action="unlock" data-index="${diceInfo.index}">
-                    解禁する
-                    <br><small>コスト: ${formatNumber(diceInfo.unlockCost)}💰</small>
+                    解禁する（レベル1）
+                    <br><small>コスト: ${formatNumber(diceInfo.levelUpCost)}💰</small>
                 </button>
             `;
         } else {
-            // 解禁済み状態 - 進捗ゲージと間隔情報を追加
+            // 解禁済み状態 - レベル・アセンション情報を表示
             const autoDiceInfo = this.systems.dice.getAutoDiceInfo(diceInfo.index);
             const intervalSeconds = autoDiceInfo ? this.ticksToSeconds(autoDiceInfo.interval) : 0;
             const progressInfo = this.calculateAutoDiceProgress(diceInfo.index);
             
+            // アセンション可能かチェック
+            const canAscend = diceInfo.level >= diceInfo.maxLevel;
+            
             panel.innerHTML = `
                 <h6 class="text-success">${config.emoji} ${diceInfo.faces}面ダイス</h6>
                 <div class="mb-2">
-                    <small class="text-muted">個数: ${diceInfo.count} | 速度Lv: ${diceInfo.speedLevel}</small>
+                    <small class="text-muted dice-level-info">レベル: ${diceInfo.level}/${diceInfo.maxLevel} | アセンション: ${diceInfo.ascensionLevel}</small>
+                    <br><small class="text-muted dice-count-info">個数: ${autoDiceInfo?.count || 1}</small>
                     <br><small class="text-info">間隔: ${intervalSeconds.toFixed(1)}秒 | 毎分: ${autoDiceInfo?.rollsPerMinute || 0}回</small>
                 </div>
                 <div class="mb-2">
@@ -574,16 +578,19 @@ export class UIManager {
                     <small class="text-muted">残り: <span data-dice-timer="${diceInfo.index}">${this.ticksToSeconds(progressInfo.timeLeft).toFixed(1)}s</span></small>
                 </div>
                 <div class="d-grid gap-1">
-                    <button class="btn btn-outline-primary btn-sm" 
-                            data-action="speed" data-index="${diceInfo.index}">
-                        速度アップグレード
-                        <br><small>コスト: ${formatNumber(diceInfo.speedUpgradeCost)}💰</small>
-                    </button>
-                    <button class="btn btn-outline-success btn-sm" 
-                            data-action="count" data-index="${diceInfo.index}">
-                        個数アップグレード
-                        <br><small>コスト: ${formatNumber(diceInfo.countUpgradeCost)}💰</small>
-                    </button>
+                    ${canAscend ? `
+                        <button class="btn btn-outline-danger btn-sm" 
+                                data-action="ascend" data-index="${diceInfo.index}">
+                            アセンション
+                            <br><small>コスト: ${formatNumber(diceInfo.ascensionCost)}💰</small>
+                        </button>
+                    ` : `
+                        <button class="btn btn-outline-primary btn-sm" 
+                                data-action="levelup" data-index="${diceInfo.index}">
+                            レベルアップ
+                            <br><small>コスト: ${formatNumber(diceInfo.levelUpCost)}💰</small>
+                        </button>
+                    `}
                 </div>
             `;
         }
@@ -600,16 +607,22 @@ export class UIManager {
             switch (action) {
                 case 'unlock':
                     if (this.systems.upgrade.unlockAutoDice(index)) {
+                        // 解禁時は自動ダイスUIを強制再生成
+                        this.forceRegenerateAutoDiceUI();
                         this.updateUI();
                     }
                     break;
-                case 'speed':
-                    if (this.systems.upgrade.upgradeAutoDiceSpeed(index)) {
+                case 'levelup':
+                    if (this.systems.upgrade.levelUpAutoDice(index)) {
+                        // レベルアップ時は自動ダイスUIを強制再生成
+                        this.forceRegenerateAutoDiceUI();
                         this.updateUI();
                     }
                     break;
-                case 'count':
-                    if (this.systems.upgrade.upgradeAutoDiceCount(index)) {
+                case 'ascend':
+                    if (this.systems.upgrade.ascendAutoDice(index)) {
+                        // アセンション時は自動ダイスUIを強制再生成
+                        this.forceRegenerateAutoDiceUI();
                         this.updateUI();
                     }
                     break;
@@ -641,15 +654,15 @@ export class UIManager {
                 switch (action) {
                     case 'unlock':
                         canAfford = diceInfo.canUnlock;
-                        cost = diceInfo.unlockCost;
+                        cost = diceInfo.levelUpCost;
                         break;
-                    case 'speed':
-                        canAfford = diceInfo.canUpgradeSpeed;
-                        cost = diceInfo.speedUpgradeCost;
+                    case 'levelup':
+                        canAfford = diceInfo.canLevelUp;
+                        cost = diceInfo.levelUpCost;
                         break;
-                    case 'count':
-                        canAfford = diceInfo.canUpgradeCount;
-                        cost = diceInfo.countUpgradeCost;
+                    case 'ascend':
+                        canAfford = diceInfo.canAscend;
+                        cost = diceInfo.ascensionCost;
                         break;
                 }
                 
@@ -665,6 +678,43 @@ export class UIManager {
             // 進捗ゲージとタイマーの更新（解禁済みダイスのみ）
             if (diceInfo.unlocked) {
                 this.updateAutoDiceProgress(diceInfo.index, panel as HTMLElement);
+                
+                // レベル情報の更新
+                this.updateAutoDiceLevelInfo(diceInfo, panel as HTMLElement);
+            }
+        });
+    }
+
+    // 自動ダイスのレベル情報更新
+    updateAutoDiceLevelInfo(diceInfo: any, panel: HTMLElement): void {
+        const autoDiceInfo = this.systems.dice.getAutoDiceInfo(diceInfo.index);
+        
+        // レベル情報のテキスト更新
+        const levelInfoElement = panel.querySelector('.dice-level-info');
+        if (levelInfoElement) {
+            levelInfoElement.textContent = `レベル: ${diceInfo.level}/${diceInfo.maxLevel} | アセンション: ${diceInfo.ascensionLevel}`;
+        }
+        
+        // ダイス個数の更新
+        const countInfoElement = panel.querySelector('.dice-count-info');
+        if (countInfoElement && autoDiceInfo) {
+            countInfoElement.textContent = `個数: ${autoDiceInfo.count}`;
+        }
+        
+        // ボタンテキストとコストの更新
+        const buttons = panel.querySelectorAll('button[data-action]') as NodeListOf<HTMLButtonElement>;
+        buttons.forEach(button => {
+            const action = button.dataset.action;
+            if (action === 'levelup') {
+                const costElement = button.querySelector('small');
+                if (costElement) {
+                    costElement.textContent = `コスト: ${formatNumber(diceInfo.levelUpCost)}💰`;
+                }
+            } else if (action === 'ascend') {
+                const costElement = button.querySelector('small');
+                if (costElement) {
+                    costElement.textContent = `コスト: ${formatNumber(diceInfo.ascensionCost)}💰`;
+                }
             }
         });
     }
