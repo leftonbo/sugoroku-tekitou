@@ -28,7 +28,7 @@ export const DICE_CONFIGS: DiceConfig[] = [
 
 // アップグレードコスト係数
 export const UPGRADE_MULTIPLIERS = {
-    MANUAL_DICE: 1.6,
+    MANUAL_DICE: 2.0,
     AUTO_SPEED: 1.5,
     AUTO_COUNT: 2.5
 } as const;
