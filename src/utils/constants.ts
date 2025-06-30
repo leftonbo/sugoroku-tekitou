@@ -59,6 +59,24 @@ export const CELL_PROBABILITY: CellProbability = {
     BACKWARD_MAX_RATIO: 0.2
 };
 
+// 計算定数（math-utils.ts用）
+export const CALCULATION_CONSTANTS = {
+    // 戻るマス確率計算用
+    BACKWARD_RATIO_SCALING: 0.12,        // (position / 100) * 0.12
+    BACKWARD_RATIO_DIVISOR: 100,         // position / 100
+    
+    // 進むマス・戻るマスのステップ計算用
+    FORWARD_STEPS_SEED_OFFSET: 2000,     // seed + 2000
+    BACKWARD_STEPS_SEED_OFFSET: 3000,    // seed + 3000
+    FORWARD_STEPS_RANGE: 3,              // 1-3マス
+    BACKWARD_STEPS_RANGE: 3,             // 1-3マス
+    BACKWARD_LEVEL_DIVISOR: 5,           // level / 5
+    
+    // ボードシード関連
+    BOARD_SEED_LEVEL_MULTIPLIER: 1000,   // rebirthCount * 1000 + level
+    FIXED_BACKWARD_SEED_OFFSET: 9999,    // 異なるシードのためのオフセット
+};
+
 // ゲーム設定
 export const GAME_CONFIG: GameConfig = {
     TICK_RATE: 1000 / 60,  // 60fps
@@ -82,7 +100,14 @@ export const CREDIT_CONFIG: CreditConfig = {
     MIN_BASE_AMOUNT: 2,
     LEVEL_BONUS_MULTIPLIER: 0.8,
     RANDOM_BONUS_MIN: 1,
-    RANDOM_BONUS_MAX: 4
+    RANDOM_BONUS_MAX: 4,
+    // 実際のクレジット計算用パラメータ
+    BASE_AMOUNT: 2,                     // 基礎クレジット量
+    LEVEL_SCALING_BASE: 1000.0,         // レベルスケーリングの基数
+    LEVEL_SCALING_DIVISOR: 100.0,       // レベルスケーリングの除数  
+    POSITION_BONUS_DIVISOR: 100.0,      // 位置ボーナスの除数
+    RANDOM_RANGE: 0.4,                  // ランダムボーナスの範囲 (0.8-1.2)
+    RANDOM_MIN: 0.8                     // ランダムボーナスの最小値
 };
 
 // UI関連定数
@@ -96,7 +121,10 @@ export const UI_CONFIG: UIConfig = {
 export const PRESTIGE_CONFIG: PrestigeConfig = {
     START_LEVEL: 50,           // プレステージポイント獲得開始レベル
     BASE_POINTS: 1,            // 基準ポイント（レベル50で1ポイント）
-    SCALING_POWER: Math.log(2) / 50  // 50レベルで2倍になる指数
+    SCALING_POWER: Math.log(2) / 50,  // 50レベルで2倍になる指数
+    // 実際のプレステージポイント計算用パラメータ
+    SCALING_BASE: 2,           // スケーリングの基数（2倍ずつ増加）
+    SCALING_LEVEL_DIVISOR: 50.0  // スケーリングレベルの除数（50レベルごと）
 };
 
 // 負荷システム設定

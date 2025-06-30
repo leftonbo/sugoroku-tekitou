@@ -1,5 +1,7 @@
 // 数値計算・フォーマット関連ユーティリティ
 
+import { CREDIT_CONFIG, PRESTIGE_CONFIG, CALCULATION_CONSTANTS } from './constants.js';
+
 // 数値のフォーマット（K, M, B単位）
 export function formatNumber(num: number): string {
     if (num < 1000) return num.toString();
@@ -16,7 +18,7 @@ export function seededRandom(seed: number): number {
 
 // 盤面用シード生成
 export function getBoardSeed(rebirthCount: number, level: number): number {
-    return rebirthCount * 1000 + level;
+    return rebirthCount * CALCULATION_CONSTANTS.BOARD_SEED_LEVEL_MULTIPLIER + level;
 }
 
 // 手動ダイスアップグレードのコスト計算
@@ -43,38 +45,39 @@ export function calculateAutoDiceInterval(baseInterval: number, speedLevel: numb
 
 // クレジット獲得量の計算
 export function calculateCreditAmount(position: number, level: number, seed: number): number {
-    // 基礎値: 2
-    const baseAmount = 2;
+    // 基礎値: 定数から取得
+    const baseAmount = CREDIT_CONFIG.BASE_AMOUNT;
     // レベルボーナス: レベルに応じて増加、べき乗算
-    const multLevel = Math.pow(1000.0, level / 100.0);
+    const multLevel = Math.pow(CREDIT_CONFIG.LEVEL_SCALING_BASE, level / CREDIT_CONFIG.LEVEL_SCALING_DIVISOR);
     // 位置ボーナス: 位置に応じて増加
-    const multPosition = 1.0 + ((position + 1.0) / 100.0);
-    // ランダムボーナス: 0.8 - 1.2の範囲でランダム
-    const randomBonus = seededRandom(seed) * 0.4 + 0.8
+    const multPosition = 1.0 + ((position + 1.0) / CREDIT_CONFIG.POSITION_BONUS_DIVISOR);
+    // ランダムボーナス: 範囲をCREDIT_CONFIGから取得
+    const randomBonus = seededRandom(seed) * CREDIT_CONFIG.RANDOM_RANGE + CREDIT_CONFIG.RANDOM_MIN;
     // クレジット量の計算
     return Math.max(1, Math.floor(baseAmount * multLevel * multPosition * randomBonus));
 }
 
 // 戻るマスのステップ数計算
 export function calculateBackwardSteps(level: number, seed: number, maxSteps: number): number {
-    return Math.floor(seededRandom(seed + 3000) * 3 + Math.min(level / 5, maxSteps)) + 1;
+    return Math.floor(seededRandom(seed + CALCULATION_CONSTANTS.BACKWARD_STEPS_SEED_OFFSET) * CALCULATION_CONSTANTS.BACKWARD_STEPS_RANGE + Math.min(level / CALCULATION_CONSTANTS.BACKWARD_LEVEL_DIVISOR, maxSteps)) + 1;
 }
 
 // 進むマスのステップ数計算
 export function calculateForwardSteps(seed: number): number {
-    return Math.floor(seededRandom(seed + 2000) * 3) + 1;
+    return Math.floor(seededRandom(seed + CALCULATION_CONSTANTS.FORWARD_STEPS_SEED_OFFSET) * CALCULATION_CONSTANTS.FORWARD_STEPS_RANGE) + 1;
 }
 
 // 戻るマスの確率計算（位置に応じて変動）
 export function calculateBackwardRatio(position: number, baseRatio: number, maxRatio: number): number {
-    return Math.min(maxRatio, baseRatio + (position / 100) * 0.12);
+    return Math.min(maxRatio, baseRatio + (position / CALCULATION_CONSTANTS.BACKWARD_RATIO_DIVISOR) * CALCULATION_CONSTANTS.BACKWARD_RATIO_SCALING);
 }
 
 // プレステージポイント計算（レベル50以降、べき乗算的増加）
-export function calculatePrestigePointsForLevel(level: number, startLevel: number, basePoints: number, scalingPower: number): number {
+export function calculatePrestigePointsForLevel(level: number, startLevel: number, basePoints: number, _scalingPower: number): number {
     if (level < startLevel) return 0;
     
-    const points = basePoints * Math.pow(2, (level - startLevel) / 50.0);
+    // scalingPowerパラメータは互換性のために保持、実際の計算はPRESTIGE_CONFIGを使用
+    const points = basePoints * Math.pow(PRESTIGE_CONFIG.SCALING_BASE, (level - startLevel) / PRESTIGE_CONFIG.SCALING_LEVEL_DIVISOR);
     return Math.round(points);
 }
 

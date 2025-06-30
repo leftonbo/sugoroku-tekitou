@@ -1,6 +1,7 @@
 // プレステージ・転生システム
 
 import { formatNumber } from '../utils/math-utils.js';
+import { BOARD_CONFIG } from '../utils/constants.js';
 import { resetGameStateForPrestige } from '../data/game-state.js';
 import type { GameState } from '../types/game-state.js';
 
@@ -146,7 +147,7 @@ export class PrestigeSystem {
 
     // ゲーム統計の取得
     private getGameStats(): GameStats {
-        const completedLaps = Math.floor(this.gameState.stats.totalMoves / 100);
+        const completedLaps = Math.floor(this.gameState.stats.totalMoves / BOARD_CONFIG.TOTAL_CELLS);
         return {
             totalCredits: this.gameState.credits,
             totalDistance: this.gameState.stats.totalMoves,

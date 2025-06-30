@@ -9,7 +9,7 @@ import {
     calculateBackwardRatio,
     calculatePrestigePointsForLevel
 } from '../utils/math-utils.js';
-import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG, FIXED_BACKWARD_CONFIG, PRESTIGE_CONFIG } from '../utils/constants.js';
+import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG, FIXED_BACKWARD_CONFIG, PRESTIGE_CONFIG, CALCULATION_CONSTANTS } from '../utils/constants.js';
 import type { GameState, CellType } from '../types/game-state.js';
 
 // ボード関連の型定義
@@ -117,7 +117,7 @@ export class BoardSystem {
         
         if (position >= startFixedPosition) {
             // 固定戻るマスとして配置
-            const seed = getBoardSeed(this.gameState.rebirthCount, level) + position + 9999; // 異なるシードを使用
+            const seed = getBoardSeed(this.gameState.rebirthCount, level) + position + CALCULATION_CONSTANTS.FIXED_BACKWARD_SEED_OFFSET; // 異なるシードを使用
             const steps = calculateBackwardSteps(level, seed, GAME_CONFIG.MAX_BACKWARD_STEPS) + 1; // 2-4マス戻る（通常より強め）
             return { 
                 type: BOARD_CONFIG.CELL_TYPES.BACKWARD, 

@@ -66,6 +66,13 @@ export interface CreditConfig {
     LEVEL_BONUS_MULTIPLIER: number;
     RANDOM_BONUS_MIN: number;
     RANDOM_BONUS_MAX: number;
+    // 実際のクレジット計算用パラメータ
+    BASE_AMOUNT: number;                    // 基礎クレジット量
+    LEVEL_SCALING_BASE: number;             // レベルスケーリングの基数 (1000.0)
+    LEVEL_SCALING_DIVISOR: number;          // レベルスケーリングの除数 (100.0)
+    POSITION_BONUS_DIVISOR: number;         // 位置ボーナスの除数 (100.0)
+    RANDOM_RANGE: number;                   // ランダムボーナスの範囲 (0.4)
+    RANDOM_MIN: number;                     // ランダムボーナスの最小値 (0.8)
 }
 
 // UI設定の型定義
@@ -80,6 +87,9 @@ export interface PrestigeConfig {
     START_LEVEL: number;
     BASE_POINTS: number;
     SCALING_POWER: number;
+    // 実際のプレステージポイント計算用パラメータ
+    SCALING_BASE: number;                   // スケーリングの基数 (2)
+    SCALING_LEVEL_DIVISOR: number;          // スケーリングレベルの除数 (50.0)
 }
 
 // 負荷システム設定の型定義
