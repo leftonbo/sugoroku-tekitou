@@ -162,8 +162,7 @@ export class BoardSystem {
                 prestigeEarned = calculatePrestigePointsForLevel(
                     this.gameState.level, 
                     PRESTIGE_CONFIG.START_LEVEL, 
-                    PRESTIGE_CONFIG.BASE_POINTS, 
-                    PRESTIGE_CONFIG.SCALING_POWER
+                    PRESTIGE_CONFIG.BASE_POINTS
                 );
                 
                 this.gameState.prestigePoints.earned += prestigeEarned;

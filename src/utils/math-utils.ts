@@ -73,7 +73,7 @@ export function calculateBackwardRatio(position: number, baseRatio: number, maxR
 }
 
 // プレステージポイント計算（レベル50以降、べき乗算的増加）
-export function calculatePrestigePointsForLevel(level: number, startLevel: number, basePoints: number, _scalingPower: number): number {
+export function calculatePrestigePointsForLevel(level: number, startLevel: number, basePoints: number): number {
     if (level < startLevel) return 0;
     
     // scalingPowerパラメータは互換性のために保持、実際の計算はPRESTIGE_CONFIGを使用

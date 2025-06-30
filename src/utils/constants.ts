@@ -96,12 +96,6 @@ export const FIXED_BACKWARD_CONFIG: FixedBackwardConfig = {
 
 // クレジット計算設定
 export const CREDIT_CONFIG: CreditConfig = {
-    BASE_AMOUNT_DIVISOR: 8,
-    MIN_BASE_AMOUNT: 2,
-    LEVEL_BONUS_MULTIPLIER: 0.8,
-    RANDOM_BONUS_MIN: 1,
-    RANDOM_BONUS_MAX: 4,
-    // 実際のクレジット計算用パラメータ
     BASE_AMOUNT: 2,                     // 基礎クレジット量
     LEVEL_SCALING_BASE: 1000.0,         // レベルスケーリングの基数
     LEVEL_SCALING_DIVISOR: 100.0,       // レベルスケーリングの除数  
@@ -121,8 +115,6 @@ export const UI_CONFIG: UIConfig = {
 export const PRESTIGE_CONFIG: PrestigeConfig = {
     START_LEVEL: 50,           // プレステージポイント獲得開始レベル
     BASE_POINTS: 1,            // 基準ポイント（レベル50で1ポイント）
-    SCALING_POWER: Math.log(2) / 50,  // 50レベルで2倍になる指数
-    // 実際のプレステージポイント計算用パラメータ
     SCALING_BASE: 2,           // スケーリングの基数（2倍ずつ増加）
     SCALING_LEVEL_DIVISOR: 50.0  // スケーリングレベルの除数（50レベルごと）
 };

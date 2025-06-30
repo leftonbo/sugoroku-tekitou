@@ -61,12 +61,6 @@ export interface FixedBackwardConfig {
 
 // クレジット計算設定の型定義
 export interface CreditConfig {
-    BASE_AMOUNT_DIVISOR: number;
-    MIN_BASE_AMOUNT: number;
-    LEVEL_BONUS_MULTIPLIER: number;
-    RANDOM_BONUS_MIN: number;
-    RANDOM_BONUS_MAX: number;
-    // 実際のクレジット計算用パラメータ
     BASE_AMOUNT: number;                    // 基礎クレジット量
     LEVEL_SCALING_BASE: number;             // レベルスケーリングの基数 (1000.0)
     LEVEL_SCALING_DIVISOR: number;          // レベルスケーリングの除数 (100.0)
@@ -86,8 +80,6 @@ export interface UIConfig {
 export interface PrestigeConfig {
     START_LEVEL: number;
     BASE_POINTS: number;
-    SCALING_POWER: number;
-    // 実際のプレステージポイント計算用パラメータ
     SCALING_BASE: number;                   // スケーリングの基数 (2)
     SCALING_LEVEL_DIVISOR: number;          // スケーリングレベルの除数 (50.0)
 }
