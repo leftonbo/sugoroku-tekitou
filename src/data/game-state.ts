@@ -54,7 +54,8 @@ export function createDefaultGameState(): GameState {
         
         // ゲーム設定
         settings: {
-            tickRate: GAME_CONFIG.TICK_RATE
+            tickRate: GAME_CONFIG.TICK_RATE,
+            numberFormat: 'english' as const    // デフォルトは英語形式（K/M/B）
         }
     };
 }

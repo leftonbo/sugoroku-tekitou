@@ -1,13 +1,71 @@
 // 数値計算・フォーマット関連ユーティリティ
 
 import { CREDIT_CONFIG, PRESTIGE_CONFIG, CALCULATION_CONSTANTS } from './constants.js';
+import type { NumberFormatType } from '../types/game-state.js';
 
-// 数値のフォーマット（K, M, B単位）
+// 数値のフォーマット（K, M, B単位）- 後方互換性のため保持
 export function formatNumber(num: number): string {
-    if (num < 1000) return num.toString();
-    if (num < 1000000) return (num / 1000).toFixed(1) + 'K';
-    if (num < 1000000000) return (num / 1000000).toFixed(1) + 'M';
-    return (num / 1000000000).toFixed(1) + 'B';
+    return formatNumberWithType(num, 'english');
+}
+
+// 数値のフォーマット（フォーマット種類指定）
+export function formatNumberWithType(num: number, formatType: NumberFormatType): string {
+    if (num === 0) return '0';
+    
+    switch (formatType) {
+        case 'japanese':
+            return formatNumberJapanese(num);
+        case 'english':
+            return formatNumberEnglish(num);
+        case 'scientific':
+            return formatNumberScientific(num);
+        default:
+            return formatNumberEnglish(num);
+    }
+}
+
+// 日本語形式（万、億、兆など）
+function formatNumberJapanese(num: number): string {
+    const absNum = Math.abs(num);
+    const sign = num < 0 ? '-' : '';
+    
+    if (absNum < 10000) {
+        return sign + Math.floor(absNum).toString();
+    } else if (absNum < 100000000) { // 1億未満
+        return sign + (absNum / 10000).toFixed(1) + '万';
+    } else if (absNum < 1000000000000) { // 1兆未満
+        return sign + (absNum / 100000000).toFixed(1) + '億';
+    } else if (absNum < 10000000000000000) { // 1京未満
+        return sign + (absNum / 1000000000000).toFixed(1) + '兆';
+    } else {
+        return sign + (absNum / 10000000000000000).toFixed(1) + '京';
+    }
+}
+
+// 英語形式（K, M, B, T）
+function formatNumberEnglish(num: number): string {
+    const absNum = Math.abs(num);
+    const sign = num < 0 ? '-' : '';
+    
+    if (absNum < 1000) {
+        return sign + Math.floor(absNum).toString();
+    } else if (absNum < 1000000) {
+        return sign + (absNum / 1000).toFixed(1) + 'K';
+    } else if (absNum < 1000000000) {
+        return sign + (absNum / 1000000).toFixed(1) + 'M';
+    } else if (absNum < 1000000000000) {
+        return sign + (absNum / 1000000000).toFixed(1) + 'B';
+    } else {
+        return sign + (absNum / 1000000000000).toFixed(1) + 'T';
+    }
+}
+
+// 指数表記形式（1e10など）
+function formatNumberScientific(num: number): string {
+    if (Math.abs(num) < 1000) {
+        return Math.floor(num).toString();
+    }
+    return num.toExponential(2);
 }
 
 // シード付きランダム値生成

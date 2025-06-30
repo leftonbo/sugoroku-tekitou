@@ -163,31 +163,88 @@
         </footer>
     </div>
 
-    <!-- 統計モーダル -->
+    <!-- 統計・設定モーダル -->
     <div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="statsModalLabel">📊 ゲーム統計</h5>
+                    <h5 class="modal-title" id="statsModalLabel">📊 ゲーム統計・設定</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-primary">基本統計</h6>
-                            <ul class="list-unstyled">
-                                <li><strong>サイコロ振り回数:</strong> <span id="stat-dice-rolls">0</span></li>
-                                <li><strong>総移動マス数:</strong> <span id="stat-total-moves">0</span></li>
-                                <li><strong>総獲得クレジット:</strong> <span id="stat-total-credits">0</span></li>
-                            </ul>
+                    <!-- タブナビゲーション -->
+                    <ul class="nav nav-tabs" id="modalTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats-pane" type="button" role="tab">📊 統計</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-pane" type="button" role="tab">⚙️ 設定</button>
+                        </li>
+                    </ul>
+                    
+                    <!-- タブコンテンツ -->
+                    <div class="tab-content mt-3" id="modalTabContent">
+                        <!-- 統計タブ -->
+                        <div class="tab-pane fade show active" id="stats-pane" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-primary">基本統計</h6>
+                                    <ul class="list-unstyled">
+                                        <li><strong>サイコロ振り回数:</strong> <span id="stat-dice-rolls">0</span></li>
+                                        <li><strong>総移動マス数:</strong> <span id="stat-total-moves">0</span></li>
+                                        <li><strong>総獲得クレジット:</strong> <span id="stat-total-credits">0</span></li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-success">プレステージ統計</h6>
+                                    <ul class="list-unstyled">
+                                        <li><strong>転生回数:</strong> <span id="stat-rebirths">0</span></li>
+                                        <li><strong>総獲得PP:</strong> <span id="stat-total-prestige">0</span></li>
+                                        <li><strong>現在レベル:</strong> <span id="stat-current-level">1</span></li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <h6 class="text-success">プレステージ統計</h6>
-                            <ul class="list-unstyled">
-                                <li><strong>転生回数:</strong> <span id="stat-rebirths">0</span></li>
-                                <li><strong>総獲得PP:</strong> <span id="stat-total-prestige">0</span></li>
-                                <li><strong>現在レベル:</strong> <span id="stat-current-level">1</span></li>
-                            </ul>
+                        
+                        <!-- 設定タブ -->
+                        <div class="tab-pane fade" id="settings-pane" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h6 class="text-info">表示設定</h6>
+                                    
+                                    <!-- 数値表示形式 -->
+                                    <div class="mb-4">
+                                        <label class="form-label"><strong>数値表示形式</strong></label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="numberFormat" id="format-english" value="english" checked>
+                                            <label class="form-check-label" for="format-english">
+                                                英語形式 (例: 1.5K, 2.3M, 4.7B)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="numberFormat" id="format-japanese" value="japanese">
+                                            <label class="form-check-label" for="format-japanese">
+                                                日本語形式 (例: 1.5万, 2.3億, 4.7兆)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="numberFormat" id="format-scientific" value="scientific">
+                                            <label class="form-check-label" for="format-scientific">
+                                                指数表記 (例: 1.50e+03, 2.30e+06)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="text-warning">ゲーム管理</h6>
+                                    <div class="d-grid gap-2">
+                                        <button id="manual-save" class="btn btn-outline-primary">
+                                            💾 手動セーブ
+                                        </button>
+                                        <small class="text-muted">※ゲームは自動保存されますが、手動でも保存できます</small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 // UI管理・DOM操作・イベント処理
 
-import { formatNumber } from '../utils/math-utils.js';
+import { formatNumberWithType } from '../utils/math-utils.js';
 import { DICE_CONFIGS } from '../utils/constants.js';
 import type { GameState } from '../types/game-state.js';
 import type { DiceSystem } from '../systems/dice-system.js';
@@ -130,6 +130,11 @@ export class UIManager {
         this.elements = {};
     }
 
+    // フォーマット済み数値を取得（設定に応じて）
+    private formatNumberBySetting(num: number): string {
+        return formatNumberWithType(num, this.gameState.settings.numberFormat);
+    }
+
     // DOM要素のバインド
     bindDOMElements(): void {
         this.elements = {
@@ -243,6 +248,9 @@ export class UIManager {
         this.elements.statsBtn?.addEventListener('click', () => {
             this.showStats();
         });
+        
+        // 設定変更のイベントリスナー
+        this.setupSettingsEventListeners();
         
         // デバッグパネルのイベントリスナー
         this.setupDebugEventListeners();
@@ -399,7 +407,7 @@ export class UIManager {
     // ゲーム情報の更新
     updateGameInfo(): void {
         if (this.elements.credits) {
-            this.elements.credits.textContent = formatNumber(this.gameState.credits);
+            this.elements.credits.textContent = this.formatNumberBySetting(this.gameState.credits);
         }
         if (this.elements.position) {
             this.elements.position.textContent = this.gameState.position.toString();
@@ -478,7 +486,7 @@ export class UIManager {
             this.elements.manualDiceCount.textContent = upgradeInfo.manual.currentCount.toString();
         }
         if (this.elements.manualUpgradeCost) {
-            this.elements.manualUpgradeCost.textContent = formatNumber(upgradeInfo.manual.cost);
+            this.elements.manualUpgradeCost.textContent = this.formatNumberBySetting(upgradeInfo.manual.cost);
         }
         
         // ボタンの有効性更新
@@ -587,7 +595,7 @@ export class UIManager {
                 <button class="btn btn-outline-warning btn-sm w-100" 
                         data-action="unlock" data-index="${diceInfo.index}">
                     解禁する（レベル1）
-                    <br><small>コスト: ${formatNumber(diceInfo.levelUpCost)}💰</small>
+                    <br><small>コスト: ${this.formatNumberBySetting(diceInfo.levelUpCost)}💰</small>
                 </button>
             `;
         } else {
@@ -621,13 +629,13 @@ export class UIManager {
                         <button class="btn btn-outline-danger btn-sm" 
                                 data-action="ascend" data-index="${diceInfo.index}">
                             アセンション
-                            <br><small>コスト: ${formatNumber(diceInfo.ascensionCost)}💰</small>
+                            <br><small>コスト: ${this.formatNumberBySetting(diceInfo.ascensionCost)}💰</small>
                         </button>
                     ` : `
                         <button class="btn btn-outline-primary btn-sm" 
                                 data-action="levelup" data-index="${diceInfo.index}">
                             レベルアップ
-                            <br><small>コスト: ${formatNumber(diceInfo.levelUpCost)}💰</small>
+                            <br><small>コスト: ${this.formatNumberBySetting(diceInfo.levelUpCost)}💰</small>
                         </button>
                     `}
                 </div>
@@ -747,12 +755,12 @@ export class UIManager {
             if (action === 'levelup') {
                 const costElement = button.querySelector('small');
                 if (costElement) {
-                    costElement.textContent = `コスト: ${formatNumber(diceInfo.levelUpCost)}💰`;
+                    costElement.textContent = `コスト: ${this.formatNumberBySetting(diceInfo.levelUpCost)}💰`;
                 }
             } else if (action === 'ascend') {
                 const costElement = button.querySelector('small');
                 if (costElement) {
-                    costElement.textContent = `コスト: ${formatNumber(diceInfo.ascensionCost)}💰`;
+                    costElement.textContent = `コスト: ${this.formatNumberBySetting(diceInfo.ascensionCost)}💰`;
                 }
             }
         });
@@ -796,13 +804,13 @@ export class UIManager {
         const stats = this.gameState.stats;
         
         if (this.elements.statDiceRolls) {
-            this.elements.statDiceRolls.textContent = formatNumber(stats.totalDiceRolls);
+            this.elements.statDiceRolls.textContent = this.formatNumberBySetting(stats.totalDiceRolls);
         }
         if (this.elements.statTotalMoves) {
-            this.elements.statTotalMoves.textContent = formatNumber(stats.totalMoves);
+            this.elements.statTotalMoves.textContent = this.formatNumberBySetting(stats.totalMoves);
         }
         if (this.elements.statTotalCredits) {
-            this.elements.statTotalCredits.textContent = formatNumber(stats.totalCreditsEarned);
+            this.elements.statTotalCredits.textContent = this.formatNumberBySetting(stats.totalCreditsEarned);
         }
         if (this.elements.statRebirths) {
             this.elements.statRebirths.textContent = stats.totalRebirths.toString();
@@ -876,9 +884,56 @@ export class UIManager {
         // Bootstrap modalを使用
         const modal = document.getElementById('statsModal');
         if (modal) {
+            // 設定UIを初期化
+            this.initializeSettingsUI();
+            
             // TypeScript用のBootstrap modal呼び出し
             const modalInstance = new (window as any).bootstrap.Modal(modal);
             modalInstance.show();
+        }
+    }
+
+    // 設定変更のイベントリスナー
+    setupSettingsEventListeners(): void {
+        // 数値フォーマット変更
+        const formatRadios = document.querySelectorAll('input[name="numberFormat"]');
+        formatRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const target = e.target as HTMLInputElement;
+                if (target.checked) {
+                    this.gameState.settings.numberFormat = target.value as any;
+                    this.updateUI(); // 全UI更新で新しいフォーマットを反映
+                    this.systems.storage?.saveGameState(); // 設定を保存
+                }
+            });
+        });
+
+        // 手動セーブボタン
+        const manualSaveBtn = document.getElementById('manual-save');
+        manualSaveBtn?.addEventListener('click', () => {
+            if (this.systems.storage?.saveGameState()) {
+                // セーブ成功のフィードバック
+                const originalText = manualSaveBtn.textContent;
+                manualSaveBtn.textContent = '✓ 保存完了';
+                manualSaveBtn.classList.add('btn-success');
+                manualSaveBtn.classList.remove('btn-outline-primary');
+                
+                setTimeout(() => {
+                    manualSaveBtn.textContent = originalText;
+                    manualSaveBtn.classList.remove('btn-success');
+                    manualSaveBtn.classList.add('btn-outline-primary');
+                }, 1500);
+            }
+        });
+    }
+
+    // 設定UIの初期化（モーダル表示時に呼ばれる）
+    private initializeSettingsUI(): void {
+        // 現在の設定に応じてラジオボタンを更新
+        const currentFormat = this.gameState.settings.numberFormat;
+        const formatRadio = document.getElementById(`format-${currentFormat}`) as HTMLInputElement;
+        if (formatRadio) {
+            formatRadio.checked = true;
         }
     }
 

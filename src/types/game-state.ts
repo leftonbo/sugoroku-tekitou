@@ -38,8 +38,12 @@ export interface AutoDice {
     lastRoll: number;      // 最後にロールしたTick
 }
 
+// 数値表示フォーマットの種類
+export type NumberFormatType = 'japanese' | 'english' | 'scientific';
+
 export interface GameSettings {
-    tickRate: number;      // ゲームループのティック間隔
+    tickRate: number;              // ゲームループのティック間隔
+    numberFormat: NumberFormatType; // 数値表示形式
 }
 
 // メインゲーム状態インターフェース
