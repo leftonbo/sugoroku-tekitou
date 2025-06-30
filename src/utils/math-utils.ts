@@ -43,10 +43,16 @@ export function calculateAutoDiceInterval(baseInterval: number, speedLevel: numb
 
 // クレジット獲得量の計算
 export function calculateCreditAmount(position: number, level: number, seed: number): number {
-    const baseAmount = Math.max(2, Math.floor(position / 8) + 2);
-    const levelBonus = Math.floor(level * 0.8);
-    const randomBonus = Math.floor(seededRandom(seed + 1000) * 4) + 1; // 1-4の追加ランダム
-    return baseAmount + levelBonus + randomBonus;
+    // 基礎値: 2
+    const baseAmount = 2;
+    // レベルボーナス: レベルに応じて増加、べき乗算
+    const multLevel = Math.pow(1000, level / 100);
+    // 位置ボーナス: 位置に応じて増加
+    const multPosition = 1 + ((position + 1) / 100);
+    // ランダムボーナス: 0.8 - 1.2の範囲でランダム
+    const randomBonus = seededRandom(seed) * 0.4 + 0.8
+    // クレジット量の計算
+    return Math.max(1, Math.floor(baseAmount * multLevel * multPosition * randomBonus));
 }
 
 // 戻るマスのステップ数計算
