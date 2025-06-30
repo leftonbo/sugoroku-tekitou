@@ -135,7 +135,7 @@ export const AUTO_DICE_LEVEL_CONFIG: AutoDiceLevelConfig = {
     DICE_COUNT_BASE: 1,            // レベル1時のダイス個数
     DICE_COUNT_MULTIPLIER: 2,      // アセンションごとのダイス個数倍率
     LEVEL_COST_BASE: 50,           // レベルアップ基本コスト
-    LEVEL_COST_MULTIPLIER: 1.15,   // レベルごとのコスト増加率
+    LEVEL_COST_MULTIPLIER: 1.1,    // レベルごとのコスト増加率
     ASCENSION_COST_BASE_MULTIPLIER: 3 // アセンション後のコスト基本倍率増加
 };
 
