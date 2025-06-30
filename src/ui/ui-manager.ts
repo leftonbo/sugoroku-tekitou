@@ -69,8 +69,12 @@ interface Systems {
     board: BoardSystem;
     upgrade: UpgradeSystem;
     prestige: PrestigeSystem;
-    storage: {
-        saveGameState: (gameState: GameState) => boolean;
+    storage?: {
+        saveGameState: () => boolean;
+        clearSaveData: (createBackup?: boolean) => any;
+        debugShowStorageData: () => any;
+        enableAutoSave: () => boolean;
+        gameState: GameState;
     };
     gameLoop?: {  // GameLoopは初期化時に存在しない可能性がある
         pause: () => void;
@@ -198,7 +202,7 @@ export class UIManager {
             if (result.success) {
                 this.generateGameBoard();
                 this.updateUI();
-                this.systems.storage.saveGameState(this.gameState);
+                this.systems.storage?.saveGameState();
             }
         });
         
@@ -812,7 +816,36 @@ export class UIManager {
             this.systems.gameLoop?.step();
         });
         
-        // その他のデバッグ機能は省略...
+        // データ管理
+        this.elements.debugShowData?.addEventListener('click', () => {
+            const data = this.systems.storage?.debugShowStorageData();
+            if (data) {
+                console.log('ストレージデータ:', data);
+                this.updateDebugLog('ストレージデータをコンソールに出力しました');
+            }
+        });
+        
+        this.elements.debugClearData?.addEventListener('click', () => {
+            if (confirm('セーブデータを削除しますか？この操作は取り消せません。')) {
+                const result = this.systems.storage?.clearSaveData(true);
+                if (result) {
+                    this.updateDebugLog('セーブデータを削除しました（バックアップ作成済み）');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            }
+        });
+        
+        this.elements.debugEnableSave?.addEventListener('click', () => {
+            const result = this.systems.storage?.enableAutoSave();
+            if (result) {
+                this.updateDebugLog('自動保存を再有効化しました');
+            } else {
+                this.updateDebugLog('自動保存の再有効化に失敗しました');
+            }
+        });
+        
+        // デバッグ情報の定期更新を開始
+        this.startDebugInfoUpdates();
     }
 
     // 現在のTickを取得
@@ -879,6 +912,70 @@ export class UIManager {
             console.log('デバッグモードが有効になりました');
         } else {
             document.body.classList.remove('debug-mode');
+        }
+    }
+
+    // デバッグログの更新
+    private updateDebugLog(message: string): void {
+        if (!this.elements.debugLog) return;
+        
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = `[${timestamp}] ${message}\n`;
+        
+        // 既存のログに追加
+        this.elements.debugLog.textContent = logEntry + (this.elements.debugLog.textContent || '');
+        
+        // ログが長くなりすぎた場合は古いエントリを削除
+        const lines = this.elements.debugLog.textContent.split('\n');
+        if (lines.length > 20) {
+            this.elements.debugLog.textContent = lines.slice(0, 20).join('\n');
+        }
+        
+        // 最新のログが見えるようにスクロール
+        this.elements.debugLog.scrollTop = 0;
+    }
+
+    // デバッグ情報の定期更新
+    private startDebugInfoUpdates(): void {
+        if (!this.isDebugMode()) return;
+        
+        const updateDebugInfo = () => {
+            this.updateDebugStatus();
+        };
+        
+        // 1秒ごとに更新
+        setInterval(updateDebugInfo, 1000);
+        
+        // 初回実行
+        updateDebugInfo();
+    }
+
+    // デバッグステータスの更新
+    private updateDebugStatus(): void {
+        if (!this.isDebugMode()) return;
+        
+        const debugInfo = this.systems.gameLoop?.getDebugInfo();
+        const isPaused = this.systems.gameLoop?.isPaused() || false;
+        const autoDiceCount = this.gameState.autoDice.filter(d => d.level > 0).length;
+        
+        // ゲーム状態
+        if (this.elements.debugGameStatus) {
+            this.elements.debugGameStatus.textContent = isPaused ? '一時停止中' : '実行中';
+        }
+        
+        // FPS
+        if (this.elements.debugFps && debugInfo) {
+            this.elements.debugFps.textContent = Math.round(debugInfo.fps || 0).toString();
+        }
+        
+        // 最終更新時刻
+        if (this.elements.debugLastUpdate) {
+            this.elements.debugLastUpdate.textContent = new Date().toLocaleTimeString();
+        }
+        
+        // 自動ダイス情報
+        if (this.elements.debugAutoDice) {
+            this.elements.debugAutoDice.textContent = `${autoDiceCount}/7`;
         }
     }
 }
