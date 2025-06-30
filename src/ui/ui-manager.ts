@@ -416,10 +416,10 @@ export class UIManager {
             this.elements.level.textContent = this.gameState.level.toString();
         }
         if (this.elements.prestigeEarned) {
-            this.elements.prestigeEarned.textContent = this.gameState.prestigePoints.earned.toString();
+            this.elements.prestigeEarned.textContent = this.formatNumberBySetting(this.gameState.prestigePoints.earned);
         }
         if (this.elements.prestigeAvailable) {
-            this.elements.prestigeAvailable.textContent = this.gameState.prestigePoints.available.toString();
+            this.elements.prestigeAvailable.textContent = this.formatNumberBySetting(this.gameState.prestigePoints.available);
         }
         
         // 負荷システムの表示
@@ -816,7 +816,7 @@ export class UIManager {
             this.elements.statRebirths.textContent = stats.totalRebirths.toString();
         }
         if (this.elements.statTotalPrestige) {
-            this.elements.statTotalPrestige.textContent = stats.totalPrestigePoints.toString();
+            this.elements.statTotalPrestige.textContent = this.formatNumberBySetting(stats.totalPrestigePoints);
         }
         if (this.elements.statCurrentLevel) {
             this.elements.statCurrentLevel.textContent = this.gameState.level.toString();
