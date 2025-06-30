@@ -6,6 +6,7 @@ import {
 } from '../utils/math-utils.js';
 import { MANUAL_DICE_CONFIG, BURDEN_CONFIG, AUTO_DICE_LEVEL_CONFIG } from '../utils/constants.js';
 import type { GameState } from '../types/game-state.js';
+import type { PrestigeSystem } from './prestige-system.js';
 
 // ダイス結果の型定義
 interface ManualDiceResult {
@@ -54,10 +55,12 @@ interface NextBurdenLevelInfo {
 
 export class DiceSystem {
     private gameState: GameState;
+    private prestigeSystem: PrestigeSystem;
     private manualDiceResults: number[];
 
-    constructor(gameState: GameState) {
+    constructor(gameState: GameState, prestigeSystem: PrestigeSystem) {
         this.gameState = gameState;
+        this.prestigeSystem = prestigeSystem;
         this.manualDiceResults = [];  // 手動ダイスの結果表示用
     }
 
@@ -147,11 +150,16 @@ export class DiceSystem {
         const dice = this.gameState.autoDice[diceIndex];
         if (!dice) return 0;
         
-        return calculateDiceSpeedFromLevel(
+        // ダイスレベルによる基本間隔計算
+        const baseInterval = calculateDiceSpeedFromLevel(
             dice.level,
             dice.baseInterval,
             AUTO_DICE_LEVEL_CONFIG.SPEED_MULTIPLIER_MAX
         );
+        
+        // プレステージ速度倍率を適用
+        const prestigeSpeedMultiplier = this.prestigeSystem.getDiceSpeedMultiplier();
+        return Math.floor(baseInterval / prestigeSpeedMultiplier);
     }
 
     // 自動ダイスのタイマーチェック（Tick-based）

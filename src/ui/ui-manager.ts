@@ -36,6 +36,15 @@ interface DOMElements {
     
     // プレステージ
     prestigeBtn?: HTMLButtonElement;
+    availablePrestigePoints?: HTMLElement;
+    prestigeUpgradeCredit?: HTMLButtonElement;
+    prestigeUpgradeSpeed?: HTMLButtonElement;
+    creditMultiplierCost?: HTMLElement;
+    creditMultiplierLevel?: HTMLElement;
+    creditMultiplierEffect?: HTMLElement;
+    diceSpeedCost?: HTMLElement;
+    diceSpeedLevel?: HTMLElement;
+    diceSpeedEffect?: HTMLElement;
     
     // 統計
     statsBtn?: HTMLButtonElement;
@@ -149,6 +158,15 @@ export class UIManager {
             
             // プレステージ
             prestigeBtn: document.getElementById('prestige-btn') as HTMLButtonElement,
+            availablePrestigePoints: document.getElementById('available-prestige-points') as HTMLElement,
+            prestigeUpgradeCredit: document.getElementById('prestige-upgrade-credit') as HTMLButtonElement,
+            prestigeUpgradeSpeed: document.getElementById('prestige-upgrade-speed') as HTMLButtonElement,
+            creditMultiplierCost: document.getElementById('credit-multiplier-cost') as HTMLElement,
+            creditMultiplierLevel: document.getElementById('credit-multiplier-level') as HTMLElement,
+            creditMultiplierEffect: document.getElementById('credit-multiplier-effect') as HTMLElement,
+            diceSpeedCost: document.getElementById('dice-speed-cost') as HTMLElement,
+            diceSpeedLevel: document.getElementById('dice-speed-level') as HTMLElement,
+            diceSpeedEffect: document.getElementById('dice-speed-effect') as HTMLElement,
             
             // 統計
             statsBtn: document.getElementById('stats-btn') as HTMLButtonElement,
@@ -201,6 +219,21 @@ export class UIManager {
             const result = this.systems.prestige.prestige();
             if (result.success) {
                 this.generateGameBoard();
+                this.updateUI();
+                this.systems.storage?.saveGameState();
+            }
+        });
+        
+        // プレステージアップグレードボタン
+        this.elements.prestigeUpgradeCredit?.addEventListener('click', () => {
+            if (this.systems.prestige.buyPrestigeUpgrade('creditMultiplier')) {
+                this.updateUI();
+                this.systems.storage?.saveGameState();
+            }
+        });
+        
+        this.elements.prestigeUpgradeSpeed?.addEventListener('click', () => {
+            if (this.systems.prestige.buyPrestigeUpgrade('diceSpeedBoost')) {
                 this.updateUI();
                 this.systems.storage?.saveGameState();
             }
@@ -419,6 +452,7 @@ export class UIManager {
         this.updateManualDiceUI();
         this.updateAutoDiceUI();
         this.updatePrestigeButton();
+        this.updatePrestigeUpgrades();
         this.updateStats();
     }
 
@@ -426,6 +460,7 @@ export class UIManager {
     updateUILight(): void {
         this.updateManualDiceUI();
         this.updatePrestigeButton();
+        this.updatePrestigeUpgrades();
         
         // 自動ダイスの軽量更新
         if (this.shouldRegenerateAutoDice()) {
@@ -777,6 +812,62 @@ export class UIManager {
         }
         if (this.elements.statCurrentLevel) {
             this.elements.statCurrentLevel.textContent = this.gameState.level.toString();
+        }
+    }
+
+    // プレステージアップグレードUIの更新
+    updatePrestigeUpgrades(): void {
+        // 使用可能プレステージポイントの表示
+        if (this.elements.availablePrestigePoints) {
+            this.elements.availablePrestigePoints.textContent = this.gameState.prestigePoints.available.toString();
+        }
+        
+        // クレジット獲得倍率アップグレード
+        const creditUpgradeInfo = this.systems.prestige.getPrestigeUpgradeInfo('creditMultiplier');
+        const creditMultiplier = this.systems.prestige.getCreditMultiplier();
+        
+        if (this.elements.creditMultiplierCost) {
+            this.elements.creditMultiplierCost.textContent = `${creditUpgradeInfo.cost}PP`;
+        }
+        if (this.elements.creditMultiplierLevel) {
+            this.elements.creditMultiplierLevel.textContent = this.gameState.prestigeUpgrades.creditMultiplier.level.toString();
+        }
+        if (this.elements.creditMultiplierEffect) {
+            this.elements.creditMultiplierEffect.textContent = `${creditMultiplier.toFixed(1)}倍`;
+        }
+        
+        // ボタンの有効/無効状態
+        if (this.elements.prestigeUpgradeCredit) {
+            this.elements.prestigeUpgradeCredit.disabled = !creditUpgradeInfo.canAfford;
+            this.elements.prestigeUpgradeCredit.className = creditUpgradeInfo.canAfford 
+                ? 'btn btn-success btn-sm w-100' 
+                : 'btn btn-outline-success btn-sm w-100';
+        }
+        
+        // 自動ダイス速度向上アップグレード
+        const speedUpgradeInfo = this.systems.prestige.getPrestigeUpgradeInfo('diceSpeedBoost');
+        const speedMultiplier = this.systems.prestige.getDiceSpeedMultiplier();
+        
+        if (this.elements.diceSpeedCost) {
+            this.elements.diceSpeedCost.textContent = `${speedUpgradeInfo.cost}PP`;
+        }
+        if (this.elements.diceSpeedLevel) {
+            const maxLevel = speedUpgradeInfo.maxLevel || 40;
+            this.elements.diceSpeedLevel.textContent = `${this.gameState.prestigeUpgrades.diceSpeedBoost.level}/${maxLevel}`;
+        }
+        if (this.elements.diceSpeedEffect) {
+            this.elements.diceSpeedEffect.textContent = `${speedMultiplier.toFixed(1)}倍`;
+        }
+        
+        // ボタンの有効/無効状態
+        if (this.elements.prestigeUpgradeSpeed) {
+            const isMaxLevel = speedUpgradeInfo.maxLevel && 
+                this.gameState.prestigeUpgrades.diceSpeedBoost.level >= speedUpgradeInfo.maxLevel;
+            
+            this.elements.prestigeUpgradeSpeed.disabled = !speedUpgradeInfo.canAfford || !!isMaxLevel;
+            this.elements.prestigeUpgradeSpeed.className = (speedUpgradeInfo.canAfford && !isMaxLevel)
+                ? 'btn btn-primary btn-sm w-100' 
+                : 'btn btn-outline-primary btn-sm w-100';
         }
     }
 
