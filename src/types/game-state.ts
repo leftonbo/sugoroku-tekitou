@@ -6,6 +6,17 @@ export interface PrestigePoints {
     available: number;   // 使用可能ポイント
 }
 
+// プレステージアップグレード関連の型定義
+export interface PrestigeUpgrade {
+    level: number;       // アップグレードレベル
+    maxLevel?: number;   // 最大レベル（無制限の場合はundefined）
+}
+
+export interface PrestigeUpgrades {
+    creditMultiplier: PrestigeUpgrade;  // クレジット獲得倍率
+    diceSpeedBoost: PrestigeUpgrade;    // 自動ダイス速度向上
+}
+
 export interface GameStats {
     totalDiceRolls: number;      // サイコロを振った総回数
     totalMoves: number;          // 進んだマスの総計
@@ -38,6 +49,7 @@ export interface GameState {
     level: number;                      // 現在のレベル
     rebirthCount: number;               // 転生回数
     prestigePoints: PrestigePoints;     // プレステージポイント
+    prestigeUpgrades: PrestigeUpgrades; // プレステージアップグレード
     stats: GameStats;                   // 統計情報
     manualDice: ManualDice;             // 手動ダイス
     autoDice: AutoDice[];               // 自動ダイス配列

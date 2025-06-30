@@ -62,6 +62,13 @@ interface DetailedStats {
     prestige: PrestigeInfo;
 }
 
+// プレステージアップグレード情報
+interface PrestigeUpgradeInfo {
+    cost: number;
+    canAfford: boolean;
+    maxLevel?: number | undefined;
+}
+
 // GameStateの拡張（prestigeStats追加）
 interface ExtendedGameState extends GameState {
     prestigeStats?: PrestigeStats;
@@ -241,5 +248,69 @@ export class PrestigeSystem {
         };
 
         return baseStats;
+    }
+    
+    // プレステージアップグレードのコスト計算
+    getPrestigeUpgradeCost(upgradeType: 'creditMultiplier' | 'diceSpeedBoost'): number {
+        const currentLevel = this.gameState.prestigeUpgrades[upgradeType].level;
+        
+        if (upgradeType === 'creditMultiplier') {
+            // クレジット倍率: 5 + (レベル * 10) PP
+            return 5 + (currentLevel * 10);
+        } else if (upgradeType === 'diceSpeedBoost') {
+            // 自動ダイス速度: 10 + (レベル * 15) PP
+            return 10 + (currentLevel * 15);
+        }
+        
+        return 0;
+    }
+    
+    // プレステージアップグレード情報の取得
+    getPrestigeUpgradeInfo(upgradeType: 'creditMultiplier' | 'diceSpeedBoost'): PrestigeUpgradeInfo {
+        const upgrade = this.gameState.prestigeUpgrades[upgradeType];
+        const cost = this.getPrestigeUpgradeCost(upgradeType);
+        
+        return {
+            cost,
+            canAfford: this.gameState.prestigePoints.available >= cost,
+            maxLevel: upgrade.maxLevel
+        };
+    }
+    
+    // プレステージアップグレードの購入
+    buyPrestigeUpgrade(upgradeType: 'creditMultiplier' | 'diceSpeedBoost'): boolean {
+        const upgrade = this.gameState.prestigeUpgrades[upgradeType];
+        const cost = this.getPrestigeUpgradeCost(upgradeType);
+        
+        // 最大レベルチェック
+        if (upgrade.maxLevel && upgrade.level >= upgrade.maxLevel) {
+            return false;
+        }
+        
+        // コストチェック
+        if (this.gameState.prestigePoints.available < cost) {
+            return false;
+        }
+        
+        // アップグレード実行
+        this.gameState.prestigePoints.available -= cost;
+        upgrade.level++;
+        
+        console.log(`${upgradeType} をレベル ${upgrade.level} にアップグレード（コスト: ${cost}PP）`);
+        return true;
+    }
+    
+    // クレジット獲得倍率の計算
+    getCreditMultiplier(): number {
+        const level = this.gameState.prestigeUpgrades.creditMultiplier.level;
+        return 1 + (level * 0.5); // レベル1で1.5倍、レベル2で2倍...
+    }
+    
+    // 自動ダイス速度ボーナスの計算
+    getDiceSpeedMultiplier(): number {
+        const level = this.gameState.prestigeUpgrades.diceSpeedBoost.level;
+        const maxLevel = this.gameState.prestigeUpgrades.diceSpeedBoost.maxLevel || 40;
+        const cappedLevel = Math.min(level, maxLevel);
+        return 1 + (cappedLevel * 0.1); // レベル1で1.1倍、レベル40で5倍（上限4倍+基本1倍）
     }
 }

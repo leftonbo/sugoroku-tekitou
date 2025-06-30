@@ -119,11 +119,14 @@ export class SugorokuGame {
             throw new Error('ゲーム状態が初期化されていません');
         }
         
+        // プレステージシステムを最初に初期化
+        const prestigeSystem = new PrestigeSystem(this.gameState);
+        
         this.systems = {
-            dice: new DiceSystem(this.gameState),
-            board: new BoardSystem(this.gameState),
-            upgrade: new UpgradeSystem(this.gameState),
-            prestige: new PrestigeSystem(this.gameState)
+            prestige: prestigeSystem,
+            dice: new DiceSystem(this.gameState, prestigeSystem),
+            board: new BoardSystem(this.gameState, prestigeSystem),
+            upgrade: new UpgradeSystem(this.gameState)
         };
     }
     

@@ -17,6 +17,17 @@ export function createDefaultGameState(): GameState {
             available: 0            // 使用可能ポイント
         },
         
+        // プレステージアップグレード
+        prestigeUpgrades: {
+            creditMultiplier: {
+                level: 0            // 初期レベル0
+            },
+            diceSpeedBoost: {
+                level: 0,           // 初期レベル0
+                maxLevel: 40        // 最大40レベル（4倍速まで）
+            }
+        },
+        
         // 統計情報
         stats: {
             totalDiceRolls: 0,      // サイコロを振った総回数
@@ -50,9 +61,10 @@ export function createDefaultGameState(): GameState {
 
 // ゲーム状態のリセット（転生用）
 export function resetGameStateForPrestige(currentState: GameState): GameState {
-    // 転生回数と使用可能PPは保持
+    // 転生回数と使用可能PP、プレステージアップグレードは保持
     const preservedRebirthCount = currentState.rebirthCount;
     const preservedAvailablePP = currentState.prestigePoints.available;
+    const preservedPrestigeUpgrades = { ...currentState.prestigeUpgrades };
     const preservedStats = { ...currentState.stats };
     
     // 新しい初期状態を作成
@@ -61,6 +73,7 @@ export function resetGameStateForPrestige(currentState: GameState): GameState {
     // 保持する値を復元
     resetState.rebirthCount = preservedRebirthCount;
     resetState.prestigePoints.available = preservedAvailablePP;
+    resetState.prestigeUpgrades = preservedPrestigeUpgrades;
     resetState.stats = preservedStats;
     
     return resetState;

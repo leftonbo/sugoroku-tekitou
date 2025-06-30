@@ -11,6 +11,7 @@ import {
 } from '../utils/math-utils.js';
 import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG, FIXED_BACKWARD_CONFIG, PRESTIGE_CONFIG, CALCULATION_CONSTANTS } from '../utils/constants.js';
 import type { GameState, CellType } from '../types/game-state.js';
+import type { PrestigeSystem } from './prestige-system.js';
 
 // ボード関連の型定義
 interface CellData {
@@ -53,9 +54,11 @@ interface BoardCell {
 
 export class BoardSystem {
     private gameState: GameState;
+    private prestigeSystem: PrestigeSystem;
 
-    constructor(gameState: GameState) {
+    constructor(gameState: GameState, prestigeSystem: PrestigeSystem) {
         this.gameState = gameState;
+        this.prestigeSystem = prestigeSystem;
     }
 
     // マス種類の決定
@@ -236,9 +239,13 @@ export class BoardSystem {
                 
             case BOARD_CONFIG.CELL_TYPES.CREDIT:
                 if (cellData.effect !== null) {
-                    this.gameState.credits += cellData.effect;
-                    this.gameState.stats.totalCreditsEarned += cellData.effect;
-                    console.log(`クレジット +${cellData.effect} (位置: ${position})`);
+                    const baseAmount = cellData.effect;
+                    const multiplier = this.prestigeSystem.getCreditMultiplier();
+                    const finalAmount = Math.floor(baseAmount * multiplier);
+                    
+                    this.gameState.credits += finalAmount;
+                    this.gameState.stats.totalCreditsEarned += finalAmount;
+                    console.log(`クレジット +${finalAmount} (基本: ${baseAmount}, 倍率: ${multiplier.toFixed(1)}x) (位置: ${position})`);
                 }
                 effect.applied = true;
                 break;
