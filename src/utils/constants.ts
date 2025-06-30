@@ -17,13 +17,12 @@ import type {
 
 // 自動ダイス関連定数（Tick-based: 60fps時の変換 ms/16.67≈ticks）
 export const DICE_CONFIGS: DiceConfig[] = [
-    { faces: 2,  baseInterval: 90,   unlockCost: 30,    speedBaseCost: 15,   countBaseCost: 60,    emoji: '🎯' },   // 1500ms → 90ticks
-    { faces: 4,  baseInterval: 150,  unlockCost: 120,   speedBaseCost: 60,   countBaseCost: 240,   emoji: '🔹' },   // 2500ms → 150ticks
-    { faces: 6,  baseInterval: 210,  unlockCost: 300,   speedBaseCost: 150,  countBaseCost: 600,   emoji: '🎲' },   // 3500ms → 210ticks
-    { faces: 8,  baseInterval: 300,  unlockCost: 750,   speedBaseCost: 375,  countBaseCost: 1500,  emoji: '🔸' },   // 5000ms → 300ticks
-    { faces: 10, baseInterval: 390,  unlockCost: 1800,  speedBaseCost: 900,  countBaseCost: 3600,  emoji: '🔟' },   // 6500ms → 390ticks
-    { faces: 12, baseInterval: 480,  unlockCost: 4500,  speedBaseCost: 2250, countBaseCost: 9000,  emoji: '🔵' },   // 8000ms → 480ticks
-    { faces: 20, baseInterval: 720,  unlockCost: 12000, speedBaseCost: 6000, countBaseCost: 24000, emoji: '⭐' }    // 12000ms → 720ticks
+    { faces: 4,  baseInterval: 150,  unlockCost: 120,   speedBaseCost: 60,   countBaseCost: 240,   emoji: '🔹' },
+    { faces: 6,  baseInterval: 210,  unlockCost: 300,   speedBaseCost: 150,  countBaseCost: 600,   emoji: '🎲' },
+    { faces: 8,  baseInterval: 300,  unlockCost: 750,   speedBaseCost: 375,  countBaseCost: 1500,  emoji: '🔸' },
+    { faces: 10, baseInterval: 390,  unlockCost: 1800,  speedBaseCost: 900,  countBaseCost: 3600,  emoji: '🔟' },
+    { faces: 12, baseInterval: 480,  unlockCost: 4500,  speedBaseCost: 2250, countBaseCost: 9000,  emoji: '🔵' },
+    { faces: 20, baseInterval: 720,  unlockCost: 12000, speedBaseCost: 6000, countBaseCost: 24000, emoji: '⭐' }
 ];
 
 // アップグレードコスト係数
