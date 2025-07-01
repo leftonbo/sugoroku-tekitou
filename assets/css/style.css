@@ -561,6 +561,26 @@ body {
     100% { transform: scale(1) rotate(360deg); }
 }
 
+/* ダイスアイコン専用の回転アニメーション */
+@keyframes diceIconSpin {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(90deg); }
+    50% { transform: rotate(180deg); }
+    75% { transform: rotate(270deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ダイスアイコンのスタイル */
+.dice-icon {
+    display: inline-block;
+    font-size: 2rem;
+    animation: diceIconSpin 0.6s ease-in-out;
+}
+
+.dice-icon.spinning {
+    animation: diceIconSpin 0.6s ease-in-out infinite;
+}
+
 /* ボタンのリップル効果（メインリップル） */
 .btn-ripple::after {
     content: '';

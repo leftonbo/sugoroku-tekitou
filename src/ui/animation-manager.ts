@@ -4,7 +4,6 @@ import { UI_CONFIG } from '../utils/constants.js';
 
 // アニメーション関連の型定義
 type EffectType = 'credit-gain' | 'forward' | 'backward';
-type AnimationType = 'diceRolling' | 'diceRoll';
 
 export class AnimationManager {
     private activeAnimations: Map<HTMLElement, number>;
@@ -41,12 +40,17 @@ export class AnimationManager {
             resultText = '';
         }
         
-        // 結果表示の構築
+        // 結果表示の構築（ダイスアイコンと数値を分離）
         let displayContent = '';
+        
+        // ダイスアイコン（回転するダイスアイコン）
+        displayContent += `<div class="dice-icon">🎲</div>`;
+        
+        // 結果表示部分（回転しない）
         if (diceCount === 1) {
-            displayContent = `<div class="${resultClass} fs-4">${total}</div>`;
+            displayContent += `<div class="${resultClass} fs-4 mt-2">${total}</div>`;
         } else {
-            displayContent = `<div class="small text-muted">${results.join(' + ')}</div>`;
+            displayContent += `<div class="small text-muted mt-2">${results.join(' + ')}</div>`;
             displayContent += `<div class="${resultClass} fs-4">${total}</div>`;
         }
         
@@ -56,18 +60,25 @@ export class AnimationManager {
         
         element.innerHTML = displayContent;
         
-        // 品質に応じたアニメーション効果
-        this.stopAnimation(element);
-        
-        setTimeout(() => {
-            const animationType: AnimationType = rollQuality >= 0.8 ? 'diceRolling' : 'diceRoll';
-            this.startAnimation(element, animationType, UI_CONFIG.DICE_ANIMATION_DURATION);
+        // ダイスアイコンのアニメーション制御
+        const diceIcon = element.querySelector('.dice-icon') as HTMLElement;
+        if (diceIcon) {
+            // 回転アニメーションを適用
+            diceIcon.classList.add('spinning');
             
-            // 特別演出（優秀な結果の場合）
-            if (rollQuality >= 0.9) {
-                this.addGlowEffect(element, 'gold', UI_CONFIG.GLOW_EFFECT_DURATION);
+            // アニメーション終了後にspinningクラスを削除
+            setTimeout(() => {
+                diceIcon.classList.remove('spinning');
+            }, UI_CONFIG.DICE_ANIMATION_DURATION);
+        }
+        
+        // 特別演出（優秀な結果の場合）は数値部分にのみ適用
+        if (rollQuality >= 0.9) {
+            const resultElement = element.querySelector('.fs-4') as HTMLElement;
+            if (resultElement) {
+                this.addGlowEffect(resultElement, 'gold', UI_CONFIG.GLOW_EFFECT_DURATION);
             }
-        }, 10);
+        }
     }
 
     // マス目効果のアニメーション
