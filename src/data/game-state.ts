@@ -10,6 +10,7 @@ export function createDefaultGameState(): GameState {
         position: 0,                // 現在位置
         level: 1,                   // 現在のレベル
         rebirthCount: 0,            // 転生回数
+        boardRandomSeed: Math.floor(Math.random() * 0x7FFFFFFF), // 盤面生成用ランダムシード
         
         // プレステージポイント（分離）
         prestigePoints: {
@@ -81,6 +82,9 @@ export function resetGameStateForPrestige(currentState: GameState): GameState {
     resetState.prestigePoints.available = preservedAvailablePP;
     resetState.prestigeUpgrades = preservedPrestigeUpgrades;
     resetState.stats = preservedStats;
+    
+    // 転生時に新しい盤面ランダムシードを生成
+    resetState.boardRandomSeed = Math.floor(Math.random() * 0x7FFFFFFF);
     
     return resetState;
 }

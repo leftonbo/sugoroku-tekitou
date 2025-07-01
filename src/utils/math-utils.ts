@@ -1,6 +1,6 @@
 // 数値計算・フォーマット関連ユーティリティ
 
-import { CREDIT_CONFIG, PRESTIGE_CONFIG, CALCULATION_CONSTANTS } from './constants.js';
+import { PRESTIGE_CONFIG, CALCULATION_CONSTANTS } from './constants.js';
 import type { NumberFormatType } from '../types/game-state.js';
 
 // 数値のフォーマット（K, M, B単位）- 後方互換性のため保持
@@ -116,45 +116,23 @@ function formatNumberScientific(num: number): string {
     return num.toExponential(2);
 }
 
-// シード付きランダム値生成
-export function seededRandom(seed: number): number {
-    const x = Math.sin(seed) * 10000;
-    return x - Math.floor(x);
-}
-
-// 盤面用シード生成
+// 盤面用シード生成（改善版：ハッシュ関数的アプローチ）
 export function getBoardSeed(rebirthCount: number, level: number): number {
-    return rebirthCount * CALCULATION_CONSTANTS.BOARD_SEED_LEVEL_MULTIPLIER + level;
+    // より複雑なハッシュ計算でレベル間のシード分散を改善
+    let seed = rebirthCount * 12345 + level * 67890;
+    
+    // ハッシュ関数的な変換を複数回適用
+    seed = ((seed ^ (seed >>> 16)) * 0x85ebca6b) >>> 0;
+    seed = ((seed ^ (seed >>> 13)) * 0xc2b2ae35) >>> 0;
+    seed = (seed ^ (seed >>> 16)) >>> 0;
+    
+    // 最終的に大きな素数を掛けて分散を向上
+    return (seed * 2654435761) >>> 0;
 }
 
 // 手動ダイスアップグレードのコスト計算
 export function calculateManualDiceUpgradeCost(level: number, baseCost: number, multiplier: number): number {
     return Math.floor(baseCost * Math.pow(multiplier, level));
-}
-
-
-// クレジット獲得量の計算
-export function calculateCreditAmount(position: number, level: number, seed: number): number {
-    // 基礎値: 定数から取得
-    const baseAmount = CREDIT_CONFIG.BASE_AMOUNT;
-    // レベルボーナス: レベルに応じて増加、べき乗算
-    const multLevel = Math.pow(CREDIT_CONFIG.LEVEL_SCALING_BASE, level / CREDIT_CONFIG.LEVEL_SCALING_DIVISOR);
-    // 位置ボーナス: 位置に応じて増加
-    const multPosition = 1.0 + ((position + 1.0) / CREDIT_CONFIG.POSITION_BONUS_DIVISOR);
-    // ランダムボーナス: 範囲をCREDIT_CONFIGから取得
-    const randomBonus = seededRandom(seed) * CREDIT_CONFIG.RANDOM_RANGE + CREDIT_CONFIG.RANDOM_MIN;
-    // クレジット量の計算
-    return Math.max(1, Math.floor(baseAmount * multLevel * multPosition * randomBonus));
-}
-
-// 戻るマスのステップ数計算
-export function calculateBackwardSteps(level: number, seed: number, maxSteps: number): number {
-    return Math.floor(seededRandom(seed + CALCULATION_CONSTANTS.BACKWARD_STEPS_SEED_OFFSET) * CALCULATION_CONSTANTS.BACKWARD_STEPS_RANGE + Math.min(level / CALCULATION_CONSTANTS.BACKWARD_LEVEL_DIVISOR, maxSteps)) + 1;
-}
-
-// 進むマスのステップ数計算
-export function calculateForwardSteps(seed: number): number {
-    return Math.floor(seededRandom(seed + CALCULATION_CONSTANTS.FORWARD_STEPS_SEED_OFFSET) * CALCULATION_CONSTANTS.FORWARD_STEPS_RANGE) + 1;
 }
 
 // 戻るマスの確率計算（位置に応じて変動）

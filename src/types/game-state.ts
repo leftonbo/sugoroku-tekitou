@@ -57,6 +57,7 @@ export interface GameState {
     position: number;                   // 現在位置
     level: number;                      // 現在のレベル
     rebirthCount: number;               // 転生回数
+    boardRandomSeed: number;            // 盤面生成用ランダムシード（転生ごとに変更）
     prestigePoints: PrestigePoints;     // プレステージポイント
     prestigeUpgrades: PrestigeUpgrades; // プレステージアップグレード
     stats: GameStats;                   // 統計情報

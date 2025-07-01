@@ -1,15 +1,11 @@
 // 盤面システム（盤面生成・プレイヤー移動・マス効果）
 
-import { 
-    seededRandom, 
-    getBoardSeed, 
-    calculateCreditAmount, 
-    calculateBackwardSteps, 
-    calculateForwardSteps, 
+import {
     calculateBackwardRatio,
-    calculatePrestigePointsForLevel
+    calculatePrestigePointsForLevel, getBoardSeed
 } from '../utils/math-utils.js';
-import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG, FIXED_BACKWARD_CONFIG, PRESTIGE_CONFIG, CALCULATION_CONSTANTS } from '../utils/constants.js';
+import { XorShiftRandom } from '../utils/xorshift-random.js';
+import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG, FIXED_BACKWARD_CONFIG, PRESTIGE_CONFIG, CALCULATION_CONSTANTS, CREDIT_CONFIG } from '../utils/constants.js';
 import type { GameState } from '../types/game-state.js';
 import type { PrestigeSystem } from './prestige-system.js';
 
@@ -57,24 +53,58 @@ interface BoardCell {
 export class BoardSystem {
     private gameState: GameState;
     private prestigeSystem: PrestigeSystem;
+    private random: XorShiftRandom;
+    private currentLevel: number = -1; // 現在の盤面レベルをキャッシュ
+    private cellDataCache: CellData[] = []; // キャッシュ用の配列
 
     constructor(gameState: GameState, prestigeSystem: PrestigeSystem) {
+        this.random = new XorShiftRandom();
         this.gameState = gameState;
         this.prestigeSystem = prestigeSystem;
     }
+    
+    generateBoard(level: number) {
+        // レベルと盤面ランダムシードを組み合わせて Random を作成
+        const seed = getBoardSeed(this.gameState.boardRandomSeed, level);
+        this.random.setStateBySeed(seed);
+        this.currentLevel = level;
+        
+        // マスのデータを生成
+        this.cellDataCache = [];
+        for (let i = 0; i < BOARD_CONFIG.TOTAL_CELLS; i++) {
+            const cellData = this.createRandomCell(i);
+            this.cellDataCache.push(cellData);
+        }
+    }
+    
+    getCellType(position: number, level: number): CellData {
+        // レベルが変わった場合は新しい盤面を生成
+        if (this.currentLevel !== level) {
+            this.generateBoard(level);
+        }
+        
+        // キャッシュからマスのデータを取得
+        if (position < 0 || position >= this.cellDataCache.length) {
+            throw new Error(`Invalid position: ${position}`);
+        }
+        
+        // キャッシュからマスのデータを返す
+        if (!this.cellDataCache[position]) {
+            // キャッシュに存在しない場合は新たに生成
+            this.cellDataCache[position] = this.createRandomCell(position);
+        }
+        return this.cellDataCache[position];
+    }
 
     // マス種類の決定
-    getCellType(position: number, level: number): CellData {
+    private createRandomCell(position: number): CellData {
         // レベル10以降の固定戻るマス処理
-        if (level >= FIXED_BACKWARD_CONFIG.START_LEVEL) {
-            const fixedBackwardCell = this.checkFixedBackwardCell(position, level);
+        if (this.currentLevel >= FIXED_BACKWARD_CONFIG.START_LEVEL) {
+            const fixedBackwardCell = this.checkFixedBackwardCell(position, this.currentLevel, this.random);
             if (fixedBackwardCell) {
                 return fixedBackwardCell;
             }
         }
-        
-        const seed = getBoardSeed(this.gameState.rebirthCount, level) + position;
-        const rand = seededRandom(seed);
         
         // 盤面の後半ほど戻るマスが多くなる（バランス調整済み）
         const backwardRatio = calculateBackwardRatio(
@@ -85,29 +115,30 @@ export class BoardSystem {
         const forwardRatio = CELL_PROBABILITY.FORWARD_RATIO;
         const creditRatio = CELL_PROBABILITY.CREDIT_RATIO;
         const emptyRatio = 1 - backwardRatio - forwardRatio - creditRatio;
-        
+
+        const rand = this.random.nextFloat();
         if (rand < emptyRatio) {
             return { type: BOARD_CONFIG.CELL_TYPES.EMPTY, effect: null };
         } else if (rand < emptyRatio + creditRatio) {
             // クレジット獲得マス
-            const amount = calculateCreditAmount(position, level, seed);
+            const amount = this.calculateCreditAmountXorShift(position, this.currentLevel, this.random);
             return { 
                 type: BOARD_CONFIG.CELL_TYPES.CREDIT, 
                 effect: amount 
             };
         } else if (rand < emptyRatio + creditRatio + forwardRatio) {
             // 進むマス（1-3マス）
-            const steps = calculateForwardSteps(seed);
+            const steps = this.calculateForwardStepsXorShift(this.random);
             return { type: BOARD_CONFIG.CELL_TYPES.FORWARD, effect: steps };
         } else {
             // 戻るマス（1-3マス、レベルペナルティ軽減）
-            const steps = calculateBackwardSteps(level, seed, GAME_CONFIG.MAX_BACKWARD_STEPS);
+            const steps = this.calculateBackwardStepsXorShift(this.currentLevel, this.random, GAME_CONFIG.MAX_BACKWARD_STEPS);
             return { type: BOARD_CONFIG.CELL_TYPES.BACKWARD, effect: steps };
         }
     }
 
     // 固定戻るマスのチェック
-    private checkFixedBackwardCell(position: number, level: number): CellData | null {
+    private checkFixedBackwardCell(position: number, level: number, random: XorShiftRandom): CellData | null {
         // 固定配置エリア外は対象外
         if (position < FIXED_BACKWARD_CONFIG.AREA_START || position > FIXED_BACKWARD_CONFIG.AREA_END) {
             return null;
@@ -122,8 +153,7 @@ export class BoardSystem {
         
         if (position >= startFixedPosition) {
             // 固定戻るマスとして配置
-            const seed = getBoardSeed(this.gameState.rebirthCount, level) + position + CALCULATION_CONSTANTS.FIXED_BACKWARD_SEED_OFFSET; // 異なるシードを使用
-            const steps = calculateBackwardSteps(level, seed, GAME_CONFIG.MAX_BACKWARD_STEPS) + 1; // 2-4マス戻る（通常より強め）
+            const steps = this.calculateBackwardStepsXorShift(level, random, GAME_CONFIG.MAX_BACKWARD_STEPS) + 1; // 2-4マス戻る（通常より強め）
             return { 
                 type: BOARD_CONFIG.CELL_TYPES.BACKWARD, 
                 effect: steps
@@ -320,5 +350,29 @@ export class BoardSystem {
             });
         }
         return boardData;
+    }
+
+    // XorShift版のクレジット獲得量計算
+    private calculateCreditAmountXorShift(position: number, level: number, random: XorShiftRandom): number {
+        // 基礎値: 定数から取得
+        const baseAmount = CREDIT_CONFIG.BASE_AMOUNT;
+        // レベルボーナス: レベルに応じて増加、べき乗算
+        const multLevel = Math.pow(CREDIT_CONFIG.LEVEL_SCALING_BASE, level / CREDIT_CONFIG.LEVEL_SCALING_DIVISOR);
+        // 位置ボーナス: 位置に応じて増加
+        const multPosition = 1.0 + ((position + 1.0) / CREDIT_CONFIG.POSITION_BONUS_DIVISOR);
+        // ランダムボーナス: 範囲をCREDIT_CONFIGから取得
+        const randomBonus = random.nextFloat() * CREDIT_CONFIG.RANDOM_RANGE + CREDIT_CONFIG.RANDOM_MIN;
+        // クレジット量の計算
+        return Math.max(1, Math.floor(baseAmount * multLevel * multPosition * randomBonus));
+    }
+
+    // XorShift版の戻るマスステップ数計算
+    private calculateBackwardStepsXorShift(level: number, random: XorShiftRandom, maxSteps: number): number {
+        return Math.floor(random.nextFloat() * CALCULATION_CONSTANTS.BACKWARD_STEPS_RANGE + Math.min(level / CALCULATION_CONSTANTS.BACKWARD_LEVEL_DIVISOR, maxSteps)) + 1;
+    }
+
+    // XorShift版の進むマスステップ数計算
+    private calculateForwardStepsXorShift(random: XorShiftRandom): number {
+        return Math.floor(random.nextFloat() * CALCULATION_CONSTANTS.FORWARD_STEPS_RANGE) + 1;
     }
 }
