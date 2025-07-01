@@ -37,8 +37,32 @@ function formatNumberJapanese(num: number): string {
         return sign + (absNum / 100000000).toFixed(1) + '億';
     } else if (absNum < 10000000000000000) { // 1京未満
         return sign + (absNum / 1000000000000).toFixed(1) + '兆';
+    } else if (absNum < 1e20) { // 1垓未満
+        return sign + (absNum / 1e16).toFixed(1) + '京';
+    } else if (absNum < 1e24) { // 1秭未満
+        return sign + (absNum / 1e20).toFixed(1) + '垓';
+    } else if (absNum < 1e28) { // 1穣未満
+        return sign + (absNum / 1e24).toFixed(1) + '秭';
+    } else if (absNum < 1e32) { // 1溝未満
+        return sign + (absNum / 1e28).toFixed(1) + '穣';
+    } else if (absNum < 1e36) { // 1澗未満
+        return sign + (absNum / 1e32).toFixed(1) + '溝';
+    } else if (absNum < 1e40) { // 1正未満
+        return sign + (absNum / 1e36).toFixed(1) + '澗';
+    } else if (absNum < 1e44) { // 1載未満
+        return sign + (absNum / 1e40).toFixed(1) + '正';
+    } else if (absNum < 1e48) { // 1極未満
+        return sign + (absNum / 1e44).toFixed(1) + '載';
+    } else if (absNum < 1e52) { // 1恒河沙未満
+        return sign + (absNum / 1e48).toFixed(1) + '極';
+    } else if (absNum < 1e56) { // 1阿僧祇未満
+        return sign + (absNum / 1e52).toFixed(1) + '恒河沙';
+    } else if (absNum < 1e60) { // 1那由他未満
+        return sign + (absNum / 1e56).toFixed(1) + '阿僧祇';
+    } else if (absNum < 1e64) { // 1不可思議未満
+        return sign + (absNum / 1e60).toFixed(1) + '那由他';
     } else {
-        return sign + (absNum / 10000000000000000).toFixed(1) + '京';
+        return sign + (absNum / 1e64).toFixed(1) + '不可思議';
     }
 }
 
@@ -55,8 +79,32 @@ function formatNumberEnglish(num: number): string {
         return sign + (absNum / 1000000).toFixed(1) + 'M';
     } else if (absNum < 1000000000000) {
         return sign + (absNum / 1000000000).toFixed(1) + 'B';
+    } else if (absNum < 1e15) {
+        return sign + (absNum / 1e12).toFixed(1) + 'T';
+    } else if (absNum < 1e18) {
+        return sign + (absNum / 1e15).toFixed(1) + 'Qa';
+    } else if (absNum < 1e21) {
+        return sign + (absNum / 1e18).toFixed(1) + 'Qi';
+    } else if (absNum < 1e24) {
+        return sign + (absNum / 1e21).toFixed(1) + 'Sx';
+    } else if (absNum < 1e27) {
+        return sign + (absNum / 1e24).toFixed(1) + 'Sp';
+    } else if (absNum < 1e30) {
+        return sign + (absNum / 1e27).toFixed(1) + 'Oc';
+    } else if (absNum < 1e33) {
+        return sign + (absNum / 1e30).toFixed(1) + 'No';
+    } else if (absNum < 1e36) {
+        return sign + (absNum / 1e33).toFixed(1) + 'Dc';
+    } else if (absNum < 1e39) {
+        return sign + (absNum / 1e36).toFixed(1) + 'UDc';
+    } else if (absNum < 1e42) {
+        return sign + (absNum / 1e39).toFixed(1) + 'DDc';
+    } else if (absNum < 1e45) {
+        return sign + (absNum / 1e42).toFixed(1) + 'TDc';
+    } else if (absNum < 1e48) {
+        return sign + (absNum / 1e45).toFixed(1) + 'QaDc';
     } else {
-        return sign + (absNum / 1000000000000).toFixed(1) + 'T';
+        return sign + (absNum / 1e48).toFixed(1) + 'QiDc';
     }
 }
 
