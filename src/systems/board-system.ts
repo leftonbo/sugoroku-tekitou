@@ -88,11 +88,11 @@ export class BoardSystem {
             throw new Error(`Invalid position: ${position}`);
         }
         
-        // キャッシュからマスのデータを返す
+        // キャッシュが無いのはおかしいのでエラーを投げる
         if (!this.cellDataCache[position]) {
-            // キャッシュに存在しない場合は新たに生成
-            this.cellDataCache[position] = this.createRandomCell(position);
+            throw new Error(`Cell data not found for position: ${position}`);
         }
+        
         return this.cellDataCache[position];
     }
 
@@ -100,7 +100,7 @@ export class BoardSystem {
     private createRandomCell(position: number): CellData {
         // レベル10以降の固定戻るマス処理
         if (this.currentLevel >= FIXED_BACKWARD_CONFIG.START_LEVEL) {
-            const fixedBackwardCell = this.checkFixedBackwardCell(position, this.currentLevel, this.random);
+            const fixedBackwardCell = this.checkFixedBackwardCell(position, this.random);
             if (fixedBackwardCell) {
                 return fixedBackwardCell;
             }
@@ -121,31 +121,31 @@ export class BoardSystem {
             return { type: BOARD_CONFIG.CELL_TYPES.EMPTY, effect: null };
         } else if (rand < emptyRatio + creditRatio) {
             // クレジット獲得マス
-            const amount = this.calculateCreditAmountXorShift(position, this.currentLevel, this.random);
+            const amount = this.calculateCreditAmount(position, this.currentLevel, this.random);
             return { 
                 type: BOARD_CONFIG.CELL_TYPES.CREDIT, 
                 effect: amount 
             };
         } else if (rand < emptyRatio + creditRatio + forwardRatio) {
             // 進むマス（1-3マス）
-            const steps = this.calculateForwardStepsXorShift(this.random);
+            const steps = this.calculateForwardSteps(this.random);
             return { type: BOARD_CONFIG.CELL_TYPES.FORWARD, effect: steps };
         } else {
             // 戻るマス（1-3マス、レベルペナルティ軽減）
-            const steps = this.calculateBackwardStepsXorShift(this.currentLevel, this.random, GAME_CONFIG.MAX_BACKWARD_STEPS);
+            const steps = this.calculateBackwardSteps(this.currentLevel, this.random, GAME_CONFIG.MAX_BACKWARD_STEPS);
             return { type: BOARD_CONFIG.CELL_TYPES.BACKWARD, effect: steps };
         }
     }
 
     // 固定戻るマスのチェック
-    private checkFixedBackwardCell(position: number, level: number, random: XorShiftRandom): CellData | null {
+    private checkFixedBackwardCell(position: number, random: XorShiftRandom): CellData | null {
         // 固定配置エリア外は対象外
         if (position < FIXED_BACKWARD_CONFIG.AREA_START || position > FIXED_BACKWARD_CONFIG.AREA_END) {
             return null;
         }
         
         // レベルに応じた固定配置数を計算
-        const levelProgress = Math.floor((level - FIXED_BACKWARD_CONFIG.START_LEVEL) / FIXED_BACKWARD_CONFIG.LEVEL_INCREMENT);
+        const levelProgress = Math.floor((this.currentLevel - FIXED_BACKWARD_CONFIG.START_LEVEL) / FIXED_BACKWARD_CONFIG.LEVEL_INCREMENT);
         const fixedCount = Math.min(levelProgress + 1, FIXED_BACKWARD_CONFIG.MAX_COUNT);
         
         // 固定配置する位置を決定（後ろから配置）
@@ -153,7 +153,7 @@ export class BoardSystem {
         
         if (position >= startFixedPosition) {
             // 固定戻るマスとして配置
-            const steps = this.calculateBackwardStepsXorShift(level, random, GAME_CONFIG.MAX_BACKWARD_STEPS) + 1; // 2-4マス戻る（通常より強め）
+            const steps = this.calculateBackwardSteps(this.currentLevel, random, GAME_CONFIG.MAX_BACKWARD_STEPS) + 1; // 2-4マス戻る（通常より強め）
             return { 
                 type: BOARD_CONFIG.CELL_TYPES.BACKWARD, 
                 effect: steps
@@ -352,8 +352,8 @@ export class BoardSystem {
         return boardData;
     }
 
-    // XorShift版のクレジット獲得量計算
-    private calculateCreditAmountXorShift(position: number, level: number, random: XorShiftRandom): number {
+    // クレジット獲得量計算
+    private calculateCreditAmount(position: number, level: number, random: XorShiftRandom): number {
         // 基礎値: 定数から取得
         const baseAmount = CREDIT_CONFIG.BASE_AMOUNT;
         // レベルボーナス: レベルに応じて増加、べき乗算
@@ -366,13 +366,13 @@ export class BoardSystem {
         return Math.max(1, Math.floor(baseAmount * multLevel * multPosition * randomBonus));
     }
 
-    // XorShift版の戻るマスステップ数計算
-    private calculateBackwardStepsXorShift(level: number, random: XorShiftRandom, maxSteps: number): number {
+    // 戻るマスステップ数計算
+    private calculateBackwardSteps(level: number, random: XorShiftRandom, maxSteps: number): number {
         return Math.floor(random.nextFloat() * CALCULATION_CONSTANTS.BACKWARD_STEPS_RANGE + Math.min(level / CALCULATION_CONSTANTS.BACKWARD_LEVEL_DIVISOR, maxSteps)) + 1;
     }
 
-    // XorShift版の進むマスステップ数計算
-    private calculateForwardStepsXorShift(random: XorShiftRandom): number {
+    // 進むマスステップ数計算
+    private calculateForwardSteps(random: XorShiftRandom): number {
         return Math.floor(random.nextFloat() * CALCULATION_CONSTANTS.FORWARD_STEPS_RANGE) + 1;
     }
 }
