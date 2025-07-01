@@ -49,11 +49,16 @@ interface DOMElements {
     // 統計
     statsBtn?: HTMLButtonElement;
     statDiceRolls?: HTMLElement;
+    statManualDiceRolls?: HTMLElement;
+    statAutoDiceRolls?: HTMLElement;
     statTotalMoves?: HTMLElement;
     statTotalCredits?: HTMLElement;
     statRebirths?: HTMLElement;
     statTotalPrestige?: HTMLElement;
     statCurrentLevel?: HTMLElement;
+    statManualUpgrades?: HTMLElement;
+    statAutoUpgrades?: HTMLElement;
+    statAutoAscensions?: HTMLElement;
     
     // デバッグパネル
     debugPanel?: HTMLElement;
@@ -122,6 +127,7 @@ export class UIManager {
     private systems: Systems;
     private animationManager: AnimationManager;
     private elements: DOMElements;
+    private statsUpdateInterval: NodeJS.Timeout | null = null;
 
     constructor(gameState: GameState, systems: Systems, animationManager: AnimationManager) {
         this.gameState = gameState;
@@ -176,11 +182,16 @@ export class UIManager {
             // 統計
             statsBtn: document.getElementById('stats-btn') as HTMLButtonElement,
             statDiceRolls: document.getElementById('stat-dice-rolls') as HTMLElement,
+            statManualDiceRolls: document.getElementById('stat-manual-dice-rolls') as HTMLElement,
+            statAutoDiceRolls: document.getElementById('stat-auto-dice-rolls') as HTMLElement,
             statTotalMoves: document.getElementById('stat-total-moves') as HTMLElement,
             statTotalCredits: document.getElementById('stat-total-credits') as HTMLElement,
             statRebirths: document.getElementById('stat-rebirths') as HTMLElement,
             statTotalPrestige: document.getElementById('stat-total-prestige') as HTMLElement,
             statCurrentLevel: document.getElementById('stat-current-level') as HTMLElement,
+            statManualUpgrades: document.getElementById('stat-manual-upgrades') as HTMLElement,
+            statAutoUpgrades: document.getElementById('stat-auto-upgrades') as HTMLElement,
+            statAutoAscensions: document.getElementById('stat-auto-ascensions') as HTMLElement,
             
             // デバッグパネル
             debugPanel: document.getElementById('debug-panel') as HTMLElement,
@@ -881,6 +892,9 @@ export class UIManager {
 
     // 統計モーダルの表示
     showStats(): void {
+        // 統計データを即座に更新
+        this.updateStatsDisplay();
+        
         // Bootstrap modalを使用
         const modal = document.getElementById('statsModal');
         if (modal) {
@@ -1048,6 +1062,7 @@ export class UIManager {
         this.initializeDebugMode();
         this.generateGameBoard();
         this.updateUI();
+        this.startStatsUpdates(); // 統計画面の定期更新を開始
     }
 
     // デバッグモードの初期化
@@ -1123,4 +1138,72 @@ export class UIManager {
             this.elements.debugAutoDice.textContent = `${autoDiceCount}/7`;
         }
     }
+
+    // 統計画面の表示更新
+    updateStatsDisplay(): void {
+        const stats = this.gameState.stats;
+        
+        // 基本統計
+        if (this.elements.statDiceRolls) {
+            this.elements.statDiceRolls.textContent = this.formatNumberBySetting(stats.totalDiceRolls);
+        }
+        if (this.elements.statManualDiceRolls) {
+            this.elements.statManualDiceRolls.textContent = this.formatNumberBySetting(stats.manualDiceRolls);
+        }
+        if (this.elements.statAutoDiceRolls) {
+            this.elements.statAutoDiceRolls.textContent = this.formatNumberBySetting(stats.autoDiceRolls);
+        }
+        if (this.elements.statTotalMoves) {
+            this.elements.statTotalMoves.textContent = this.formatNumberBySetting(stats.totalMoves);
+        }
+        if (this.elements.statTotalCredits) {
+            this.elements.statTotalCredits.textContent = this.formatNumberBySetting(stats.totalCreditsEarned);
+        }
+        
+        // プレステージ統計
+        if (this.elements.statRebirths) {
+            this.elements.statRebirths.textContent = this.formatNumberBySetting(stats.totalRebirths);
+        }
+        if (this.elements.statTotalPrestige) {
+            this.elements.statTotalPrestige.textContent = this.formatNumberBySetting(stats.totalPrestigePoints);
+        }
+        if (this.elements.statCurrentLevel) {
+            this.elements.statCurrentLevel.textContent = this.formatNumberBySetting(this.gameState.level);
+        }
+        
+        // アップグレード統計
+        if (this.elements.statManualUpgrades) {
+            this.elements.statManualUpgrades.textContent = this.formatNumberBySetting(stats.manualDiceUpgrades);
+        }
+        if (this.elements.statAutoUpgrades) {
+            this.elements.statAutoUpgrades.textContent = this.formatNumberBySetting(stats.autoDiceUpgrades);
+        }
+        if (this.elements.statAutoAscensions) {
+            this.elements.statAutoAscensions.textContent = this.formatNumberBySetting(stats.autoDiceAscensions);
+        }
+    }
+
+    // 統計画面の定期更新を開始
+    startStatsUpdates(): void {
+        if (this.statsUpdateInterval) {
+            clearInterval(this.statsUpdateInterval);
+        }
+        
+        this.statsUpdateInterval = setInterval(() => {
+            // 統計モーダルが表示されている場合のみ更新
+            const statsModal = document.getElementById('statsModal');
+            if (statsModal && statsModal.classList.contains('show')) {
+                this.updateStatsDisplay();
+            }
+        }, 1000); // 1秒間隔
+    }
+
+    // 統計画面の定期更新を停止
+    stopStatsUpdates(): void {
+        if (this.statsUpdateInterval) {
+            clearInterval(this.statsUpdateInterval);
+            this.statsUpdateInterval = null;
+        }
+    }
+
 }

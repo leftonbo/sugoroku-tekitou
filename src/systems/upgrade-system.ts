@@ -53,6 +53,9 @@ export class UpgradeSystem {
             this.gameState.manualDice.count++;
             this.gameState.manualDice.upgradeLevel++;
             
+            // 統計を更新
+            this.gameState.stats.manualDiceUpgrades++;
+            
             console.log(`手動ダイス個数アップグレード！現在: ${this.gameState.manualDice.count}個`);
             return true;
         }
@@ -70,6 +73,9 @@ export class UpgradeSystem {
             this.gameState.credits -= cost;
             dice.level = 1;
             dice.progress = 0; // 解禁時は0に設定（次の更新で実行される）
+            
+            // 統計を更新
+            this.gameState.stats.autoDiceUpgrades++;
             
             console.log(`${dice.faces}面自動ダイス解禁！レベル1`);
             return true;
@@ -96,6 +102,9 @@ export class UpgradeSystem {
             this.gameState.credits -= cost;
             dice.level++;
             
+            // 統計を更新
+            this.gameState.stats.autoDiceUpgrades++;
+            
             console.log(`${dice.faces}面ダイスレベルアップ！レベル: ${dice.level}`);
             return true;
         }
@@ -121,6 +130,9 @@ export class UpgradeSystem {
             this.gameState.credits -= cost;
             dice.level = 1; // レベルリセット
             dice.ascension++;
+            
+            // 統計を更新
+            this.gameState.stats.autoDiceAscensions++;
             
             console.log(`${dice.faces}面ダイスアセンション！アセンションレベル: ${dice.ascension}`);
             return true;

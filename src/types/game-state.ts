@@ -18,11 +18,16 @@ export interface PrestigeUpgrades {
 }
 
 export interface GameStats {
-    totalDiceRolls: number;      // サイコロを振った総回数
-    totalMoves: number;          // 進んだマスの総計
-    totalCreditsEarned: number;  // 総獲得クレジット
-    totalRebirths: number;       // 転生回数
-    totalPrestigePoints: number; // 総獲得プレステージポイント
+    totalDiceRolls: number;         // サイコロを振った総回数
+    manualDiceRolls: number;        // 手動ダイス振り回数
+    autoDiceRolls: number;          // 自動ダイス振り回数
+    totalMoves: number;             // 進んだマスの総計
+    totalCreditsEarned: number;     // 総獲得クレジット
+    totalRebirths: number;          // 転生回数
+    totalPrestigePoints: number;    // 総獲得プレステージポイント
+    manualDiceUpgrades: number;     // 手動ダイスアップグレード回数
+    autoDiceUpgrades: number;       // 自動ダイスアップグレード回数
+    autoDiceAscensions: number;     // 自動ダイスアセンション回数
 }
 
 export interface ManualDice {

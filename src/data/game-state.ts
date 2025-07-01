@@ -30,11 +30,16 @@ export function createDefaultGameState(): GameState {
         
         // 統計情報
         stats: {
-            totalDiceRolls: 0,      // サイコロを振った総回数
-            totalMoves: 0,          // 進んだマスの総計
-            totalCreditsEarned: 0,  // 総獲得クレジット
-            totalRebirths: 0,       // 転生回数
-            totalPrestigePoints: 0  // 総獲得プレステージポイント
+            totalDiceRolls: 0,         // サイコロを振った総回数
+            manualDiceRolls: 0,        // 手動ダイス振り回数
+            autoDiceRolls: 0,          // 自動ダイス振り回数
+            totalMoves: 0,             // 進んだマスの総計
+            totalCreditsEarned: 0,     // 総獲得クレジット
+            totalRebirths: 0,          // 転生回数
+            totalPrestigePoints: 0,    // 総獲得プレステージポイント
+            manualDiceUpgrades: 0,     // 手動ダイスアップグレード回数
+            autoDiceUpgrades: 0,       // 自動ダイスアップグレード回数
+            autoDiceAscensions: 0      // 自動ダイスアセンション回数
         },
         
         // 手動ダイス（プレイヤーが操作）

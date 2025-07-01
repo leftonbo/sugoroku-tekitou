@@ -88,6 +88,7 @@ export class DiceSystem {
         
         // 統計を更新
         this.gameState.stats.totalDiceRolls++;
+        this.gameState.stats.manualDiceRolls++;
         
         console.log(`手動ダイス: ${this.manualDiceResults.join(', ')} = ${totalRoll}`);
         
@@ -136,6 +137,7 @@ export class DiceSystem {
         
         // 統計を更新
         this.gameState.stats.totalDiceRolls++;
+        this.gameState.stats.autoDiceRolls++;
         
         // lastRollを更新（Tick-based）
         // Note: この時点ではcurrentTickは利用できないため、GameLoopから設定される
