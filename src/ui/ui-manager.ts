@@ -39,12 +39,20 @@ interface DOMElements {
     availablePrestigePoints?: HTMLElement;
     prestigeUpgradeCredit?: HTMLButtonElement;
     prestigeUpgradeSpeed?: HTMLButtonElement;
+    prestigeUpgradeBonusChance?: HTMLButtonElement;
+    prestigeUpgradeBonusMultiplier?: HTMLButtonElement;
     creditMultiplierCost?: HTMLElement;
     creditMultiplierLevel?: HTMLElement;
     creditMultiplierEffect?: HTMLElement;
     diceSpeedCost?: HTMLElement;
     diceSpeedLevel?: HTMLElement;
     diceSpeedEffect?: HTMLElement;
+    bonusChanceCost?: HTMLElement;
+    bonusChanceLevel?: HTMLElement;
+    bonusChanceEffect?: HTMLElement;
+    bonusMultiplierCost?: HTMLElement;
+    bonusMultiplierLevel?: HTMLElement;
+    bonusMultiplierEffect?: HTMLElement;
     
     // 統計
     statsBtn?: HTMLButtonElement;
@@ -172,12 +180,20 @@ export class UIManager {
             availablePrestigePoints: document.getElementById('available-prestige-points') as HTMLElement,
             prestigeUpgradeCredit: document.getElementById('prestige-upgrade-credit') as HTMLButtonElement,
             prestigeUpgradeSpeed: document.getElementById('prestige-upgrade-speed') as HTMLButtonElement,
+            prestigeUpgradeBonusChance: document.getElementById('prestige-upgrade-bonus-chance') as HTMLButtonElement,
+            prestigeUpgradeBonusMultiplier: document.getElementById('prestige-upgrade-bonus-multiplier') as HTMLButtonElement,
             creditMultiplierCost: document.getElementById('credit-multiplier-cost') as HTMLElement,
             creditMultiplierLevel: document.getElementById('credit-multiplier-level') as HTMLElement,
             creditMultiplierEffect: document.getElementById('credit-multiplier-effect') as HTMLElement,
             diceSpeedCost: document.getElementById('dice-speed-cost') as HTMLElement,
             diceSpeedLevel: document.getElementById('dice-speed-level') as HTMLElement,
             diceSpeedEffect: document.getElementById('dice-speed-effect') as HTMLElement,
+            bonusChanceCost: document.getElementById('bonus-chance-cost') as HTMLElement,
+            bonusChanceLevel: document.getElementById('bonus-chance-level') as HTMLElement,
+            bonusChanceEffect: document.getElementById('bonus-chance-effect') as HTMLElement,
+            bonusMultiplierCost: document.getElementById('bonus-multiplier-cost') as HTMLElement,
+            bonusMultiplierLevel: document.getElementById('bonus-multiplier-level') as HTMLElement,
+            bonusMultiplierEffect: document.getElementById('bonus-multiplier-effect') as HTMLElement,
             
             // 統計
             statsBtn: document.getElementById('stats-btn') as HTMLButtonElement,
@@ -250,6 +266,20 @@ export class UIManager {
         
         this.elements.prestigeUpgradeSpeed?.addEventListener('click', () => {
             if (this.systems.prestige.buyPrestigeUpgrade('diceSpeedBoost')) {
+                this.updateUI();
+                this.systems.storage?.saveGameState();
+            }
+        });
+        
+        this.elements.prestigeUpgradeBonusChance?.addEventListener('click', () => {
+            if (this.systems.prestige.buyPrestigeUpgrade('bonusChance')) {
+                this.updateUI();
+                this.systems.storage?.saveGameState();
+            }
+        });
+        
+        this.elements.prestigeUpgradeBonusMultiplier?.addEventListener('click', () => {
+            if (this.systems.prestige.buyPrestigeUpgrade('bonusMultiplier')) {
                 this.updateUI();
                 this.systems.storage?.saveGameState();
             }
@@ -886,6 +916,58 @@ export class UIManager {
             this.elements.prestigeUpgradeSpeed.className = (speedUpgradeInfo.canAfford && !isMaxLevel)
                 ? 'btn btn-primary btn-sm w-100' 
                 : 'btn btn-outline-primary btn-sm w-100';
+        }
+        
+        // ボーナス確率アップグレード
+        const bonusChanceUpgradeInfo = this.systems.prestige.getPrestigeUpgradeInfo('bonusChance');
+        const bonusChance = (0.01 + this.gameState.prestigeUpgrades.bonusChance.level * 0.005) * 100; // パーセント表示
+        
+        if (this.elements.bonusChanceCost) {
+            this.elements.bonusChanceCost.textContent = `${bonusChanceUpgradeInfo.cost}PP`;
+        }
+        if (this.elements.bonusChanceLevel) {
+            const maxLevel = bonusChanceUpgradeInfo.maxLevel || 20;
+            this.elements.bonusChanceLevel.textContent = `${this.gameState.prestigeUpgrades.bonusChance.level}/${maxLevel}`;
+        }
+        if (this.elements.bonusChanceEffect) {
+            this.elements.bonusChanceEffect.textContent = `${bonusChance.toFixed(1)}%`;
+        }
+        
+        // ボタンの有効/無効状態
+        if (this.elements.prestigeUpgradeBonusChance) {
+            const isMaxLevel = bonusChanceUpgradeInfo.maxLevel && 
+                this.gameState.prestigeUpgrades.bonusChance.level >= bonusChanceUpgradeInfo.maxLevel;
+            
+            this.elements.prestigeUpgradeBonusChance.disabled = !bonusChanceUpgradeInfo.canAfford || !!isMaxLevel;
+            this.elements.prestigeUpgradeBonusChance.className = (bonusChanceUpgradeInfo.canAfford && !isMaxLevel)
+                ? 'btn btn-warning btn-sm w-100' 
+                : 'btn btn-outline-warning btn-sm w-100';
+        }
+        
+        // ボーナス倍率アップグレード
+        const bonusMultiplierUpgradeInfo = this.systems.prestige.getPrestigeUpgradeInfo('bonusMultiplier');
+        const bonusMultiplier = 5 + this.gameState.prestigeUpgrades.bonusMultiplier.level * 0.5;
+        
+        if (this.elements.bonusMultiplierCost) {
+            this.elements.bonusMultiplierCost.textContent = `${bonusMultiplierUpgradeInfo.cost}PP`;
+        }
+        if (this.elements.bonusMultiplierLevel) {
+            const maxLevel = bonusMultiplierUpgradeInfo.maxLevel || 15;
+            this.elements.bonusMultiplierLevel.textContent = `${this.gameState.prestigeUpgrades.bonusMultiplier.level}/${maxLevel}`;
+        }
+        if (this.elements.bonusMultiplierEffect) {
+            this.elements.bonusMultiplierEffect.textContent = `${bonusMultiplier.toFixed(1)}倍`;
+        }
+        
+        // ボタンの有効/無効状態
+        if (this.elements.prestigeUpgradeBonusMultiplier) {
+            const isMaxLevel = bonusMultiplierUpgradeInfo.maxLevel && 
+                this.gameState.prestigeUpgrades.bonusMultiplier.level >= bonusMultiplierUpgradeInfo.maxLevel;
+            
+            this.elements.prestigeUpgradeBonusMultiplier.disabled = !bonusMultiplierUpgradeInfo.canAfford || !!isMaxLevel;
+            this.elements.prestigeUpgradeBonusMultiplier.className = (bonusMultiplierUpgradeInfo.canAfford && !isMaxLevel)
+                ? 'btn btn-danger btn-sm w-100' 
+                : 'btn btn-outline-danger btn-sm w-100';
         }
     }
 
