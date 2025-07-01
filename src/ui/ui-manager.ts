@@ -602,11 +602,10 @@ export class UIManager {
         if (!diceInfo.unlocked) {
             // 未解禁状態
             panel.innerHTML = `
-                <h6 class="text-muted">${config.emoji} ${diceInfo.faces}面ダイス</h6>
+                <h6 class="text-muted mb-2">${config.emoji} D${diceInfo.faces}</h6>
                 <button class="btn btn-outline-warning btn-sm w-100" 
                         data-action="unlock" data-index="${diceInfo.index}">
-                    解禁する（レベル1）
-                    <br><small>コスト: ${this.formatNumberBySetting(diceInfo.levelUpCost)}💰</small>
+                    解禁 - ${this.formatNumberBySetting(diceInfo.levelUpCost)}💰
                 </button>
             `;
         } else {
@@ -618,15 +617,17 @@ export class UIManager {
             // アセンション可能かチェック
             const canAscend = diceInfo.level >= diceInfo.maxLevel;
             
+            // タイトル作成: 個数が1より大きい場合のみ表示
+            const titlePrefix = (autoDiceInfo?.count || 1) > 1 ? `${autoDiceInfo?.count}` : '';
+            const title = `${titlePrefix}D${diceInfo.faces} - Lvl.${diceInfo.level}`;
+            
+            // ツールチップ用詳細情報
+            const tooltipText = `レベル: ${diceInfo.level}/${diceInfo.maxLevel} | アセンション: ${diceInfo.ascensionLevel}\n個数: ${autoDiceInfo?.count || 1}\n間隔: ${intervalSeconds.toFixed(1)}秒 | 毎分: ${(autoDiceInfo?.rollsPerMinute || 0).toFixed(1)}回`;
+            
             panel.innerHTML = `
-                <h6 class="text-success">${config.emoji} ${diceInfo.faces}面ダイス</h6>
+                <h6 class="text-success mb-2" title="${tooltipText}">${config.emoji} ${title}</h6>
                 <div class="mb-2">
-                    <small class="text-muted dice-level-info">レベル: ${diceInfo.level}/${diceInfo.maxLevel} | アセンション: ${diceInfo.ascensionLevel}</small>
-                    <br><small class="text-muted dice-count-info">個数: ${autoDiceInfo?.count || 1}</small>
-                    <br><small class="text-info">間隔: ${intervalSeconds.toFixed(1)}秒 | 毎分: ${autoDiceInfo?.rollsPerMinute || 0}回</small>
-                </div>
-                <div class="mb-2">
-                    <div class="progress" style="height: 8px;">
+                    <div class="progress" style="height: 6px;">
                         <div class="progress-bar progress-bar-striped" 
                              role="progressbar" 
                              style="width: ${(progressInfo.progress * 100).toFixed(1)}%"
@@ -635,18 +636,16 @@ export class UIManager {
                     </div>
                     <small class="text-muted">残り: <span data-dice-timer="${diceInfo.index}">${this.ticksToSeconds(progressInfo.timeLeft).toFixed(1)}s</span></small>
                 </div>
-                <div class="d-grid gap-1">
+                <div class="d-grid">
                     ${canAscend ? `
                         <button class="btn btn-outline-danger btn-sm" 
                                 data-action="ascend" data-index="${diceInfo.index}">
-                            アセンション
-                            <br><small>コスト: ${this.formatNumberBySetting(diceInfo.ascensionCost)}💰</small>
+                            アセンション - ${this.formatNumberBySetting(diceInfo.ascensionCost)}💰
                         </button>
                     ` : `
                         <button class="btn btn-outline-primary btn-sm" 
                                 data-action="levelup" data-index="${diceInfo.index}">
-                            レベルアップ
-                            <br><small>コスト: ${this.formatNumberBySetting(diceInfo.levelUpCost)}💰</small>
+                            Lv.${diceInfo.level + 1} - ${this.formatNumberBySetting(diceInfo.levelUpCost)}💰
                         </button>
                     `}
                 </div>
