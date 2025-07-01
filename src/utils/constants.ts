@@ -18,12 +18,12 @@ import type {
 // 自動ダイス関連定数（Tick-based: 60fps時の変換 ms/16.67≈ticks）
 // Base interval: face * 10 + 40
 export const DICE_CONFIGS: DiceConfig[] = [
-    { faces: 4,  baseInterval:  80,  unlockCost: 120,   speedBaseCost: 60,   countBaseCost: 240,   emoji: '🔹' },
-    { faces: 6,  baseInterval: 100,  unlockCost: 300,   speedBaseCost: 150,  countBaseCost: 600,   emoji: '🎲' },
-    { faces: 8,  baseInterval: 120,  unlockCost: 750,   speedBaseCost: 375,  countBaseCost: 1500,  emoji: '🔸' },
-    { faces: 10, baseInterval: 140,  unlockCost: 1800,  speedBaseCost: 900,  countBaseCost: 3600,  emoji: '🔟' },
-    { faces: 12, baseInterval: 160,  unlockCost: 4500,  speedBaseCost: 2250, countBaseCost: 9000,  emoji: '🔵' },
-    { faces: 20, baseInterval: 240,  unlockCost: 12000, speedBaseCost: 6000, countBaseCost: 24000, emoji: '⭐' }
+    { faces: 4,  baseInterval:  80, emoji: '🔹' },
+    { faces: 6,  baseInterval: 100, emoji: '🎲' },
+    { faces: 8,  baseInterval: 120, emoji: '🔸' },
+    { faces: 10, baseInterval: 140, emoji: '🔟' },
+    { faces: 12, baseInterval: 160, emoji: '🔵' },
+    { faces: 20, baseInterval: 240, emoji: '⭐' }
 ];
 
 // アップグレードコスト係数
@@ -112,10 +112,10 @@ export const UI_CONFIG: UIConfig = {
 
 // プレステージシステム設定
 export const PRESTIGE_CONFIG: PrestigeConfig = {
-    START_LEVEL: 50,           // プレステージポイント獲得開始レベル
-    BASE_POINTS: 1,            // 基準ポイント（レベル50で1ポイント）
-    SCALING_BASE: 2,           // スケーリングの基数（2倍ずつ増加）
-    SCALING_LEVEL_DIVISOR: 50.0  // スケーリングレベルの除数（50レベルごと）
+    START_LEVEL: 50,             // プレステージポイント獲得開始レベル
+    BASE_POINTS: 1,              // 基準ポイント（レベル50で1ポイント）
+    SCALING_BASE: 2,             // スケーリングの基数（2倍ずつ増加）
+    SCALING_LEVEL_DIVISOR: 10.0  // スケーリングレベルの除数（50レベルごと）
 };
 
 // 負荷システム設定
@@ -127,15 +127,15 @@ export const BURDEN_CONFIG: BurdenConfig = {
 
 // 自動ダイスレベルシステム設定
 export const AUTO_DICE_LEVEL_CONFIG: AutoDiceLevelConfig = {
-    MAX_LEVEL_BASE: 100,           // 基本最大レベル
-    ASCENSION_LEVEL_INCREMENT: 10, // アセンションごとのレベル上限増加
-    ASCENSION_COST_MULTIPLIER: 10, // アセンション時のコスト倍率
-    SPEED_MULTIPLIER_MAX: 20,      // レベル100時の速度倍率
-    DICE_COUNT_BASE: 1,            // レベル1時のダイス個数
-    DICE_COUNT_MULTIPLIER: 2,      // アセンションごとのダイス個数倍率
-    LEVEL_COST_BASE: 50,           // レベルアップ基本コスト
-    LEVEL_COST_MULTIPLIER: 1.1,    // レベルごとのコスト増加率
-    ASCENSION_COST_BASE_MULTIPLIER: 3 // アセンション後のコスト基本倍率増加
+    MAX_LEVEL_BASE: 20,                // 基本最大レベル
+    ASCENSION_LEVEL_INCREMENT: 2,      // アセンションごとのレベル上限増加
+    ASCENSION_COST_MULTIPLIER: 10,     // アセンション時のコスト倍率
+    SPEED_MULTIPLIER_MAX: 2,           // レベル100時の速度倍率
+    DICE_COUNT_BASE: 1,                // レベル1時のダイス個数
+    DICE_COUNT_MULTIPLIER: 2,          // アセンションごとのダイス個数倍率
+    LEVEL_COST_BASE: 50,               // レベルアップ基本コスト
+    LEVEL_COST_MULTIPLIER: 1.2,        // レベルごとのコスト増加率
+    ASCENSION_COST_BASE_MULTIPLIER: 10 // アセンション後のコスト基本倍率増加
 };
 
 // 統計表示用定数

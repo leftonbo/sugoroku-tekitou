@@ -205,9 +205,8 @@ export function calculateAscensionCost(diceIndex: number, currentLevel: number, 
 export function calculateDiceSpeedFromLevel(level: number, baseInterval: number, maxSpeedMultiplier: number): number {
     if (level === 0) return baseInterval; // 未解禁
     
-    // レベル1 = 1倍、レベル100 = 10倍の速度でべき乗算増加
-    const speedMultiplier = Math.pow(maxSpeedMultiplier, (level - 1) / 99);
-    return Math.floor(baseInterval / speedMultiplier);
+    const speedMultiplier = 1.0 + maxSpeedMultiplier * ((level - 1.0) / 19.0);
+    return baseInterval / speedMultiplier;
 }
 
 // 自動ダイスの個数計算（アセンションベース）

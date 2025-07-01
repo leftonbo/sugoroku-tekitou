@@ -69,7 +69,7 @@ export class UpgradeSystem {
         if (this.gameState.credits >= cost) {
             this.gameState.credits -= cost;
             dice.level = 1;
-            dice.lastRoll = 0; // Tick-based: 解禁時は0に設定（次の更新で実行される）
+            dice.progress = 0; // 解禁時は0に設定（次の更新で実行される）
             
             console.log(`${dice.faces}面自動ダイス解禁！レベル1`);
             return true;
@@ -83,7 +83,7 @@ export class UpgradeSystem {
         if (!dice || dice.level === 0) return false;
         
         const maxLevel = calculateMaxLevel(
-            dice.ascensionLevel, 
+            dice.ascension, 
             AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE, 
             AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT
         );
@@ -108,7 +108,7 @@ export class UpgradeSystem {
         if (!dice || dice.level === 0) return false;
         
         const maxLevel = calculateMaxLevel(
-            dice.ascensionLevel, 
+            dice.ascension, 
             AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE, 
             AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT
         );
@@ -120,9 +120,9 @@ export class UpgradeSystem {
         if (this.gameState.credits >= cost) {
             this.gameState.credits -= cost;
             dice.level = 1; // レベルリセット
-            dice.ascensionLevel++;
+            dice.ascension++;
             
-            console.log(`${dice.faces}面ダイスアセンション！アセンションレベル: ${dice.ascensionLevel}`);
+            console.log(`${dice.faces}面ダイスアセンション！アセンションレベル: ${dice.ascension}`);
             return true;
         }
         return false;
@@ -148,7 +148,7 @@ export class UpgradeSystem {
         return calculateLevelUpCost(
             diceIndex,
             dice.level,
-            dice.ascensionLevel,
+            dice.ascension,
             AUTO_DICE_LEVEL_CONFIG.LEVEL_COST_BASE,
             AUTO_DICE_LEVEL_CONFIG.LEVEL_COST_MULTIPLIER,
             AUTO_DICE_LEVEL_CONFIG.ASCENSION_COST_BASE_MULTIPLIER
@@ -165,7 +165,7 @@ export class UpgradeSystem {
         return calculateAscensionCost(
             diceIndex,
             dice.level,
-            dice.ascensionLevel,
+            dice.ascension,
             AUTO_DICE_LEVEL_CONFIG.LEVEL_COST_BASE,
             AUTO_DICE_LEVEL_CONFIG.LEVEL_COST_MULTIPLIER,
             AUTO_DICE_LEVEL_CONFIG.ASCENSION_COST_BASE_MULTIPLIER,
@@ -191,7 +191,7 @@ export class UpgradeSystem {
         if (!dice || dice.level === 0) return false;
         
         const maxLevel = calculateMaxLevel(
-            dice.ascensionLevel, 
+            dice.ascension, 
             AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE, 
             AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT
         );
@@ -204,7 +204,7 @@ export class UpgradeSystem {
         if (!dice || dice.level === 0) return false;
         
         const maxLevel = calculateMaxLevel(
-            dice.ascensionLevel, 
+            dice.ascension, 
             AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE, 
             AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT
         );
@@ -224,7 +224,7 @@ export class UpgradeSystem {
 
         const autoInfo: AutoDiceUpgradeInfo[] = this.gameState.autoDice.map((dice, index) => {
             const maxLevel = calculateMaxLevel(
-                dice.ascensionLevel, 
+                dice.ascension, 
                 AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE, 
                 AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT
             );
@@ -234,7 +234,7 @@ export class UpgradeSystem {
                 faces: dice.faces,
                 unlocked: dice.level > 0,
                 level: dice.level,
-                ascensionLevel: dice.ascensionLevel,
+                ascensionLevel: dice.ascension,
                 maxLevel: maxLevel,
                 levelUpCost: this.getAutoDiceLevelUpCost(index),
                 ascensionCost: this.getAutoDiceAscensionCost(index),
@@ -256,7 +256,7 @@ export class UpgradeSystem {
         let total = this.gameState.manualDice.upgradeLevel;
         
         this.gameState.autoDice.forEach(dice => {
-            total += dice.level + dice.ascensionLevel; // レベル + アセンション数
+            total += dice.level + dice.ascension; // レベル + アセンション数
         });
         
         return total;

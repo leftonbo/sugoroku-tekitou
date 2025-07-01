@@ -33,9 +33,9 @@ export interface ManualDice {
 export interface AutoDice {
     faces: number;         // ダイスの面数
     level: number;         // ダイスレベル（0=未解禁、1以上=解禁済み）
-    ascensionLevel: number; // アセンションレベル
+    ascension: number;     // アセンション回数
     baseInterval: number;  // 基本実行間隔（ティック数）
-    lastRoll: number;      // 最後にロールしたTick
+    progress: number;      // 進行値 (1になるとダイスを振る)
 }
 
 // 数値表示フォーマットの種類

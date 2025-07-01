@@ -1020,9 +1020,8 @@ export class UIManager {
             };
         }
         
-        const ticksSinceLastRoll = currentTick - autoDiceInfo.lastRoll;
-        const progress = Math.min(ticksSinceLastRoll / autoDiceInfo.interval, 1);
-        const timeLeft = Math.max(autoDiceInfo.interval - ticksSinceLastRoll, 0);
+        const progress = Math.min(autoDiceInfo.progress / 60.0, 1);
+        const timeLeft = Math.max(autoDiceInfo.interval * (1.0 - progress), 0);
         
         return { 
             progress, 

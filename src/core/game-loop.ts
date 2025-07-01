@@ -52,8 +52,8 @@ interface DetailedDebugInfo extends DebugInfo {
         faces: number;
         unlocked: boolean;
         count: number;
-        speedLevel: number;
-        lastRoll: number;
+        level: number;
+        progress: number;
         interval: number;
     }>;
     prestigeInfo: any;
@@ -86,9 +86,6 @@ export class GameLoop {
         this.isRunning = true;
         this.lastUpdateTime = performance.now();
         
-        // 全自動ダイスのlastRollを初期化（Tick-based）
-        this.systems.dice.initializeAutoDiceTimers(this.currentTick);
-        
         console.log('ゲームループを開始しました');
         this.animationId = requestAnimationFrame((time) => this.gameLoop(time));
     }
@@ -115,9 +112,8 @@ export class GameLoop {
         
         // 更新頻度制御（60FPSを目標）
         if (deltaTime >= GAME_CONFIG.TICK_RATE) {
-            this.currentTick++; // ティックカウンターを増加
-            this.update(currentTime, deltaTime);
             this.lastUpdateTime = currentTime;
+            this.tick();
         }
         
         // 次のフレームをスケジュール
@@ -125,9 +121,9 @@ export class GameLoop {
     }
 
     // ゲーム状態の更新（Tick-based）
-    private update(_currentTime: number, _deltaTime: number): void {
-        // 自動ダイスのタイマーチェック（Tick-based）
-        const rolledDice = this.systems.dice.checkAutoDiceTimers(this.currentTick);
+    private tick(): void {
+        // 自動ダイスのタイマーチェック
+        const rolledDice = this.systems.dice.checkAutoDiceTimers();
         
         // 自動ダイスが振られた場合の処理
         if (rolledDice.length > 0) {
@@ -136,6 +132,9 @@ export class GameLoop {
         
         // UI更新（自動ダイス進捗ゲージ用）
         this.updateAutoDiceUI();
+
+        // ティックカウンターを増加
+        this.currentTick++;
     }
 
     // 自動ダイスの結果処理
@@ -241,11 +240,9 @@ export class GameLoop {
         }
 
         const currentTime = performance.now();
-        const deltaTime = GAME_CONFIG.TICK_RATE; // 固定デルタタイム
 
         console.log('デバッグ: 1Tick実行中...');
-        this.currentTick++; // ティックカウンターを増加
-        this.update(currentTime, deltaTime);
+        this.tick();
         this.lastUpdateTime = currentTime;
         
         console.log('デバッグ: 1Tick完了');
@@ -262,8 +259,8 @@ export class GameLoop {
                 faces: dice.faces,
                 unlocked: dice.level > 0,
                 count: diceInfo?.count || 1,
-                speedLevel: dice.level,
-                lastRoll: dice.lastRoll,
+                level: dice.level,
+                progress: dice.progress,
                 interval: this.systems.dice.getAutoDiceInterval(index)
             };
         });

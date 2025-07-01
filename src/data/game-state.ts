@@ -47,9 +47,9 @@ export function createDefaultGameState(): GameState {
         autoDice: DICE_CONFIGS.map(config => ({
             faces: config.faces,
             level: 0,               // 0=未解禁、1以上=解禁済み
-            ascensionLevel: 0,      // アセンションレベル
+            ascension: 0,           // アセンションレベル
             baseInterval: config.baseInterval,
-            lastRoll: 0
+            progress: 0
         })),
         
         // ゲーム設定

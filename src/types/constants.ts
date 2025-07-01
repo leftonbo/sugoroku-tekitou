@@ -4,9 +4,6 @@
 export interface DiceConfig {
     faces: number;
     baseInterval: number;
-    unlockCost: number;
-    speedBaseCost: number;
-    countBaseCost: number;
     emoji: string;
 }
 

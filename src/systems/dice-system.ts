@@ -30,7 +30,7 @@ interface AutoDiceInfo {
     maxLevel: number;
     interval: number;
     rollsPerMinute: number;
-    lastRoll: number;
+    progress: number;
     canAscend: boolean;
 }
 
@@ -114,7 +114,7 @@ export class DiceSystem {
         
         // ダイスの個数を計算（アセンションレベルベース）
         const diceCount = calculateDiceCountFromAscension(
-            dice.ascensionLevel, 
+            dice.ascension, 
             AUTO_DICE_LEVEL_CONFIG.DICE_COUNT_BASE, 
             AUTO_DICE_LEVEL_CONFIG.DICE_COUNT_MULTIPLIER
         );
@@ -159,42 +159,31 @@ export class DiceSystem {
         
         // プレステージ速度倍率を適用
         const prestigeSpeedMultiplier = this.prestigeSystem.getDiceSpeedMultiplier();
-        return Math.floor(baseInterval / prestigeSpeedMultiplier);
+        return baseInterval / prestigeSpeedMultiplier;
     }
 
     // 自動ダイスのタイマーチェック（Tick-based）
-    checkAutoDiceTimers(currentTick: number): AutoDiceRoll[] {
+    checkAutoDiceTimers(): AutoDiceRoll[] {
         const rolledDice: AutoDiceRoll[] = [];
         
         this.gameState.autoDice.forEach((dice, index) => {
             if (dice.level === 0) return; // 未解禁
             
             const interval = this.getAutoDiceInterval(index);
-            if (currentTick - dice.lastRoll >= interval) {
+            dice.progress += 60.0 / interval;
+            while (dice.progress >= 60.0) {
+                dice.progress -= 60.0;
+
                 const rollResult = this.rollAutoDice(index);
-                if (rollResult > 0) {
-                    // lastRollを現在のTickに更新
-                    dice.lastRoll = currentTick;
-                    
-                    rolledDice.push({
-                        index,
-                        faces: dice.faces,
-                        result: rollResult
-                    });
-                }
+                rolledDice.push({
+                    index,
+                    faces: dice.faces,
+                    result: rollResult
+                });
             }
         });
         
         return rolledDice;
-    }
-
-    // 自動ダイスの初期化（ゲーム開始時）（Tick-based）
-    initializeAutoDiceTimers(currentTick: number): void {
-        this.gameState.autoDice.forEach(dice => {
-            // セーブデータ読み込み時に古いタイムスタンプが残っているため
-            // すべてのダイスのタイマーを現在Tickでリセット
-            dice.lastRoll = currentTick;
-        });
     }
 
     // 手動ダイス結果のゲッター
@@ -215,9 +204,9 @@ export class DiceSystem {
         const interval = this.getAutoDiceInterval(diceIndex);
         const rollsPerMinute = interval > 0 ? Math.round(3600 / interval) : 0;  // 60fps × 60sec = 3600 ticks/min
         const maxLevel = AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE + 
-                        (dice.ascensionLevel * AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT);
+                        (dice.ascension * AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT);
         const diceCount = calculateDiceCountFromAscension(
-            dice.ascensionLevel, 
+            dice.ascension, 
             AUTO_DICE_LEVEL_CONFIG.DICE_COUNT_BASE, 
             AUTO_DICE_LEVEL_CONFIG.DICE_COUNT_MULTIPLIER
         );
@@ -227,11 +216,11 @@ export class DiceSystem {
             count: diceCount,
             unlocked: dice.level > 0,
             level: dice.level,
-            ascensionLevel: dice.ascensionLevel,
+            ascensionLevel: dice.ascension,
             maxLevel: maxLevel,
             interval: interval,
             rollsPerMinute: rollsPerMinute,
-            lastRoll: dice.lastRoll,
+            progress: dice.progress,
             canAscend: dice.level >= maxLevel
         };
     }
