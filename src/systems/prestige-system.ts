@@ -251,7 +251,7 @@ export class PrestigeSystem {
     }
     
     // プレステージアップグレードのコスト計算
-    getPrestigeUpgradeCost(upgradeType: 'creditMultiplier' | 'diceSpeedBoost'): number {
+    getPrestigeUpgradeCost(upgradeType: 'creditMultiplier' | 'diceSpeedBoost' | 'bonusChance' | 'bonusMultiplier'): number {
         const currentLevel = this.gameState.prestigeUpgrades[upgradeType].level;
         
         if (upgradeType === 'creditMultiplier') {
@@ -260,13 +260,19 @@ export class PrestigeSystem {
         } else if (upgradeType === 'diceSpeedBoost') {
             // 自動ダイス速度: 10 + (レベル * 15) PP
             return 10 + (currentLevel * 15);
+        } else if (upgradeType === 'bonusChance') {
+            // ボーナス確率: 8 + (レベル * 12) PP
+            return 8 + (currentLevel * 12);
+        } else if (upgradeType === 'bonusMultiplier') {
+            // ボーナス倍率: 15 + (レベル * 20) PP
+            return 15 + (currentLevel * 20);
         }
         
         return 0;
     }
     
     // プレステージアップグレード情報の取得
-    getPrestigeUpgradeInfo(upgradeType: 'creditMultiplier' | 'diceSpeedBoost'): PrestigeUpgradeInfo {
+    getPrestigeUpgradeInfo(upgradeType: 'creditMultiplier' | 'diceSpeedBoost' | 'bonusChance' | 'bonusMultiplier'): PrestigeUpgradeInfo {
         const upgrade = this.gameState.prestigeUpgrades[upgradeType];
         const cost = this.getPrestigeUpgradeCost(upgradeType);
         
@@ -278,7 +284,7 @@ export class PrestigeSystem {
     }
     
     // プレステージアップグレードの購入
-    buyPrestigeUpgrade(upgradeType: 'creditMultiplier' | 'diceSpeedBoost'): boolean {
+    buyPrestigeUpgrade(upgradeType: 'creditMultiplier' | 'diceSpeedBoost' | 'bonusChance' | 'bonusMultiplier'): boolean {
         const upgrade = this.gameState.prestigeUpgrades[upgradeType];
         const cost = this.getPrestigeUpgradeCost(upgradeType);
         

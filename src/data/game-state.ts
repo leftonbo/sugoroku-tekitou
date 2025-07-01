@@ -11,6 +11,7 @@ export function createDefaultGameState(): GameState {
         level: 1,                   // 現在のレベル
         rebirthCount: 0,            // 転生回数
         boardRandomSeed: Math.floor(Math.random() * 0x7FFFFFFF), // 盤面生成用ランダムシード
+        boardStates: {},            // 盤面状態差分（初期は空）
         
         // プレステージポイント（分離）
         prestigePoints: {
@@ -26,6 +27,14 @@ export function createDefaultGameState(): GameState {
             diceSpeedBoost: {
                 level: 0,           // 初期レベル0
                 maxLevel: 40        // 最大40レベル（4倍速まで）
+            },
+            bonusChance: {
+                level: 0,           // 初期レベル0
+                maxLevel: 20        // 最大20レベル
+            },
+            bonusMultiplier: {
+                level: 0,           // 初期レベル0
+                maxLevel: 15        // 最大15レベル
             }
         },
         
@@ -85,6 +94,9 @@ export function resetGameStateForPrestige(currentState: GameState): GameState {
     
     // 転生時に新しい盤面ランダムシードを生成
     resetState.boardRandomSeed = Math.floor(Math.random() * 0x7FFFFFFF);
+    
+    // 転生時に盤面状態をクリア（ボーナスマス等の状態をリセット）
+    resetState.boardStates = {};
     
     return resetState;
 }

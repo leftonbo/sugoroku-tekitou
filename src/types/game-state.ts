@@ -15,6 +15,8 @@ export interface PrestigeUpgrade {
 export interface PrestigeUpgrades {
     creditMultiplier: PrestigeUpgrade;  // クレジット獲得倍率
     diceSpeedBoost: PrestigeUpgrade;    // 自動ダイス速度向上
+    bonusChance: PrestigeUpgrade;       // ボーナスマス出現確率向上
+    bonusMultiplier: PrestigeUpgrade;   // ボーナスマス倍率向上
 }
 
 export interface GameStats {
@@ -51,6 +53,15 @@ export interface GameSettings {
     numberFormat: NumberFormatType; // 数値表示形式
 }
 
+// 盤面状態差分の型定義（マス状態の保存用）
+export interface BoardStateDiff {
+    type: string;
+    effect: number | null;
+    isBonus?: boolean | undefined;
+    activated?: boolean | undefined;
+    originalType?: string | undefined;
+}
+
 // メインゲーム状態インターフェース
 export interface GameState {
     credits: number;                    // クレジット
@@ -58,6 +69,7 @@ export interface GameState {
     level: number;                      // 現在のレベル
     rebirthCount: number;               // 転生回数
     boardRandomSeed: number;            // 盤面生成用ランダムシード（転生ごとに変更）
+    boardStates: { [level: number]: { [position: number]: BoardStateDiff } }; // 盤面状態差分
     prestigePoints: PrestigePoints;     // プレステージポイント
     prestigeUpgrades: PrestigeUpgrades; // プレステージアップグレード
     stats: GameStats;                   // 統計情報

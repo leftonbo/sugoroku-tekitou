@@ -6,16 +6,21 @@ import {
 } from '../utils/math-utils.js';
 import { XorShiftRandom } from '../utils/xorshift-random.js';
 import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG, FIXED_BACKWARD_CONFIG, PRESTIGE_CONFIG, CALCULATION_CONSTANTS, CREDIT_CONFIG } from '../utils/constants.js';
-import type { GameState } from '../types/game-state.js';
+import type { GameState, BoardStateDiff } from '../types/game-state.js';
 import type { PrestigeSystem } from './prestige-system.js';
 
 // ボード関連の型定義
-type CellType = 'empty' | 'credit' | 'forward' | 'backward';
+type CellType = 'empty' | 'credit' | 'forward' | 'backward' | 'bonus_credit';
 
 interface CellData {
     type: CellType;
     effect: number | null;
+    isBonus?: boolean | undefined;        // ボーナスマスかどうか
+    activated?: boolean | undefined;      // ボーナスが使用済みかどうか
+    originalType?: CellType | undefined;  // 元のマスタイプ（ボーナスマス用）
 }
+
+// 削除：BoardStateDiffはgame-state.tsからインポート
 
 interface MoveResult {
     oldPosition: number;
@@ -93,7 +98,54 @@ export class BoardSystem {
             throw new Error(`Cell data not found for position: ${position}`);
         }
         
+        // 保存された状態があるかチェック
+        const savedState = this.getSavedCellState(level, position);
+        if (savedState) {
+            // 保存された状態をキャッシュにも反映
+            this.cellDataCache[position] = this.convertBoardStateToCellData(savedState);
+        }
+        
         return this.cellDataCache[position];
+    }
+
+    // 保存された盤面状態を取得
+    private getSavedCellState(level: number, position: number): BoardStateDiff | null {
+        const levelStates = this.gameState.boardStates[level];
+        if (!levelStates) {
+            return null;
+        }
+        return levelStates[position] || null;
+    }
+
+    // BoardStateDiff を CellData に変換
+    private convertBoardStateToCellData(boardState: BoardStateDiff): CellData {
+        return {
+            type: boardState.type as CellType,
+            effect: boardState.effect,
+            isBonus: boardState.isBonus,
+            activated: boardState.activated,
+            originalType: boardState.originalType as CellType
+        };
+    }
+
+    // マス状態を保存
+    private saveCellState(level: number, position: number, cellData: CellData): void {
+        // レベルごとの状態管理オブジェクトを初期化
+        if (!this.gameState.boardStates[level]) {
+            this.gameState.boardStates[level] = {};
+        }
+        
+        // 状態を保存
+        this.gameState.boardStates[level][position] = {
+            type: cellData.type,
+            effect: cellData.effect,
+            isBonus: cellData.isBonus,
+            activated: cellData.activated,
+            originalType: cellData.originalType
+        };
+        
+        // キャッシュも更新
+        this.cellDataCache[position] = cellData;
     }
 
     // マス種類の決定
@@ -120,12 +172,29 @@ export class BoardSystem {
         if (rand < emptyRatio) {
             return { type: BOARD_CONFIG.CELL_TYPES.EMPTY, effect: null };
         } else if (rand < emptyRatio + creditRatio) {
-            // クレジット獲得マス
+            // クレジット獲得マス（ボーナスマス判定あり）
             const amount = this.calculateCreditAmount(position, this.currentLevel, this.random);
-            return { 
-                type: BOARD_CONFIG.CELL_TYPES.CREDIT, 
-                effect: amount 
-            };
+            
+            // ボーナスマス判定
+            const bonusChance = this.getBonusChance();
+            const bonusRoll = this.random.nextFloat();
+            
+            if (bonusRoll < bonusChance) {
+                // ボーナスマスとして生成
+                return {
+                    type: 'bonus_credit',
+                    effect: amount,
+                    isBonus: true,
+                    activated: false,
+                    originalType: 'credit'
+                };
+            } else {
+                // 通常クレジットマス
+                return { 
+                    type: BOARD_CONFIG.CELL_TYPES.CREDIT, 
+                    effect: amount 
+                };
+            }
         } else if (rand < emptyRatio + creditRatio + forwardRatio) {
             // 進むマス（1-3マス）
             const steps = this.calculateForwardSteps(this.random);
@@ -135,6 +204,22 @@ export class BoardSystem {
             const steps = this.calculateBackwardSteps(this.currentLevel, this.random, GAME_CONFIG.MAX_BACKWARD_STEPS);
             return { type: BOARD_CONFIG.CELL_TYPES.BACKWARD, effect: steps };
         }
+    }
+
+    // ボーナスマス出現確率を取得
+    private getBonusChance(): number {
+        const baseChance = 0.01; // 1%（デフォルト）
+        const upgradeLevel = this.gameState.prestigeUpgrades.bonusChance.level;
+        const upgradeBonus = upgradeLevel * 0.005; // レベル1につき0.5%追加
+        return Math.min(0.2, baseChance + upgradeBonus); // 最大20%まで
+    }
+
+    // ボーナス倍率を取得
+    private getBonusMultiplier(): number {
+        const baseMultiplier = 5; // 5倍（デフォルト）
+        const upgradeLevel = this.gameState.prestigeUpgrades.bonusMultiplier.level;
+        const upgradeBonus = upgradeLevel * 0.5; // レベル1につき0.5倍追加
+        return baseMultiplier + upgradeBonus;
     }
 
     // 固定戻るマスのチェック
@@ -278,6 +363,42 @@ export class BoardSystem {
                     this.gameState.credits += finalAmount;
                     this.gameState.stats.totalCreditsEarned += finalAmount;
                     console.log(`クレジット +${finalAmount} (基本: ${baseAmount}, 倍率: ${multiplier.toFixed(1)}x) (位置: ${position})`);
+                }
+                effect.applied = true;
+                break;
+                
+            case 'bonus_credit':
+                if (cellData.effect !== null && cellData.isBonus && !cellData.activated) {
+                    // ボーナスマス効果を適用
+                    const baseAmount = cellData.effect;
+                    const bonusMultiplier = this.getBonusMultiplier();
+                    const prestigeMultiplier = this.prestigeSystem.getCreditMultiplier();
+                    const finalAmount = Math.floor(baseAmount * bonusMultiplier * prestigeMultiplier);
+                    
+                    this.gameState.credits += finalAmount;
+                    this.gameState.stats.totalCreditsEarned += finalAmount;
+                    console.log(`🌟ボーナスクレジット +${finalAmount} (基本: ${baseAmount}, ボーナス: ${bonusMultiplier}x, プレステージ: ${prestigeMultiplier.toFixed(1)}x) (位置: ${position})`);
+                    
+                    // ボーナスマスを使用済みに変更
+                    const updatedCellData: CellData = {
+                        ...cellData,
+                        type: cellData.originalType || 'credit',
+                        isBonus: false,
+                        activated: true
+                    };
+                    
+                    // 状態を保存
+                    this.saveCellState(this.gameState.level, position, updatedCellData);
+                    
+                } else if (cellData.effect !== null) {
+                    // 使用済みボーナスマスまたは通常クレジットマスとして処理
+                    const baseAmount = cellData.effect;
+                    const multiplier = this.prestigeSystem.getCreditMultiplier();
+                    const finalAmount = Math.floor(baseAmount * multiplier);
+                    
+                    this.gameState.credits += finalAmount;
+                    this.gameState.stats.totalCreditsEarned += finalAmount;
+                    console.log(`クレジット +${finalAmount} (基本: ${baseAmount}, 倍率: ${multiplier.toFixed(1)}x) [使用済みボーナスマス] (位置: ${position})`);
                 }
                 effect.applied = true;
                 break;
