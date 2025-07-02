@@ -47,6 +47,12 @@ body {
     border-color: #c3e6cb;
 }
 
+.board-cell.bonus-credit {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+    animation: bonusGlow 2s ease-in-out infinite;
+}
+
 .board-cell.special {
     background-color: #fff3cd;
     border-color: #ffeaa7;
@@ -518,6 +524,19 @@ body {
     }
     50% { 
         box-shadow: 0 0 12px rgba(40, 167, 69, 0.5);
+    }
+}
+
+/* ボーナスマスのグロー効果 */
+@keyframes bonusGlow {
+    0%, 100% { 
+        box-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
+        border-color: #ffc107;
+    }
+    50% { 
+        box-shadow: 0 0 16px rgba(255, 193, 7, 0.6);
+        border-color: #ffca2c;
+        background-color: #fffbf0;
     }
 }
 

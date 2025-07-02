@@ -395,6 +395,17 @@ export class UIManager {
                     effectDiv.innerHTML = `💰<br><small>${cellData.effect}</small>`;
                     cell.classList.add('credit');
                     break;
+                case 'bonus_credit':
+                    // ボーナスマスの表示
+                    if (cellData.isBonus && !cellData.activated) {
+                        effectDiv.innerHTML = `🌟<br><small>${cellData.effect}</small>`;
+                        cell.classList.add('bonus-credit');
+                    } else {
+                        // 使用済みボーナスマスは通常クレジットマスとして表示
+                        effectDiv.innerHTML = `💰<br><small>${cellData.effect}</small>`;
+                        cell.classList.add('credit');
+                    }
+                    break;
                 case 'forward':
                     effectDiv.innerHTML = `➡️<br><small>+${cellData.effect}</small>`;
                     cell.classList.add('forward');

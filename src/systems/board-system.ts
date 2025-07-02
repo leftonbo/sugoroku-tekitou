@@ -53,6 +53,8 @@ interface BoardCell {
     type: CellType;
     effect: number | null;
     isPlayerPosition: boolean;
+    isBonus: boolean;
+    activated: boolean;
 }
 
 export class BoardSystem {
@@ -467,7 +469,9 @@ export class BoardSystem {
                 position: i,
                 type: cellData.type,
                 effect: cellData.effect,
-                isPlayerPosition: i === this.gameState.position
+                isPlayerPosition: i === this.gameState.position,
+                isBonus: cellData.isBonus || false,
+                activated: cellData.activated || false
             });
         }
         return boardData;
