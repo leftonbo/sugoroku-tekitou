@@ -126,7 +126,7 @@ export const AUTO_DICE_LEVEL_CONFIG: AutoDiceLevelConfig = {
     MAX_LEVEL_BASE: 20,                // 基本最大レベル
     ASCENSION_LEVEL_INCREMENT: 2,      // アセンションごとのレベル上限増加
     ASCENSION_COST_MULTIPLIER: 10,     // アセンション時のコスト倍率
-    SPEED_MULTIPLIER_MAX: 2,           // レベル100時の速度倍率
+    SPEED_MULTIPLIER_MAX: 4,           // レベル100時の速度倍率
     DICE_COUNT_BASE: 1,                // レベル1時のダイス個数
     DICE_COUNT_MULTIPLIER: 2,          // アセンションごとのダイス個数倍率
     LEVEL_COST_BASE: 50,               // レベルアップ基本コスト
