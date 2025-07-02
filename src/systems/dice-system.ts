@@ -273,6 +273,7 @@ export class DiceSystem {
         
         // adjustedRoll が0以下になる場合
         // 出目が face の半分未満の出目は 0, それ以外は 1 以上に調整
+        // (出目ペナルティの上限は 0/1 の 2 面ダイスと同じ効果になるまで)
         return roll < faces / 2 ? 0 : 1;
     }
 
