@@ -218,9 +218,9 @@ export class BoardSystem {
 
     // ボーナス倍率を取得
     private getBonusMultiplier(): number {
-        const baseMultiplier = 5; // 5倍（デフォルト）
+        const baseMultiplier = 10; // 10倍（デフォルト）
         const upgradeLevel = this.gameState.prestigeUpgrades.bonusMultiplier.level;
-        const upgradeBonus = upgradeLevel * 0.5; // レベル1につき0.5倍追加
+        const upgradeBonus = upgradeLevel * 2.0; // レベル1につき2.0倍追加
         return baseMultiplier + upgradeBonus;
     }
 
