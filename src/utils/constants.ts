@@ -92,7 +92,7 @@ export const FIXED_BACKWARD_CONFIG: FixedBackwardConfig = {
 // クレジット計算設定
 export const CREDIT_CONFIG: CreditConfig = {
     BASE_AMOUNT: 4,                     // 基礎クレジット量
-    LEVEL_SCALING_BASE: 1000.0,         // レベルスケーリングの基数
+    LEVEL_SCALING_BASE: 600.0,         // レベルスケーリングの基数
     LEVEL_SCALING_DIVISOR: 100.0,       // レベルスケーリングの除数  
     POSITION_BONUS_DIVISOR: 100.0,      // 位置ボーナスの除数
     RANDOM_RANGE: 0.6,                  // ランダムボーナスの範囲 (0.8-1.2)
