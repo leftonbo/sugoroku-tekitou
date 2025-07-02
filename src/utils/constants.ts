@@ -65,15 +65,12 @@ export const CALCULATION_CONSTANTS = {
     BACKWARD_RATIO_DIVISOR: 100,         // position / 100
     
     // 進むマス・戻るマスのステップ計算用
-    FORWARD_STEPS_SEED_OFFSET: 2000,     // seed + 2000
-    BACKWARD_STEPS_SEED_OFFSET: 3000,    // seed + 3000
     FORWARD_STEPS_RANGE: 3,              // 1-3マス
     BACKWARD_STEPS_RANGE: 3,             // 1-3マス
     BACKWARD_LEVEL_DIVISOR: 5,           // level / 5
     
     // ボードシード関連
     BOARD_SEED_LEVEL_MULTIPLIER: 1000,   // rebirthCount * 1000 + level
-    FIXED_BACKWARD_SEED_OFFSET: 9999,    // 異なるシードのためのオフセット
 };
 
 // ゲーム設定
