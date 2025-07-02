@@ -1,0 +1,43 @@
+name: Test
+
+# プルリクエスト時にテストを実行
+on:
+  pull_request:
+    branches: ["main"]
+  
+  # 手動実行も可能
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: TypeScript type check
+        run: npm run test
+
+      - name: Build test
+        run: npm run test:build
+
+      - name: Verify build output
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "❌ dist directory not found"
+            exit 1
+          fi
+          if [ ! -f "dist/core/game.js" ]; then
+            echo "❌ Main game file not found"
+            exit 1
+          fi
+          echo "✅ Build verification successful"
