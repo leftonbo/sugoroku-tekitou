@@ -116,7 +116,8 @@ export const PRESTIGE_CONFIG: PrestigeConfig = {
 
 // 負荷システム設定
 export const BURDEN_CONFIG: BurdenConfig = {
-    LEVEL_INTERVAL: 100,           // 100レベルごとに負荷レベル+1
+    START_LEVEL: 100,
+    LEVEL_INTERVAL: 50,            // 50レベルごとに負荷レベル+1
     MAX_INDIVIDUAL_REDUCTION: 10,  // 個別ダイス減少の最大値 (-10)
     HALVING_INTERVAL: 10           // 10負荷レベルごとに総計半減
 };
@@ -130,7 +131,7 @@ export const AUTO_DICE_LEVEL_CONFIG: AutoDiceLevelConfig = {
     DICE_COUNT_BASE: 1,                // レベル1時のダイス個数
     DICE_COUNT_MULTIPLIER: 2,          // アセンションごとのダイス個数倍率
     LEVEL_COST_BASE: 50,               // レベルアップ基本コスト
-    LEVEL_COST_MULTIPLIER: 1.2,        // レベルごとのコスト増加率
+    LEVEL_COST_MULTIPLIER: 1.3,        // レベルごとのコスト増加率
     ASCENSION_COST_BASE_MULTIPLIER: 6  // アセンション後のコスト基本倍率増加
 };
 
