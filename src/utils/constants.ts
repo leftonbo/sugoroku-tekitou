@@ -28,12 +28,12 @@ export const DICE_CONFIGS: DiceConfig[] = [
 
 // アップグレードコスト係数
 export const UPGRADE_MULTIPLIERS = {
-    MANUAL_DICE: 6.0
+    MANUAL_DICE: 36.0
 } as const;
 
 // 手動ダイス関連定数
 export const MANUAL_DICE_CONFIG: ManualDiceConfig = {
-    BASE_UPGRADE_COST: 50,
+    BASE_UPGRADE_COST: 60,
     BASE_FACES: 6
 };
 
