@@ -505,8 +505,8 @@ export class UIManager {
                 let effectText = '';
                 
                 // 負荷1ごとに総計-1の効果
-                if (burdenInfo.level > 0) {
-                    effectText += `総計-${burdenInfo.level}`;
+                if (burdenInfo.totalReduction > 0) {
+                    effectText += `総計-${burdenInfo.totalReduction}`;
                 }
                 
                 // 負荷2ごとに個別ダイス-1の効果

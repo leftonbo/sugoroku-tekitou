@@ -42,6 +42,7 @@ interface ManualDiceInfo {
 
 interface BurdenInfo {
     level: number;
+    totalReduction: number;
     diceReduction: number;
     totalHalving: boolean;
     nextBurdenLevel: NextBurdenLevelInfo | null;
@@ -296,6 +297,7 @@ export class DiceSystem {
         
         return {
             level: burdenLevel,
+            totalReduction: burdenLevel * 2,
             diceReduction: Math.min(
                 Math.floor(burdenLevel / 2),
                 BURDEN_CONFIG.MAX_INDIVIDUAL_REDUCTION
