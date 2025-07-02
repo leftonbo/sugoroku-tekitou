@@ -78,9 +78,9 @@ export interface PrestigeConfig {
 
 // 負荷システム設定の型定義
 export interface BurdenConfig {
-    LEVEL_1_START: number;
-    LEVEL_2_START: number;
-    LEVEL_3_START: number;
+    LEVEL_INTERVAL: number;           // 負荷レベル上昇の間隔 (100レベルごと)
+    MAX_INDIVIDUAL_REDUCTION: number; // 個別ダイス減少の最大値 (-10)
+    HALVING_INTERVAL: number;         // 総計半減の間隔 (10負荷レベルごと)
 }
 
 // 自動ダイスレベルシステム設定の型定義

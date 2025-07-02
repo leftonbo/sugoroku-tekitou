@@ -81,8 +81,13 @@ export class DiceSystem {
             totalRoll += roll;
         }
         
-        // 負荷レベル3による総計半減
-        if (this.getBurdenLevel() >= 3) {
+        // 負荷1ごとに総計-1
+        const burdenLevel = this.getBurdenLevel();
+        totalRoll = Math.max(0, totalRoll - burdenLevel);
+        
+        // 負荷10ごとに総計半減
+        const halvingCount = Math.floor(burdenLevel / BURDEN_CONFIG.HALVING_INTERVAL);
+        for (let i = 0; i < halvingCount; i++) {
             totalRoll = Math.floor(totalRoll / 2);
         }
         
@@ -130,8 +135,13 @@ export class DiceSystem {
             totalRoll += roll;
         }
         
-        // 負荷レベル3による総計半減
-        if (this.getBurdenLevel() >= 3) {
+        // 負荷1ごとに総計-1
+        const burdenLevel = this.getBurdenLevel();
+        totalRoll = Math.max(0, totalRoll - burdenLevel);
+        
+        // 負荷10ごとに総計半減
+        const halvingCount = Math.floor(burdenLevel / BURDEN_CONFIG.HALVING_INTERVAL);
+        for (let i = 0; i < halvingCount; i++) {
             totalRoll = Math.floor(totalRoll / 2);
         }
         
@@ -245,11 +255,12 @@ export class DiceSystem {
     getBurdenLevel(): number {
         const level = this.gameState.level;
         
-        if (level >= BURDEN_CONFIG.LEVEL_3_START) return 3;
-        if (level >= BURDEN_CONFIG.LEVEL_2_START) return 2;
-        if (level >= BURDEN_CONFIG.LEVEL_1_START) return 1;
+        // レベル101から開始、100レベルごとに負荷レベル+1
+        if (level < BURDEN_CONFIG.LEVEL_INTERVAL + 1) {
+            return 0;
+        }
         
-        return 0;
+        return Math.floor((level - 1) / BURDEN_CONFIG.LEVEL_INTERVAL);
     }
 
     // 負荷による出目補正の適用
@@ -260,11 +271,13 @@ export class DiceSystem {
             return roll;
         }
         
-        // 負荷レベル1: -1、負荷レベル2: -2
-        let adjustedRoll = roll;
+        // 負荷2ごとに個別ダイス出目-1 (最大-10)
+        const individualReduction = Math.min(
+            Math.floor(burdenLevel / 2),
+            BURDEN_CONFIG.MAX_INDIVIDUAL_REDUCTION
+        );
         
-        if (burdenLevel >= 1) adjustedRoll -= 1;
-        if (burdenLevel >= 2) adjustedRoll -= 1;
+        let adjustedRoll = roll - individualReduction;
         
         // 正数の場合はそのまま
         if (adjustedRoll >= 1) {
@@ -273,7 +286,6 @@ export class DiceSystem {
         
         // adjustedRoll が0以下になる場合
         // 出目が face の半分未満の出目は 0, それ以外は 1 以上に調整
-        // (出目ペナルティの上限は 0/1 の 2 面ダイスと同じ効果になるまで)
         return roll < faces / 2 ? 0 : 1;
     }
 
@@ -284,34 +296,29 @@ export class DiceSystem {
         
         return {
             level: burdenLevel,
-            diceReduction: burdenLevel >= 1 ? Math.min(burdenLevel, 2) : 0,
-            totalHalving: burdenLevel >= 3,
+            diceReduction: Math.min(
+                Math.floor(burdenLevel / 2),
+                BURDEN_CONFIG.MAX_INDIVIDUAL_REDUCTION
+            ),
+            totalHalving: burdenLevel >= BURDEN_CONFIG.HALVING_INTERVAL,
             nextBurdenLevel: this.getNextBurdenLevelInfo(level)
         };
     }
 
     // 次の負荷レベル情報を取得
     private getNextBurdenLevelInfo(currentLevel: number): NextBurdenLevelInfo | null {
-        if (currentLevel < BURDEN_CONFIG.LEVEL_1_START) {
+        const currentBurdenLevel = this.getBurdenLevel();
+        const nextBurdenLevel = currentBurdenLevel + 1;
+        const nextLevelRequired = (nextBurdenLevel * BURDEN_CONFIG.LEVEL_INTERVAL) + 1;
+        
+        if (currentLevel < nextLevelRequired) {
             return {
-                level: 1,
-                levelRequired: BURDEN_CONFIG.LEVEL_1_START,
-                levelsRemaining: BURDEN_CONFIG.LEVEL_1_START - currentLevel
-            };
-        } else if (currentLevel < BURDEN_CONFIG.LEVEL_2_START) {
-            return {
-                level: 2,
-                levelRequired: BURDEN_CONFIG.LEVEL_2_START,
-                levelsRemaining: BURDEN_CONFIG.LEVEL_2_START - currentLevel
-            };
-        } else if (currentLevel < BURDEN_CONFIG.LEVEL_3_START) {
-            return {
-                level: 3,
-                levelRequired: BURDEN_CONFIG.LEVEL_3_START,
-                levelsRemaining: BURDEN_CONFIG.LEVEL_3_START - currentLevel
+                level: nextBurdenLevel,
+                levelRequired: nextLevelRequired,
+                levelsRemaining: nextLevelRequired - currentLevel
             };
         }
         
-        return null; // 最大負荷レベルに到達
+        return null; // 次の負荷レベルは存在しない（現在の実装では上限なし）
     }
 }
