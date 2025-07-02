@@ -477,6 +477,18 @@ export class BoardSystem {
         return boardData;
     }
 
+    // 実際の獲得クレジット計算（UI表示用）
+    calculateActualCredit(baseAmount: number, isBonus: boolean = false): number {
+        if (isBonus) {
+            const bonusMultiplier = this.getBonusMultiplier();
+            const prestigeMultiplier = this.prestigeSystem.getCreditMultiplier();
+            return Math.floor(baseAmount * bonusMultiplier * prestigeMultiplier);
+        } else {
+            const prestigeMultiplier = this.prestigeSystem.getCreditMultiplier();
+            return Math.floor(baseAmount * prestigeMultiplier);
+        }
+    }
+
     // クレジット獲得量計算
     private calculateCreditAmount(position: number, level: number, random: XorShiftRandom): number {
         // 基礎値: 定数から取得
