@@ -1,6 +1,6 @@
 // 数値計算・フォーマット関連ユーティリティ
 
-import { PRESTIGE_CONFIG, CALCULATION_CONSTANTS } from './constants.js';
+import { PRESTIGE_CONFIG, CALCULATION_CONSTANTS, AUTO_DICE_LEVEL_CONFIG } from './constants.js';
 import type { NumberFormatType } from '../types/game-state.js';
 
 // 数値のフォーマット（K, M, B単位）- 後方互換性のため保持
@@ -156,7 +156,7 @@ export function calculateMaxLevel(ascensionLevel: number, baseMaxLevel: number, 
     return baseMaxLevel + (ascensionLevel * increment);
 }
 
-// 自動ダイスレベルアップのコスト計算
+// 自動ダイスレベルアップのコスト計算（累積レベルベース）
 export function calculateLevelUpCost(diceIndex: number, currentLevel: number, ascensionLevel: number, 
                                    baseCost: number, multiplier: number, ascensionCostMultiplier: number): number {
     // 基本コスト = ダイス種類別の基本コスト * アセンションレベルによる基本コスト倍率
@@ -165,8 +165,20 @@ export function calculateLevelUpCost(diceIndex: number, currentLevel: number, as
     // ダイス種類別の基本コスト調整（高面数ダイスほど高コスト）
     const diceMultiplier = Math.pow(2, diceIndex);
     
-    // レベルによる乗数
-    const levelMultiplier = Math.pow(multiplier, currentLevel);
+    // 累積投資レベル計算（各アセンションの実際の最大レベルを考慮）
+    let totalInvestedLevels = 0;
+    
+    // 過去のアセンションで投資したレベル数を累積
+    for (let i = 0; i < ascensionLevel; i++) {
+        const maxLevelForThisAscension = calculateMaxLevel(i, AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE, AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT);
+        totalInvestedLevels += maxLevelForThisAscension;
+    }
+    
+    // 現在のアセンションでのレベルを追加
+    totalInvestedLevels += currentLevel;
+    
+    // 累積レベルによる乗数（現在レベルではなく総投資レベルを使用）
+    const levelMultiplier = Math.pow(multiplier, totalInvestedLevels);
     
     return Math.floor(baseForDice * diceMultiplier * levelMultiplier);
 }
