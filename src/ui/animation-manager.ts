@@ -14,31 +14,12 @@ export class AnimationManager {
 
     // 手動ダイス表示のアニメーション（強化版）
     animateManualDiceResult(
-        element: HTMLElement | null, 
-        rollQuality: number = 0.5, 
+        element: HTMLElement | null,
         diceCount: number = 1, 
         results: number[] = [], 
         total: number = 0
     ): void {
         if (!element) return;
-        
-        // 結果品質に応じた表示色とアニメーション
-        let resultClass = '';
-        let resultText = '';
-        
-        if (rollQuality >= 0.9) {
-            resultClass = 'text-warning fw-bold';
-            resultText = '✨ EXCELLENT! ✨';
-        } else if (rollQuality >= 0.75) {
-            resultClass = 'text-success fw-bold';
-            resultText = '🎯 GREAT!';
-        } else if (rollQuality >= 0.5) {
-            resultClass = 'text-primary';
-            resultText = '👍 GOOD';
-        } else {
-            resultClass = 'text-muted';
-            resultText = '';
-        }
         
         // 結果表示の構築（ダイスアイコンと数値を分離）
         let displayContent = '';
@@ -48,14 +29,10 @@ export class AnimationManager {
         
         // 結果表示部分（回転しない）
         if (diceCount === 1) {
-            displayContent += `<div class="${resultClass} fs-4 mt-2">${total}</div>`;
+            displayContent += `<div class="text-muted fs-4 mt-2">${total}</div>`;
         } else {
             displayContent += `<div class="small text-muted mt-2">${results.join(' + ')}</div>`;
-            displayContent += `<div class="${resultClass} fs-4">${total}</div>`;
-        }
-        
-        if (resultText) {
-            displayContent += `<div class="small text-muted fw-normal" style="font-size: 0.7rem;">${resultText}</div>`;
+            displayContent += `<div class="text-primary fs-4">${total}</div>`;
         }
         
         element.innerHTML = displayContent;
@@ -70,14 +47,6 @@ export class AnimationManager {
             setTimeout(() => {
                 diceIcon.classList.remove('spinning');
             }, UI_CONFIG.DICE_ANIMATION_DURATION);
-        }
-        
-        // 特別演出（優秀な結果の場合）は数値部分にのみ適用
-        if (rollQuality >= 0.9) {
-            const resultElement = element.querySelector('.fs-4') as HTMLElement;
-            if (resultElement) {
-                this.addGlowEffect(resultElement, 'gold', UI_CONFIG.GLOW_EFFECT_DURATION);
-            }
         }
     }
 
