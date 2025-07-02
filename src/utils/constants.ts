@@ -28,14 +28,12 @@ export const DICE_CONFIGS: DiceConfig[] = [
 
 // アップグレードコスト係数
 export const UPGRADE_MULTIPLIERS = {
-    MANUAL_DICE: 2.0,
-    AUTO_SPEED: 1.5,
-    AUTO_COUNT: 2.5
+    MANUAL_DICE: 6.0
 } as const;
 
 // 手動ダイス関連定数
 export const MANUAL_DICE_CONFIG: ManualDiceConfig = {
-    BASE_UPGRADE_COST: 75,
+    BASE_UPGRADE_COST: 50,
     BASE_FACES: 6
 };
 
@@ -133,7 +131,7 @@ export const AUTO_DICE_LEVEL_CONFIG: AutoDiceLevelConfig = {
     DICE_COUNT_MULTIPLIER: 2,          // アセンションごとのダイス個数倍率
     LEVEL_COST_BASE: 50,               // レベルアップ基本コスト
     LEVEL_COST_MULTIPLIER: 1.2,        // レベルごとのコスト増加率
-    ASCENSION_COST_BASE_MULTIPLIER: 10 // アセンション後のコスト基本倍率増加
+    ASCENSION_COST_BASE_MULTIPLIER: 6  // アセンション後のコスト基本倍率増加
 };
 
 // 統計表示用定数
