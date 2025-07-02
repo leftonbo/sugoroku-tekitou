@@ -10,7 +10,7 @@ import type { GameState, BoardStateDiff } from '../types/game-state.js';
 import type { PrestigeSystem } from './prestige-system.js';
 
 // ボード関連の型定義
-type CellType = 'empty' | 'credit' | 'forward' | 'backward' | 'bonus_credit';
+type CellType = 'empty' | 'credit' | 'forward' | 'backward' | 'credit_bonus';
 
 interface CellData {
     type: CellType;
@@ -184,11 +184,11 @@ export class BoardSystem {
             if (bonusRoll < bonusChance) {
                 // ボーナスマスとして生成
                 return {
-                    type: 'bonus_credit',
+                    type: BOARD_CONFIG.CELL_TYPES.CREDIT_BONUS,
                     effect: amount,
                     isBonus: true,
                     activated: false,
-                    originalType: 'credit'
+                    originalType: BOARD_CONFIG.CELL_TYPES.CREDIT
                 };
             } else {
                 // 通常クレジットマス
@@ -368,8 +368,8 @@ export class BoardSystem {
                 }
                 effect.applied = true;
                 break;
-                
-            case 'bonus_credit':
+
+            case BOARD_CONFIG.CELL_TYPES.CREDIT_BONUS:
                 if (cellData.effect !== null && cellData.isBonus && !cellData.activated) {
                     // ボーナスマス効果を適用
                     const baseAmount = cellData.effect;

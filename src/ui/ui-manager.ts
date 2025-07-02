@@ -395,7 +395,7 @@ export class UIManager {
                     effectDiv.innerHTML = `💰<br><small>${cellData.effect}</small>`;
                     cell.classList.add('credit');
                     break;
-                case 'bonus_credit':
+                case 'credit_bonus':
                     // ボーナスマスの表示
                     if (cellData.isBonus && !cellData.activated) {
                         effectDiv.innerHTML = `🌟<br><small>${cellData.effect}</small>`;

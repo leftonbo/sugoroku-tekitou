@@ -46,7 +46,8 @@ export const BOARD_CONFIG: BoardConfig = {
         EMPTY: 'empty',
         CREDIT: 'credit',
         FORWARD: 'forward',
-        BACKWARD: 'backward'
+        BACKWARD: 'backward',
+        CREDIT_BONUS: 'credit_bonus'
     }
 };
 

@@ -22,6 +22,7 @@ export interface BoardConfig {
         CREDIT: 'credit';
         FORWARD: 'forward';
         BACKWARD: 'backward';
+        CREDIT_BONUS: 'credit_bonus';
     };
 }
 
