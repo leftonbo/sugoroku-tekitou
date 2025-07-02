@@ -118,9 +118,9 @@ export const PRESTIGE_CONFIG: PrestigeConfig = {
 
 // 負荷システム設定
 export const BURDEN_CONFIG: BurdenConfig = {
-    LEVEL_1_START: 201,        // 負荷レベル1開始
-    LEVEL_2_START: 501,        // 負荷レベル2開始
-    LEVEL_3_START: 1001        // 負荷レベル3開始
+    LEVEL_INTERVAL: 100,           // 100レベルごとに負荷レベル+1
+    MAX_INDIVIDUAL_REDUCTION: 10,  // 個別ダイス減少の最大値 (-10)
+    HALVING_INTERVAL: 10           // 10負荷レベルごとに総計半減
 };
 
 // 自動ダイスレベルシステム設定

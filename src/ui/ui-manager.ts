@@ -504,12 +504,22 @@ export class UIManager {
             }
             if (this.elements.burdenEffects) {
                 let effectText = '';
-                if (burdenInfo.diceReduction > 0) {
-                    effectText += `出目-${burdenInfo.diceReduction}`;
+                
+                // 負荷1ごとに総計-1の効果
+                if (burdenInfo.level > 0) {
+                    effectText += `総計-${burdenInfo.level}`;
                 }
+                
+                // 負荷2ごとに個別ダイス-1の効果
+                if (burdenInfo.diceReduction > 0) {
+                    effectText += effectText ? `, 個別-${burdenInfo.diceReduction}` : `個別-${burdenInfo.diceReduction}`;
+                }
+                
+                // 負荷10ごとに総計半減の効果
                 if (burdenInfo.totalHalving) {
                     effectText += effectText ? ', 総計半減' : '総計半減';
                 }
+                
                 this.elements.burdenEffects.textContent = effectText;
             }
         } else {
