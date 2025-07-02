@@ -210,17 +210,17 @@ export class BoardSystem {
 
     // ボーナスマス出現確率を取得
     private getBonusChance(): number {
-        const baseChance = 0.01; // 1%（デフォルト）
+        const baseChance = 0.02; // 2%（デフォルト）
         const upgradeLevel = this.gameState.prestigeUpgrades.bonusChance.level;
         const upgradeBonus = upgradeLevel * 0.005; // レベル1につき0.5%追加
-        return Math.min(0.2, baseChance + upgradeBonus); // 最大20%まで
+        return baseChance + upgradeBonus;
     }
 
     // ボーナス倍率を取得
     private getBonusMultiplier(): number {
-        const baseMultiplier = 10; // 10倍（デフォルト）
+        const baseMultiplier = 20; // 20倍（デフォルト）
         const upgradeLevel = this.gameState.prestigeUpgrades.bonusMultiplier.level;
-        const upgradeBonus = upgradeLevel * 2.0; // レベル1につき2.0倍追加
+        const upgradeBonus = upgradeLevel * 5.0; // レベル1につき5.0倍追加
         return baseMultiplier + upgradeBonus;
     }
 
