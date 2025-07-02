@@ -136,9 +136,9 @@ export class DiceSystem {
             totalRoll += roll;
         }
         
-        // 負荷1ごとに総計-1
+        // 負荷1ごとに総計-2
         const burdenLevel = this.getBurdenLevel();
-        totalRoll = Math.max(0, totalRoll - burdenLevel);
+        totalRoll = Math.max(0, totalRoll - burdenLevel * 2);
         
         // 負荷10ごとに総計半減
         const halvingCount = Math.floor(burdenLevel / BURDEN_CONFIG.HALVING_INTERVAL);
@@ -256,12 +256,11 @@ export class DiceSystem {
     getBurdenLevel(): number {
         const level = this.gameState.level;
         
-        // レベル101から開始、100レベルごとに負荷レベル+1
-        if (level < BURDEN_CONFIG.LEVEL_INTERVAL + 1) {
+        if (level < BURDEN_CONFIG.START_LEVEL + 1) {
             return 0;
         }
         
-        return Math.floor((level - 1) / BURDEN_CONFIG.LEVEL_INTERVAL);
+        return Math.floor((level - BURDEN_CONFIG.START_LEVEL - 1) / BURDEN_CONFIG.LEVEL_INTERVAL);
     }
 
     // 負荷による出目補正の適用
