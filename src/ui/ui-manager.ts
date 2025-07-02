@@ -392,17 +392,30 @@ export class UIManager {
                     cell.classList.add('normal');
                     break;
                 case 'credit':
-                    effectDiv.innerHTML = `💰<br><small>${cellData.effect}</small>`;
+                    if (cellData.effect !== null) {
+                        const actualCredit = this.systems.board.calculateActualCredit(cellData.effect, false);
+                        const formattedCredit = formatNumberWithType(actualCredit, this.gameState.settings.numberFormat);
+                        effectDiv.innerHTML = `💰<br><small>${formattedCredit}</small>`;
+                    } else {
+                        effectDiv.innerHTML = `💰<br><small>0</small>`;
+                    }
                     cell.classList.add('credit');
                     break;
                 case 'credit_bonus':
                     // ボーナスマスの表示
-                    if (cellData.isBonus && !cellData.activated) {
-                        effectDiv.innerHTML = `🌟<br><small>${cellData.effect}</small>`;
+                    if (cellData.isBonus && !cellData.activated && cellData.effect !== null) {
+                        const actualCredit = this.systems.board.calculateActualCredit(cellData.effect, true);
+                        const formattedCredit = formatNumberWithType(actualCredit, this.gameState.settings.numberFormat);
+                        effectDiv.innerHTML = `🌟<br><small>${formattedCredit}</small>`;
                         cell.classList.add('bonus-credit');
-                    } else {
+                    } else if (cellData.effect !== null) {
                         // 使用済みボーナスマスは通常クレジットマスとして表示
-                        effectDiv.innerHTML = `💰<br><small>${cellData.effect}</small>`;
+                        const actualCredit = this.systems.board.calculateActualCredit(cellData.effect, false);
+                        const formattedCredit = formatNumberWithType(actualCredit, this.gameState.settings.numberFormat);
+                        effectDiv.innerHTML = `💰<br><small>${formattedCredit}</small>`;
+                        cell.classList.add('credit');
+                    } else {
+                        effectDiv.innerHTML = `💰<br><small>0</small>`;
                         cell.classList.add('credit');
                     }
                     break;
