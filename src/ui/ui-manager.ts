@@ -353,7 +353,6 @@ export class UIManager {
         
         this.animationManager.animateManualDiceResult(
             this.elements.manualDiceResult,
-            rollResult.quality,
             this.gameState.manualDice.count,
             rollResult.results,
             rollResult.total
