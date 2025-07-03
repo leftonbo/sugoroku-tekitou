@@ -111,7 +111,7 @@ export const PRESTIGE_CONFIG: PrestigeConfig = {
     START_LEVEL: 50,             // プレステージポイント獲得開始レベル
     BASE_POINTS: 1,              // 基準ポイント（レベル50で1ポイント）
     SCALING_BASE: 2,             // スケーリングの基数（2倍ずつ増加）
-    SCALING_LEVEL_DIVISOR: 10.0  // スケーリングレベルの除数（50レベルごと）
+    SCALING_LEVEL_DIVISOR: 50.0  // スケーリングレベルの除数（50レベルごと）
 };
 
 // 負荷システム設定
