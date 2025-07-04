@@ -1169,6 +1169,18 @@ export class UIManager {
         return params.get('debug') === 'true' || window.location.hostname === 'localhost';
     }
 
+    // 自動ダイス結果の表示処理
+    handleAutoDiceResult(diceIndex: number, faces: number, result: number): void {
+        // ダイス回転アニメーション
+        this.animationManager.animateAutoDiceRoll(diceIndex);
+        
+        // ポップアウト表示
+        const popupContainer = document.getElementById('auto-dice-popup-container');
+        if (popupContainer) {
+            this.animationManager.animateAutoDiceResult(diceIndex, faces, result, popupContainer);
+        }
+    }
+
     // 初期化
     initialize(): void {
         this.bindDOMElements();
@@ -1177,6 +1189,11 @@ export class UIManager {
         this.generateGameBoard();
         this.updateUI();
         this.startStatsUpdates(); // 統計画面の定期更新を開始
+        
+        // 自動ダイス結果通知のコールバックを設定
+        this.systems.dice.setAutoDiceResultCallback((diceIndex, faces, result) => {
+            this.handleAutoDiceResult(diceIndex, faces, result);
+        });
     }
 
     // デバッグモードの初期化
