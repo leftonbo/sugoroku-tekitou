@@ -665,7 +665,10 @@ export class UIManager {
         if (!diceInfo.unlocked) {
             // 未解禁状態
             panel.innerHTML = `
-                <h6 class="text-muted mb-2">${config.emoji} D${diceInfo.faces}</h6>
+                <h6 class="text-muted mb-2">
+                    <span class="dice-icon" data-dice-icon="${diceInfo.index}">${config.emoji}</span>
+                    <span class="dice-title">D${diceInfo.faces}</span>
+                </h6>
                 <button class="btn btn-outline-warning btn-sm w-100" 
                         data-action="unlock" data-index="${diceInfo.index}">
                     解禁 - ${this.formatNumberBySetting(diceInfo.levelUpCost)}💰
@@ -688,7 +691,10 @@ export class UIManager {
             const tooltipText = `レベル: ${diceInfo.level}/${diceInfo.maxLevel} | アセンション: ${diceInfo.ascensionLevel}\n個数: ${autoDiceInfo?.count || 1}\n間隔: ${intervalSeconds.toFixed(1)}秒 | 毎分: ${(autoDiceInfo?.rollsPerMinute || 0).toFixed(1)}回`;
             
             panel.innerHTML = `
-                <h6 class="text-success mb-2" title="${tooltipText}">${config.emoji} ${title}</h6>
+                <h6 class="text-success mb-2" title="${tooltipText}">
+                    <span class="dice-icon" data-dice-icon="${diceInfo.index}">${config.emoji}</span>
+                    <span class="dice-title">${title}</span>
+                </h6>
                 <div class="mb-2">
                     <div class="progress" style="height: 6px;">
                         <div class="progress-bar progress-bar-striped" 

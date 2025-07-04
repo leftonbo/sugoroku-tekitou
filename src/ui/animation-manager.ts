@@ -249,19 +249,19 @@ export class AnimationManager {
         const panel = document.querySelector(`[data-dice-index="${diceIndex}"]`) as HTMLElement;
         if (!panel) return;
         
-        // ダイスアイコンを探す（h6要素内の絵文字）
-        const titleElement = panel.querySelector('h6') as HTMLElement;
-        if (!titleElement) return;
+        // ダイスアイコンを探す（data-dice-icon属性）
+        const diceIcon = panel.querySelector(`[data-dice-icon="${diceIndex}"]`) as HTMLElement;
+        if (!diceIcon) return;
         
         // 既存のアニメーションをクリア
-        titleElement.classList.remove('auto-dice-spinning');
+        diceIcon.classList.remove('auto-dice-spinning');
         
         // 回転アニメーションを適用
-        titleElement.classList.add('auto-dice-spinning');
+        diceIcon.classList.add('auto-dice-spinning');
         
         // アニメーション終了後にクラスを削除
         setTimeout(() => {
-            titleElement.classList.remove('auto-dice-spinning');
+            diceIcon.classList.remove('auto-dice-spinning');
         }, 600);
     }
 

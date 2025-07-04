@@ -791,6 +791,16 @@ body.debug-mode .debug-panel {
     animation: autoDiceRotate 0.6s ease-in-out;
 }
 
+/* ダイスアイコンとタイトルの間隔調整 */
+.dice-icon {
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.dice-title {
+    display: inline-block;
+}
+
 @keyframes autoDiceRotate {
     0% { transform: rotate(0deg); }
     25% { transform: rotate(90deg); }
