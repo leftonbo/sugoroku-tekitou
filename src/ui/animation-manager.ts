@@ -208,6 +208,63 @@ export class AnimationManager {
         }
     }
 
+    // 自動ダイス結果のポップアウト表示
+    animateAutoDiceResult(
+        _diceIndex: number,
+        faces: number,
+        result: number,
+        containerElement: HTMLElement | null
+    ): void {
+        if (!containerElement) return;
+        
+        // ポップアウト要素を作成
+        const popup = document.createElement('div');
+        popup.className = 'auto-dice-popup';
+        popup.innerHTML = `
+            <div class="dice-icon">🎲</div>
+            <div class="dice-result">D${faces}: ${result}</div>
+        `;
+        
+        // コンテナに追加
+        containerElement.appendChild(popup);
+        
+        // アニメーション開始
+        setTimeout(() => {
+            popup.classList.add('show');
+        }, 10);
+        
+        // 一定時間後にフェードアウト・削除
+        setTimeout(() => {
+            popup.classList.add('fade-out');
+            setTimeout(() => {
+                if (popup.parentNode) {
+                    popup.parentNode.removeChild(popup);
+                }
+            }, 500);
+        }, 2000);
+    }
+
+    // 自動ダイスパネルの回転アニメーション
+    animateAutoDiceRoll(diceIndex: number): void {
+        const panel = document.querySelector(`[data-dice-index="${diceIndex}"]`) as HTMLElement;
+        if (!panel) return;
+        
+        // ダイスアイコンを探す（data-dice-icon属性）
+        const diceIcon = panel.querySelector(`[data-dice-icon="${diceIndex}"]`) as HTMLElement;
+        if (!diceIcon) return;
+        
+        // 既存のアニメーションをクリア
+        diceIcon.classList.remove('auto-dice-spinning');
+        
+        // 回転アニメーションを適用
+        diceIcon.classList.add('auto-dice-spinning');
+        
+        // アニメーション終了後にクラスを削除
+        setTimeout(() => {
+            diceIcon.classList.remove('auto-dice-spinning');
+        }, 600);
+    }
+
     // 全アニメーションのクリーンアップ
     cleanupAllAnimations(): void {
         this.activeAnimations.forEach((timeoutId, element) => {
@@ -219,5 +276,11 @@ export class AnimationManager {
             }
         });
         this.activeAnimations.clear();
+        
+        // 自動ダイスポップアップのクリーンアップ
+        const popupContainer = document.getElementById('auto-dice-popup-container');
+        if (popupContainer) {
+            popupContainer.innerHTML = '';
+        }
     }
 }

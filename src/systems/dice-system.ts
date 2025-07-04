@@ -193,6 +193,11 @@ export class DiceSystem {
                     faces: dice.faces,
                     result: rollResult
                 });
+                
+                // UI側に結果通知
+                if (this.onAutoDiceResult) {
+                    this.onAutoDiceResult(index, dice.faces, rollResult);
+                }
             }
         });
         
@@ -241,6 +246,14 @@ export class DiceSystem {
     // 全自動ダイスの情報取得
     getAllAutoDiceInfo(): (AutoDiceInfo | null)[] {
         return this.gameState.autoDice.map((_, index) => this.getAutoDiceInfo(index));
+    }
+
+    // 自動ダイス結果通知のコールバック
+    private onAutoDiceResult?: (diceIndex: number, faces: number, result: number) => void;
+
+    // 自動ダイス結果通知のコールバックを設定
+    setAutoDiceResultCallback(callback: (diceIndex: number, faces: number, result: number) => void): void {
+        this.onAutoDiceResult = callback;
     }
 
     // 手動ダイス情報取得
