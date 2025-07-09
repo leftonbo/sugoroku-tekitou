@@ -82,11 +82,13 @@ export class DiceSystem {
             totalRoll += roll;
         }
         
-        // 負荷1ごとに総計-1
-        const burdenLevel = this.getBurdenLevel();
-        totalRoll = Math.max(0, totalRoll - burdenLevel);
+        // 盤面レベル-100の分だけ総計減少
+        const level = this.gameState.level;
+        const levelReduction = Math.max(0, level - 100);
+        totalRoll = Math.max(0, totalRoll - levelReduction);
         
         // 負荷10ごとに総計半減
+        const burdenLevel = this.getBurdenLevel();
         const halvingCount = Math.floor(burdenLevel / BURDEN_CONFIG.HALVING_INTERVAL);
         for (let i = 0; i < halvingCount; i++) {
             totalRoll = Math.floor(totalRoll / 2);
@@ -136,11 +138,13 @@ export class DiceSystem {
             totalRoll += roll;
         }
         
-        // 負荷1ごとに総計-2
-        const burdenLevel = this.getBurdenLevel();
-        totalRoll = Math.max(0, totalRoll - burdenLevel * 2);
+        // 盤面レベル-100の2倍の分だけ総計減少
+        const level = this.gameState.level;
+        const levelReduction = Math.max(0, level - 100) * 2;
+        totalRoll = Math.max(0, totalRoll - levelReduction);
         
         // 負荷10ごとに総計半減
+        const burdenLevel = this.getBurdenLevel();
         const halvingCount = Math.floor(burdenLevel / BURDEN_CONFIG.HALVING_INTERVAL);
         for (let i = 0; i < halvingCount; i++) {
             totalRoll = Math.floor(totalRoll / 2);
