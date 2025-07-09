@@ -30,11 +30,11 @@ export function createDefaultGameState(): GameState {
             },
             bonusChance: {
                 level: 0,           // 初期レベル0
-                maxLevel: 20        // 最大20レベル
+                maxLevel: 100        // 最大100レベル
             },
             bonusMultiplier: {
                 level: 0,           // 初期レベル0
-                maxLevel: 15        // 最大15レベル
+                maxLevel: 50        // 最大50レベル
             }
         },
         
