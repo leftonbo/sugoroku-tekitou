@@ -300,7 +300,7 @@ export class DiceSystem {
         
         return {
             level: burdenLevel,
-            totalReduction: Math.max(level - 100, 0),
+            totalReduction: Math.ceil(Math.max(level - 100, 0) / 10),
             diceReduction: Math.min(
                 Math.floor(burdenLevel / 2),
                 BURDEN_CONFIG.MAX_INDIVIDUAL_REDUCTION
