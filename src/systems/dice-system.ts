@@ -138,9 +138,9 @@ export class DiceSystem {
             totalRoll += roll;
         }
         
-        // 盤面レベル-100の2倍の分だけ総計減少
+        // 盤面レベル-100の分だけ総計減少
         const level = this.gameState.level;
-        const levelReduction = Math.max(0, level - 100) * 2;
+        const levelReduction = Math.max(0, level - 100);
         totalRoll = Math.max(0, totalRoll - levelReduction);
         
         // 負荷10ごとに総計半減
