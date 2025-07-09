@@ -264,7 +264,7 @@ export class DiceSystem {
             return 0;
         }
         
-        return Math.floor((level - BURDEN_CONFIG.START_LEVEL - 1) / BURDEN_CONFIG.LEVEL_INTERVAL);
+        return 1 + Math.floor((level - BURDEN_CONFIG.START_LEVEL - 1) / BURDEN_CONFIG.LEVEL_INTERVAL);
     }
 
     // 負荷による出目補正の適用
