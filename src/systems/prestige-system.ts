@@ -255,17 +255,17 @@ export class PrestigeSystem {
         const currentLevel = this.gameState.prestigeUpgrades[upgradeType].level;
         
         if (upgradeType === 'creditMultiplier') {
-            // クレジット倍率: 5 + (レベル * 10) PP
-            return 5 + (currentLevel * 10);
+            // クレジット倍率: 5 * 4 ^ (レベル * 1.2) PP
+            return Math.floor(5 * Math.pow(4, currentLevel * 1.2));
         } else if (upgradeType === 'diceSpeedBoost') {
-            // 自動ダイス速度: 10 + (レベル * 15) PP
-            return 10 + (currentLevel * 15);
+            // 自動ダイス速度: 10 * 2 ^ レベル PP
+            return Math.floor(10 * Math.pow(2, currentLevel));
         } else if (upgradeType === 'bonusChance') {
-            // ボーナス確率: 8 + (レベル * 12) PP
-            return 8 + (currentLevel * 12);
+            // ボーナス確率: 8 * 1.5 ^ レベル PP
+            return Math.floor(8 * Math.pow(1.5, currentLevel * 1.1));
         } else if (upgradeType === 'bonusMultiplier') {
-            // ボーナス倍率: 15 + (レベル * 20) PP
-            return 15 + (currentLevel * 20);
+            // ボーナス倍率: 15 * 2 ^ レベル PP
+            return Math.floor(15 * Math.pow(1.5, currentLevel));
         }
         
         return 0;
@@ -309,7 +309,7 @@ export class PrestigeSystem {
     // クレジット獲得倍率の計算
     getCreditMultiplier(): number {
         const level = this.gameState.prestigeUpgrades.creditMultiplier.level;
-        return 1 + (level * 0.5); // レベル1で1.5倍、レベル2で2倍...
+        return Math.pow(2, level); // レベル1で2倍、レベル2で4倍、レベル3で8倍...
     }
     
     // 自動ダイス速度ボーナスの計算
