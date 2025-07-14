@@ -6,13 +6,15 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "dev": "tsc --watch",
+    "dev": "concurrently \"tsc --watch\" \"serve . --single -p 3000\"",
     "clean": "rm -rf dist",
     "test": "tsc --noEmit",
     "test:build": "npm run build"
   },
   "devDependencies": {
     "@types/node": "^18.0.0",
+    "concurrently": "^9.2.0",
+    "serve": "^14.2.4",
     "typescript": "^5.8.3"
   },
   "private": true
