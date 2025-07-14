@@ -8,6 +8,7 @@ import type { BoardSystem } from '../systems/board-system.js';
 import type { UpgradeSystem } from '../systems/upgrade-system.js';
 import type { PrestigeSystem } from '../systems/prestige-system.js';
 import type { AnimationManager } from './animation-manager.js';
+import type { BulkPurchaseAmount } from '../types/game-state.js';
 
 // DOM要素の型定義
 interface DOMElements {
@@ -136,6 +137,7 @@ export class UIManager {
     private animationManager: AnimationManager;
     private elements: DOMElements;
     private statsUpdateInterval: NodeJS.Timeout | null = null;
+    private currentBulkAmount: BulkPurchaseAmount = 1; // 購入個数の状態管理
 
     constructor(gameState: GameState, systems: Systems, animationManager: AnimationManager) {
         this.gameState = gameState;
@@ -645,6 +647,83 @@ export class UIManager {
         });
     }
 
+    // 購入個数切り替えボタンの作成
+    createBulkPurchaseSelector(diceIndex: number): HTMLElement {
+        const selectorContainer = document.createElement('div');
+        selectorContainer.className = 'mb-2';
+        
+        const buttonGroup = document.createElement('div');
+        buttonGroup.className = 'btn-group w-100';
+        buttonGroup.setAttribute('role', 'group');
+        
+        const amounts: BulkPurchaseAmount[] = [1, 5, 10, 'max'];
+        const labels = ['x1', 'x5', 'x10', 'Max'];
+        
+        amounts.forEach((amount, index) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `btn btn-outline-secondary btn-sm ${amount === this.currentBulkAmount ? 'active' : ''}`;
+            button.textContent = labels[index] || '';
+            button.setAttribute('data-bulk-amount', amount.toString());
+            button.setAttribute('data-dice-index', diceIndex.toString());
+            
+            button.addEventListener('click', () => {
+                this.currentBulkAmount = amount;
+                this.updateBulkPurchaseButtons(diceIndex);
+                this.updateBulkPurchaseCosts(diceIndex);
+            });
+            
+            buttonGroup.appendChild(button);
+        });
+        
+        selectorContainer.appendChild(buttonGroup);
+        return selectorContainer;
+    }
+
+    // 購入個数ボタンの状態更新
+    updateBulkPurchaseButtons(diceIndex: number): void {
+        const container = this.elements.autoDiceContainer;
+        if (!container) return;
+        
+        const panel = container.querySelector(`[data-dice-index="${diceIndex}"]`);
+        if (!panel) return;
+        
+        const buttons = panel.querySelectorAll('[data-bulk-amount]') as NodeListOf<HTMLButtonElement>;
+        buttons.forEach(button => {
+            const amount = button.getAttribute('data-bulk-amount') || '';
+            button.classList.toggle('active', amount === this.currentBulkAmount.toString());
+        });
+    }
+
+    // まとめ買いコストの表示更新
+    updateBulkPurchaseCosts(diceIndex: number): void {
+        const container = this.elements.autoDiceContainer;
+        if (!container) return;
+        
+        const panel = container.querySelector(`[data-dice-index="${diceIndex}"]`);
+        if (!panel) return;
+        
+        const bulkInfo = this.systems.upgrade.calculateBulkLevelUpInfo(diceIndex, this.currentBulkAmount);
+        const button = panel.querySelector('[data-action="bulk-levelup"]') as HTMLButtonElement;
+        
+        if (button && bulkInfo.actualCount > 0) {
+            const costText = this.formatNumberBySetting(bulkInfo.totalCost);
+            const countText = this.currentBulkAmount === 'max' ? `${bulkInfo.actualCount}回` : 
+                              this.currentBulkAmount === 1 ? `Lv.up` : `${bulkInfo.actualCount}回`;
+            
+            button.innerHTML = `${countText} - ${costText}💰`;
+            button.disabled = !bulkInfo.canAfford;
+            
+            // ボタンの色を購入可能性に応じて変更
+            this.animationManager.updateButtonAffordability(
+                button,
+                bulkInfo.canAfford,
+                bulkInfo.totalCost,
+                this.gameState.credits
+            );
+        }
+    }
+
     // 自動ダイスパネルの作成
     createAutoDicePanel(diceInfo: any): HTMLElement {
         const config = DICE_CONFIGS[diceInfo.index];
@@ -687,6 +766,9 @@ export class UIManager {
             // ツールチップ用詳細情報
             const tooltipText = `レベル: ${diceInfo.level}/${diceInfo.maxLevel} | アセンション: ${diceInfo.ascensionLevel}\n個数: ${autoDiceInfo?.count || 1}\n間隔: ${intervalSeconds.toFixed(1)}秒 | 毎分: ${(autoDiceInfo?.rollsPerMinute || 0).toFixed(1)}回`;
             
+            // 購入個数切り替えボタンを追加
+            const bulkSelector = this.createBulkPurchaseSelector(diceInfo.index);
+            
             panel.innerHTML = `
                 <h6 class="text-success mb-2" title="${tooltipText}">${config.emoji} ${title}</h6>
                 <div class="mb-2">
@@ -699,20 +781,38 @@ export class UIManager {
                     </div>
                     <small class="text-muted">残り: <span data-dice-timer="${diceInfo.index}">${this.ticksToSeconds(progressInfo.timeLeft).toFixed(1)}s</span></small>
                 </div>
-                <div class="d-grid">
-                    ${canAscend ? `
-                        <button class="btn btn-outline-danger btn-sm" 
-                                data-action="ascend" data-index="${diceInfo.index}">
-                            アセンション - ${this.formatNumberBySetting(diceInfo.ascensionCost)}💰
-                        </button>
-                    ` : `
-                        <button class="btn btn-outline-primary btn-sm" 
-                                data-action="levelup" data-index="${diceInfo.index}">
-                            Lv.${diceInfo.level + 1} - ${this.formatNumberBySetting(diceInfo.levelUpCost)}💰
-                        </button>
-                    `}
-                </div>
             `;
+            
+            // 購入個数切り替えボタンを挿入
+            panel.appendChild(bulkSelector);
+            
+            // アップグレードボタンを追加
+            const upgradeContainer = document.createElement('div');
+            upgradeContainer.className = 'd-grid';
+            
+            if (canAscend) {
+                upgradeContainer.innerHTML = `
+                    <button class="btn btn-outline-danger btn-sm" 
+                            data-action="ascend" data-index="${diceInfo.index}">
+                        アセンション - ${this.formatNumberBySetting(diceInfo.ascensionCost)}💰
+                    </button>
+                `;
+            } else {
+                // まとめ買い情報を計算
+                const bulkInfo = this.systems.upgrade.calculateBulkLevelUpInfo(diceInfo.index, this.currentBulkAmount);
+                const costText = this.formatNumberBySetting(bulkInfo.totalCost);
+                const countText = this.currentBulkAmount === 'max' ? `${bulkInfo.actualCount}回` : 
+                                  this.currentBulkAmount === 1 ? `Lv.up` : `${bulkInfo.actualCount}回`;
+                
+                upgradeContainer.innerHTML = `
+                    <button class="btn btn-outline-primary btn-sm" 
+                            data-action="bulk-levelup" data-index="${diceInfo.index}">
+                        ${countText} - ${costText}💰
+                    </button>
+                `;
+            }
+            
+            panel.appendChild(upgradeContainer);
         }
         
         // ボタンイベントの設定
@@ -735,6 +835,13 @@ export class UIManager {
                 case 'levelup':
                     if (this.systems.upgrade.levelUpAutoDice(index)) {
                         // レベルアップ時は自動ダイスUIを強制再生成
+                        this.forceRegenerateAutoDiceUI();
+                        this.updateUI();
+                    }
+                    break;
+                case 'bulk-levelup':
+                    if (this.systems.upgrade.bulkLevelUpAutoDice(index, this.currentBulkAmount)) {
+                        // まとめ買い時は自動ダイスUIを強制再生成
                         this.forceRegenerateAutoDiceUI();
                         this.updateUI();
                     }
@@ -780,6 +887,10 @@ export class UIManager {
                         canAfford = diceInfo.canLevelUp;
                         cost = diceInfo.levelUpCost;
                         break;
+                    case 'bulk-levelup':
+                        // まとめ買いボタンの場合はコスト更新
+                        this.updateBulkPurchaseCosts(diceInfo.index);
+                        return; // 他の処理をスキップ
                     case 'ascend':
                         canAfford = diceInfo.canAscend;
                         cost = diceInfo.ascensionCost;

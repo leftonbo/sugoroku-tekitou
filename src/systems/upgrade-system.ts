@@ -4,10 +4,12 @@ import {
     calculateManualDiceUpgradeCost,
     calculateLevelUpCost,
     calculateAscensionCost,
-    calculateMaxLevel 
+    calculateMaxLevel,
+    calculateBulkLevelUpCost,
+    calculateMaxPurchasableCount
 } from '../utils/math-utils.js';
 import { DICE_CONFIGS, UPGRADE_MULTIPLIERS, MANUAL_DICE_CONFIG, AUTO_DICE_LEVEL_CONFIG } from '../utils/constants.js';
-import type { GameState } from '../types/game-state.js';
+import type { GameState, BulkPurchaseAmount, BulkUpgradeInfo } from '../types/game-state.js';
 
 // アップグレード情報の型定義
 interface ManualUpgradeInfo {
@@ -261,6 +263,116 @@ export class UpgradeSystem {
             auto: autoInfo,
             totalCredits: this.gameState.credits
         };
+    }
+
+    // === まとめ買い関連のメソッド ===
+
+    // まとめ買い情報の計算
+    calculateBulkLevelUpInfo(diceIndex: number, amount: BulkPurchaseAmount): BulkUpgradeInfo {
+        const dice = this.gameState.autoDice[diceIndex];
+        if (!dice || dice.level === 0) {
+            return {
+                amount,
+                actualCount: 0,
+                totalCost: 0,
+                canAfford: false,
+                willReachMaxLevel: false,
+                ascensionsIncluded: 0
+            };
+        }
+
+        let targetCount: number;
+        
+        if (amount === 'max') {
+            targetCount = calculateMaxPurchasableCount(
+                diceIndex,
+                dice.level,
+                dice.ascension,
+                this.gameState.credits,
+                AUTO_DICE_LEVEL_CONFIG.LEVEL_COST_BASE,
+                AUTO_DICE_LEVEL_CONFIG.LEVEL_COST_MULTIPLIER,
+                AUTO_DICE_LEVEL_CONFIG.ASCENSION_COST_BASE_MULTIPLIER,
+                AUTO_DICE_LEVEL_CONFIG.ASCENSION_COST_MULTIPLIER
+            );
+        } else {
+            targetCount = amount;
+        }
+
+        if (targetCount === 0) {
+            return {
+                amount,
+                actualCount: 0,
+                totalCost: 0,
+                canAfford: false,
+                willReachMaxLevel: false,
+                ascensionsIncluded: 0
+            };
+        }
+
+        const bulkInfo = calculateBulkLevelUpCost(
+            diceIndex,
+            dice.level,
+            dice.ascension,
+            targetCount,
+            AUTO_DICE_LEVEL_CONFIG.LEVEL_COST_BASE,
+            AUTO_DICE_LEVEL_CONFIG.LEVEL_COST_MULTIPLIER,
+            AUTO_DICE_LEVEL_CONFIG.ASCENSION_COST_BASE_MULTIPLIER,
+            AUTO_DICE_LEVEL_CONFIG.ASCENSION_COST_MULTIPLIER
+        );
+
+        const currentMaxLevel = calculateMaxLevel(
+            dice.ascension, 
+            AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE, 
+            AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT
+        );
+
+        return {
+            amount,
+            actualCount: bulkInfo.actualCount,
+            totalCost: bulkInfo.totalCost,
+            canAfford: this.gameState.credits >= bulkInfo.totalCost,
+            willReachMaxLevel: dice.level + bulkInfo.actualCount >= currentMaxLevel,
+            ascensionsIncluded: bulkInfo.ascensionsIncluded
+        };
+    }
+
+    // まとめ買いでレベルアップ実行
+    bulkLevelUpAutoDice(diceIndex: number, amount: BulkPurchaseAmount): boolean {
+        const bulkInfo = this.calculateBulkLevelUpInfo(diceIndex, amount);
+        
+        if (!bulkInfo.canAfford || bulkInfo.actualCount === 0) {
+            return false;
+        }
+
+        const dice = this.gameState.autoDice[diceIndex];
+        if (!dice || dice.level === 0) {
+            return false;
+        }
+
+        // クレジットを消費
+        this.gameState.credits -= bulkInfo.totalCost;
+
+        // レベル・アセンションを段階的に適用
+        for (let i = 0; i < bulkInfo.actualCount; i++) {
+            const maxLevel = calculateMaxLevel(
+                dice.ascension, 
+                AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE, 
+                AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT
+            );
+
+            if (dice.level < maxLevel) {
+                dice.level++;
+                this.gameState.stats.autoDiceUpgrades++;
+            } else {
+                // アセンション
+                dice.level = 1;
+                dice.ascension++;
+                this.gameState.stats.autoDiceAscensions++;
+            }
+        }
+
+        console.log(`${dice.faces}面ダイス まとめ買い完了！${bulkInfo.actualCount}回アップグレード（アセンション${bulkInfo.ascensionsIncluded}回含む）`);
+        return true;
     }
 
     // 購入したアップグレードの総数を取得
