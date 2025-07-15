@@ -700,39 +700,6 @@ export class UIManager {
         return selectorContainer;
     }
 
-    // 購入個数切り替えボタンの作成（旧版：削除予定）
-    createBulkPurchaseSelector(diceIndex: number): HTMLElement {
-        const selectorContainer = document.createElement('div');
-        selectorContainer.className = 'mb-2';
-        
-        const buttonGroup = document.createElement('div');
-        buttonGroup.className = 'btn-group w-100';
-        buttonGroup.setAttribute('role', 'group');
-        
-        const amounts: BulkPurchaseAmount[] = [1, 5, 10, 'max'];
-        const labels = ['x1', 'x5', 'x10', 'Max'];
-        
-        amounts.forEach((amount, index) => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = `btn btn-outline-secondary btn-sm ${amount === this.currentBulkAmount ? 'active' : ''}`;
-            button.textContent = labels[index] || '';
-            button.setAttribute('data-bulk-amount', amount.toString());
-            button.setAttribute('data-dice-index', diceIndex.toString());
-            
-            button.addEventListener('click', () => {
-                this.currentBulkAmount = amount;
-                this.updateBulkPurchaseButtons(diceIndex);
-                this.updateBulkPurchaseCosts(diceIndex);
-            });
-            
-            buttonGroup.appendChild(button);
-        });
-        
-        selectorContainer.appendChild(buttonGroup);
-        return selectorContainer;
-    }
-
     // グローバル購入個数ボタンの状態更新
     updateGlobalBulkPurchaseButtons(): void {
         const container = this.elements.autoDiceContainer;
