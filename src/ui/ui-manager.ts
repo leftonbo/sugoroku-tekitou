@@ -809,7 +809,7 @@ export class UIManager {
                     const singleCost = this.systems.upgrade.getAutoDiceLevelUpCost(diceIndex);
                     const costText = this.formatNumberBySetting(singleCost);
                     
-                    button.innerHTML = `Lv.up - ${costText}💰（購入不可）`;
+                    button.innerHTML = `Lv.up - ${costText}💰`;
                     button.disabled = true;
                     
                     // ボタンを購入不可状態に設定
