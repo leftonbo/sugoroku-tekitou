@@ -6,7 +6,8 @@ import {
     calculateAscensionCost,
     calculateMaxLevel,
     calculateBulkLevelUpCost,
-    calculateMaxPurchasableCount
+    calculateMaxPurchasableCount,
+    calculateMaxPurchasableCountNoAscension
 } from '../utils/math-utils.js';
 import { DICE_CONFIGS, UPGRADE_MULTIPLIERS, MANUAL_DICE_CONFIG, AUTO_DICE_LEVEL_CONFIG } from '../utils/constants.js';
 import type { GameState, BulkPurchaseAmount, BulkUpgradeInfo } from '../types/game-state.js';
@@ -293,6 +294,16 @@ export class UpgradeSystem {
                 AUTO_DICE_LEVEL_CONFIG.LEVEL_COST_MULTIPLIER,
                 AUTO_DICE_LEVEL_CONFIG.ASCENSION_COST_BASE_MULTIPLIER,
                 AUTO_DICE_LEVEL_CONFIG.ASCENSION_COST_MULTIPLIER
+            );
+        } else if (amount === 'max-no-ascension') {
+            targetCount = calculateMaxPurchasableCountNoAscension(
+                diceIndex,
+                dice.level,
+                dice.ascension,
+                this.gameState.credits,
+                AUTO_DICE_LEVEL_CONFIG.LEVEL_COST_BASE,
+                AUTO_DICE_LEVEL_CONFIG.LEVEL_COST_MULTIPLIER,
+                AUTO_DICE_LEVEL_CONFIG.ASCENSION_COST_BASE_MULTIPLIER
             );
         } else {
             targetCount = amount;

@@ -286,3 +286,29 @@ export function calculateMaxPurchasableCount(diceIndex: number, currentLevel: nu
     
     return maxCount;
 }
+
+// アセンション前で停止する最大購入可能個数を計算
+export function calculateMaxPurchasableCountNoAscension(diceIndex: number, currentLevel: number, ascensionLevel: number,
+                                                       availableCredits: number, baseCost: number, multiplier: number,
+                                                       ascensionCostMultiplier: number): number {
+    let maxCount = 0;
+    let totalCost = 0;
+    let tempLevel = currentLevel;
+    
+    const maxLevel = calculateMaxLevel(ascensionLevel, AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE, AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT);
+    
+    // 最大レベルに到達するまでの購入可能数を計算
+    while (tempLevel < maxLevel && maxCount < 1000) { // 無限ループ防止
+        const nextCost = calculateLevelUpCost(diceIndex, tempLevel, ascensionLevel, baseCost, multiplier, ascensionCostMultiplier);
+        
+        if (totalCost + nextCost <= availableCredits) {
+            totalCost += nextCost;
+            maxCount++;
+            tempLevel++;
+        } else {
+            break;
+        }
+    }
+    
+    return maxCount;
+}

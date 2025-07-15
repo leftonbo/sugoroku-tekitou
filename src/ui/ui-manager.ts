@@ -671,8 +671,8 @@ export class UIManager {
         buttonGroup.className = 'btn-group w-100';
         buttonGroup.setAttribute('role', 'group');
         
-        const amounts: BulkPurchaseAmount[] = [1, 5, 10, 'max'];
-        const labels = ['x1', 'x5', 'x10', 'Max'];
+        const amounts: BulkPurchaseAmount[] = [1, 5, 10, 'max', 'max-no-ascension'];
+        const labels = ['x1', 'x5', 'x10', 'Max', 'Max-'];
         
         amounts.forEach((amount, index) => {
             const button = document.createElement('button');
@@ -681,6 +681,11 @@ export class UIManager {
             button.textContent = labels[index] || '';
             button.setAttribute('data-bulk-amount', amount.toString());
             button.setAttribute('data-global-bulk', 'true');
+            
+            // Max-ボタンにツールチップを追加
+            if (amount === 'max-no-ascension') {
+                button.title = 'アセンション直前で停止するまとめ買い';
+            }
             
             button.addEventListener('click', () => {
                 this.currentBulkAmount = amount;
@@ -781,22 +786,89 @@ export class UIManager {
         const bulkInfo = this.systems.upgrade.calculateBulkLevelUpInfo(diceIndex, this.currentBulkAmount);
         const button = panel.querySelector('[data-action="bulk-levelup"]') as HTMLButtonElement;
         
-        if (button && bulkInfo.actualCount > 0) {
-            const costText = this.formatNumberBySetting(bulkInfo.totalCost);
-            const countText = this.currentBulkAmount === 'max' ? `${bulkInfo.actualCount}回` : 
-                              this.currentBulkAmount === 1 ? `Lv.up` : `${bulkInfo.actualCount}回`;
-            
-            button.innerHTML = `${countText} - ${costText}💰`;
-            button.disabled = !bulkInfo.canAfford;
-            
-            // ボタンの色を購入可能性に応じて変更
-            this.animationManager.updateButtonAffordability(
-                button,
-                bulkInfo.canAfford,
-                bulkInfo.totalCost,
-                this.gameState.credits
-            );
+        if (button) {
+            if (bulkInfo.actualCount > 0) {
+                // 通常の購入可能な場合
+                const costText = this.formatNumberBySetting(bulkInfo.totalCost);
+                const countText = this.getCountDisplayText(this.currentBulkAmount, bulkInfo.actualCount, diceIndex);
+                
+                button.innerHTML = `${countText} - ${costText}💰`;
+                button.disabled = !bulkInfo.canAfford;
+                
+                // ボタンの色を購入可能性に応じて変更
+                this.animationManager.updateButtonAffordability(
+                    button,
+                    bulkInfo.canAfford,
+                    bulkInfo.totalCost,
+                    this.gameState.credits
+                );
+            } else {
+                // 1つも買えない場合（Maxオプション時）
+                if (this.currentBulkAmount === 'max' || this.currentBulkAmount === 'max-no-ascension') {
+                    // 1レベル分のコストを表示
+                    const singleCost = this.systems.upgrade.getAutoDiceLevelUpCost(diceIndex);
+                    const costText = this.formatNumberBySetting(singleCost);
+                    
+                    button.innerHTML = `Lv.up - ${costText}💰（購入不可）`;
+                    button.disabled = true;
+                    
+                    // ボタンを購入不可状態に設定
+                    this.animationManager.updateButtonAffordability(
+                        button,
+                        false,
+                        singleCost,
+                        this.gameState.credits
+                    );
+                } else {
+                    // 固定数量の場合は通常通り
+                    const costText = this.formatNumberBySetting(bulkInfo.totalCost);
+                    const countText = this.getCountDisplayText(this.currentBulkAmount, bulkInfo.actualCount, diceIndex);
+                    
+                    button.innerHTML = `${countText} - ${costText}💰`;
+                    button.disabled = true;
+                    
+                    this.animationManager.updateButtonAffordability(
+                        button,
+                        false,
+                        bulkInfo.totalCost,
+                        this.gameState.credits
+                    );
+                }
+            }
         }
+    }
+
+    // 購入数のテキスト表示を生成
+    private getCountDisplayText(amount: BulkPurchaseAmount, actualCount: number, diceIndex?: number): string {
+        switch (amount) {
+            case 'max':
+                return `${actualCount}回`;
+            case 'max-no-ascension':
+                // アセンション直前かどうかをチェック
+                if (diceIndex !== undefined && this.isNearAscension(diceIndex, actualCount)) {
+                    return `${actualCount}回（アセ前停止）`;
+                } else {
+                    return `${actualCount}回`;
+                }
+            case 1:
+                return 'Lv.up';
+            default:
+                return `${actualCount}回`;
+        }
+    }
+
+    // アセンション直前かどうかを判定
+    private isNearAscension(diceIndex: number, purchaseCount: number): boolean {
+        const dice = this.gameState.autoDice[diceIndex];
+        if (!dice || dice.level === 0) return false;
+
+        const upgradeInfo = this.systems.upgrade.getAllUpgradeInfo();
+        const diceInfo = upgradeInfo.auto[diceIndex];
+        if (!diceInfo) return false;
+
+        // 購入後のレベルが最大レベルに到達するかチェック
+        const afterPurchaseLevel = dice.level + purchaseCount;
+        return afterPurchaseLevel >= diceInfo.maxLevel;
     }
 
     // 自動ダイスパネルの作成

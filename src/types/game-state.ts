@@ -87,7 +87,7 @@ export interface UpgradeInfo {
 }
 
 // まとめ買い用の型定義
-export type BulkPurchaseAmount = 1 | 5 | 10 | 'max';
+export type BulkPurchaseAmount = 1 | 5 | 10 | 'max' | 'max-no-ascension';
 
 export interface BulkUpgradeInfo {
     amount: BulkPurchaseAmount;
