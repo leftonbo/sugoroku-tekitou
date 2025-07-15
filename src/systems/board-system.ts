@@ -329,6 +329,13 @@ export class BoardSystem {
     }
 
     // マス目の効果を適用
+    /**
+     * 指定した盤面位置のマス効果を適用する
+     *
+     * @param position - 効果を適用する盤面位置
+     * @param recurseCount - 移動効果用の再帰深度（デフォルト: 0）
+     * @returns 適用した {@link SquareEffect} オブジェクト（効果詳細を含む）
+     */
     applySquareEffect(position: number, recurseCount: number = 0): SquareEffect {
         const cellData = this.getCellType(position, this.gameState.level);
         const effect: SquareEffect = {
@@ -378,8 +385,8 @@ export class BoardSystem {
                     // 移動を実行（再帰的な効果は無視）
                     const forwardResult = this.movePlayerDirect(cellData.effect);
                     effect.moveResult = forwardResult;
-                    
-                    // 移動先のマス効果を適用
+
+                    // 移動先のマス効果を適用するため、再帰的に呼び出す
                     this.applySquareEffect(forwardResult.newPosition, recurseCount + 1);
                 }
                 effect.applied = true;
@@ -393,7 +400,7 @@ export class BoardSystem {
                     const backwardResult = this.movePlayerDirect(-maxBackwardSteps);
                     effect.moveResult = backwardResult;
                     
-                    // 移動先のマス効果を適用
+                    // 移動先のマス効果を適用するため、再帰的に呼び出す
                     this.applySquareEffect(backwardResult.newPosition, recurseCount + 1);
                 }
                 effect.applied = true;
