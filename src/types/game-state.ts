@@ -86,6 +86,18 @@ export interface UpgradeInfo {
     canAfford: boolean;
 }
 
+// まとめ買い用の型定義
+export type BulkPurchaseAmount = 1 | 5 | 10 | 'max' | 'max-no-ascension';
+
+export interface BulkUpgradeInfo {
+    amount: BulkPurchaseAmount;
+    actualCount: number;          // 実際に購入される個数
+    totalCost: number;            // 総コスト
+    canAfford: boolean;           // 購入可能かどうか
+    willReachMaxLevel: boolean;   // 最大レベルに到達するか
+    ascensionsIncluded: number;   // 含まれるアセンション回数
+}
+
 // アニメーション関連の型定義
 export interface AnimationConfig {
     duration: number;

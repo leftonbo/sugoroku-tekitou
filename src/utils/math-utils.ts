@@ -203,3 +203,112 @@ export function calculateDiceSpeedFromLevel(level: number, baseInterval: number,
 export function calculateDiceCountFromAscension(ascensionLevel: number, baseCount: number, multiplier: number): number {
     return baseCount * Math.pow(multiplier, ascensionLevel);
 }
+
+// === まとめ買い関連の計算関数 ===
+
+// まとめ買い時の総コスト計算（アセンション境界考慮）
+export function calculateBulkLevelUpCost(diceIndex: number, currentLevel: number, ascensionLevel: number,
+                                       targetCount: number, baseCost: number, multiplier: number, 
+                                       ascensionCostMultiplier: number, ascensionPenalty: number): {
+    totalCost: number;
+    actualCount: number;
+    ascensionsIncluded: number;
+} {
+    let totalCost = 0;
+    let actualCount = 0;
+    let ascensionsIncluded = 0;
+    let tempLevel = currentLevel;
+    let tempAscension = ascensionLevel;
+    
+    for (let i = 0; i < targetCount; i++) {
+        const maxLevel = calculateMaxLevel(tempAscension, AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE, AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT);
+        
+        if (tempLevel < maxLevel) {
+            // 通常のレベルアップ
+            const levelUpCost = calculateLevelUpCost(diceIndex, tempLevel, tempAscension, baseCost, multiplier, ascensionCostMultiplier);
+            totalCost += levelUpCost;
+            tempLevel++;
+            actualCount++;
+        } else {
+            // アセンションが必要
+            const ascensionCost = calculateAscensionCost(diceIndex, tempLevel, tempAscension, baseCost, multiplier, ascensionCostMultiplier, ascensionPenalty);
+            totalCost += ascensionCost;
+            tempLevel = 1; // アセンション後はレベル1
+            tempAscension++;
+            ascensionsIncluded++;
+            actualCount++; // アセンションもカウントに含める
+        }
+    }
+    
+    return {
+        totalCost,
+        actualCount,
+        ascensionsIncluded
+    };
+}
+
+// 指定したクレジット内で購入可能な最大個数を計算
+export function calculateMaxPurchasableCount(diceIndex: number, currentLevel: number, ascensionLevel: number,
+                                           availableCredits: number, baseCost: number, multiplier: number,
+                                           ascensionCostMultiplier: number, ascensionPenalty: number): number {
+    let maxCount = 0;
+    let totalCost = 0;
+    let tempLevel = currentLevel;
+    let tempAscension = ascensionLevel;
+    
+    // 最大1000回まで試行（無限ループ防止）
+    for (let i = 0; i < 1000; i++) {
+        const maxLevel = calculateMaxLevel(tempAscension, AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE, AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT);
+        
+        let nextCost = 0;
+        if (tempLevel < maxLevel) {
+            // 通常のレベルアップコスト
+            nextCost = calculateLevelUpCost(diceIndex, tempLevel, tempAscension, baseCost, multiplier, ascensionCostMultiplier);
+        } else {
+            // アセンションコスト
+            nextCost = calculateAscensionCost(diceIndex, tempLevel, tempAscension, baseCost, multiplier, ascensionCostMultiplier, ascensionPenalty);
+        }
+        
+        if (totalCost + nextCost <= availableCredits) {
+            totalCost += nextCost;
+            maxCount++;
+            
+            if (tempLevel < maxLevel) {
+                tempLevel++;
+            } else {
+                tempLevel = 1;
+                tempAscension++;
+            }
+        } else {
+            break;
+        }
+    }
+    
+    return maxCount;
+}
+
+// アセンション前で停止する最大購入可能個数を計算
+export function calculateMaxPurchasableCountNoAscension(diceIndex: number, currentLevel: number, ascensionLevel: number,
+                                                       availableCredits: number, baseCost: number, multiplier: number,
+                                                       ascensionCostMultiplier: number): number {
+    let maxCount = 0;
+    let totalCost = 0;
+    let tempLevel = currentLevel;
+    
+    const maxLevel = calculateMaxLevel(ascensionLevel, AUTO_DICE_LEVEL_CONFIG.MAX_LEVEL_BASE, AUTO_DICE_LEVEL_CONFIG.ASCENSION_LEVEL_INCREMENT);
+    
+    // 最大レベルに到達するまでの購入可能数を計算
+    while (tempLevel < maxLevel && maxCount < 1000) { // 無限ループ防止
+        const nextCost = calculateLevelUpCost(diceIndex, tempLevel, ascensionLevel, baseCost, multiplier, ascensionCostMultiplier);
+        
+        if (totalCost + nextCost <= availableCredits) {
+            totalCost += nextCost;
+            maxCount++;
+            tempLevel++;
+        } else {
+            break;
+        }
+    }
+    
+    return maxCount;
+}
