@@ -15,12 +15,8 @@ type CellType = 'empty' | 'credit' | 'forward' | 'backward' | 'credit_bonus';
 interface CellData {
     type: CellType;
     effect: number | null;
-    isBonus?: boolean | undefined;        // ボーナスマスかどうか
-    activated?: boolean | undefined;      // ボーナスが使用済みかどうか
-    originalType?: CellType | undefined;  // 元のマスタイプ（ボーナスマス用）
+    activates?: number; // 踏んだ回数
 }
-
-// 削除：BoardStateDiffはgame-state.tsからインポート
 
 interface MoveResult {
     oldPosition: number;
@@ -53,8 +49,7 @@ interface BoardCell {
     type: CellType;
     effect: number | null;
     isPlayerPosition: boolean;
-    isBonus: boolean;
-    activated: boolean;
+    activates: number;      // 踏んだ回数
 }
 
 export class BoardSystem {
@@ -124,9 +119,7 @@ export class BoardSystem {
         return {
             type: boardState.type as CellType,
             effect: boardState.effect,
-            isBonus: boardState.isBonus,
-            activated: boardState.activated,
-            originalType: boardState.originalType as CellType
+            activates: boardState.activates || 0 // 初期値は0
         };
     }
 
@@ -141,9 +134,7 @@ export class BoardSystem {
         this.gameState.boardStates[level][position] = {
             type: cellData.type,
             effect: cellData.effect,
-            isBonus: cellData.isBonus,
-            activated: cellData.activated,
-            originalType: cellData.originalType
+            activates: cellData.activates || 0 // 初期値は0
         };
         
         // キャッシュも更新
@@ -185,10 +176,7 @@ export class BoardSystem {
                 // ボーナスマスとして生成
                 return {
                     type: BOARD_CONFIG.CELL_TYPES.CREDIT_BONUS,
-                    effect: amount,
-                    isBonus: true,
-                    activated: false,
-                    originalType: BOARD_CONFIG.CELL_TYPES.CREDIT
+                    effect: amount
                 };
             } else {
                 // 通常クレジットマス
@@ -370,7 +358,7 @@ export class BoardSystem {
                 break;
 
             case BOARD_CONFIG.CELL_TYPES.CREDIT_BONUS:
-                if (cellData.effect !== null && cellData.isBonus && !cellData.activated) {
+                if (cellData.effect !== null) {
                     // ボーナスマス効果を適用
                     const baseAmount = cellData.effect;
                     const bonusMultiplier = this.getBonusMultiplier();
@@ -380,27 +368,6 @@ export class BoardSystem {
                     this.gameState.credits += finalAmount;
                     this.gameState.stats.totalCreditsEarned += finalAmount;
                     console.log(`🌟ボーナスクレジット +${finalAmount} (基本: ${baseAmount}, ボーナス: ${bonusMultiplier}x, プレステージ: ${prestigeMultiplier.toFixed(1)}x) (位置: ${position})`);
-                    
-                    // ボーナスマスを使用済みに変更
-                    const updatedCellData: CellData = {
-                        ...cellData,
-                        type: cellData.originalType || 'credit',
-                        isBonus: false,
-                        activated: true
-                    };
-                    
-                    // 状態を保存
-                    this.saveCellState(this.gameState.level, position, updatedCellData);
-                    
-                } else if (cellData.effect !== null) {
-                    // 使用済みボーナスマスまたは通常クレジットマスとして処理
-                    const baseAmount = cellData.effect;
-                    const multiplier = this.prestigeSystem.getCreditMultiplier();
-                    const finalAmount = Math.floor(baseAmount * multiplier);
-                    
-                    this.gameState.credits += finalAmount;
-                    this.gameState.stats.totalCreditsEarned += finalAmount;
-                    console.log(`クレジット +${finalAmount} (基本: ${baseAmount}, 倍率: ${multiplier.toFixed(1)}x) [使用済みボーナスマス] (位置: ${position})`);
                 }
                 effect.applied = true;
                 break;
@@ -432,6 +399,15 @@ export class BoardSystem {
                 effect.applied = true;
                 break;
         }
+
+        // 踏んだ回数を更新
+        const updatedCellData = {
+            ...cellData,
+            activates: (cellData.activates || 0) + 1 // 踏んだ回数を1増やす
+        };
+
+        // 状態を保存
+        this.saveCellState(this.gameState.level, position, updatedCellData);
         
         return effect;
     }
@@ -470,8 +446,7 @@ export class BoardSystem {
                 type: cellData.type,
                 effect: cellData.effect,
                 isPlayerPosition: i === this.gameState.position,
-                isBonus: cellData.isBonus || false,
-                activated: cellData.activated || false
+                activates: cellData.activates || 0 // 踏んだ回数
             });
         }
         return boardData;

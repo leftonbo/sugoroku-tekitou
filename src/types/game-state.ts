@@ -57,9 +57,7 @@ export interface GameSettings {
 export interface BoardStateDiff {
     type: string;
     effect: number | null;
-    isBonus?: boolean | undefined;
-    activated?: boolean | undefined;
-    originalType?: string | undefined;
+    activates?: number;
 }
 
 // メインゲーム状態インターフェース
