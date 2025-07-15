@@ -130,7 +130,7 @@ export class DiceSystem {
      * プレイヤーが手動で実行するダイス振り機能。
      * 6面ダイスを複数個振り、負荷効果を適用した結果を返します。
      * 
-     * @returns 手動ダイスの振り結果（合計値、個別結果、品質）
+     * @returns 手動ダイスの振り結果（合計値、個別結果）
      */
     rollManualDice(): ManualDiceResult {
         const diceCount = this.gameState.manualDice.count;
