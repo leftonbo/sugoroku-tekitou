@@ -244,7 +244,8 @@ export class UIManager {
         // 手動ダイス個数アップグレード
         this.elements.upgradeManualCountBtn?.addEventListener('click', () => {
             if (this.systems.upgrade.upgradeManualDiceCount()) {
-                this.updateUI();
+                this.updateGameInfo();
+                this.updateUILight();
             }
         });
         
@@ -261,28 +262,32 @@ export class UIManager {
         // プレステージアップグレードボタン
         this.elements.prestigeUpgradeCredit?.addEventListener('click', () => {
             if (this.systems.prestige.buyPrestigeUpgrade('creditMultiplier')) {
-                this.updateUI();
+                this.updateGameInfo();
+                this.updateUILight();
                 this.systems.storage?.saveGameState();
             }
         });
         
         this.elements.prestigeUpgradeSpeed?.addEventListener('click', () => {
             if (this.systems.prestige.buyPrestigeUpgrade('diceSpeedBoost')) {
-                this.updateUI();
+                this.updateGameInfo();
+                this.updateUILight();
                 this.systems.storage?.saveGameState();
             }
         });
         
         this.elements.prestigeUpgradeBonusChance?.addEventListener('click', () => {
             if (this.systems.prestige.buyPrestigeUpgrade('bonusChance')) {
-                this.updateUI();
+                this.updateGameInfo();
+                this.updateUILight();
                 this.systems.storage?.saveGameState();
             }
         });
         
         this.elements.prestigeUpgradeBonusMultiplier?.addEventListener('click', () => {
             if (this.systems.prestige.buyPrestigeUpgrade('bonusMultiplier')) {
-                this.updateUI();
+                this.updateGameInfo();
+                this.updateUILight();
                 this.systems.storage?.saveGameState();
             }
         });
@@ -639,6 +644,10 @@ export class UIManager {
         
         container.innerHTML = '';
         
+        // 購入個数切り替えボタンを最上部に一つだけ追加
+        const bulkSelectorHeader = this.createGlobalBulkPurchaseSelector();
+        container.appendChild(bulkSelectorHeader);
+        
         const upgradeInfo = this.systems.upgrade.getAllUpgradeInfo();
         
         upgradeInfo.auto.forEach((diceInfo) => {
@@ -647,7 +656,46 @@ export class UIManager {
         });
     }
 
-    // 購入個数切り替えボタンの作成
+    // グローバル購入個数切り替えボタンの作成（一番上に配置）
+    createGlobalBulkPurchaseSelector(): HTMLElement {
+        const selectorContainer = document.createElement('div');
+        selectorContainer.className = 'mb-3';
+        selectorContainer.id = 'global-bulk-selector';
+        
+        const titleElement = document.createElement('h6');
+        titleElement.className = 'text-primary mb-2';
+        titleElement.textContent = '購入数選択';
+        selectorContainer.appendChild(titleElement);
+        
+        const buttonGroup = document.createElement('div');
+        buttonGroup.className = 'btn-group w-100';
+        buttonGroup.setAttribute('role', 'group');
+        
+        const amounts: BulkPurchaseAmount[] = [1, 5, 10, 'max'];
+        const labels = ['x1', 'x5', 'x10', 'Max'];
+        
+        amounts.forEach((amount, index) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `btn btn-outline-secondary btn-sm ${amount === this.currentBulkAmount ? 'active' : ''}`;
+            button.textContent = labels[index] || '';
+            button.setAttribute('data-bulk-amount', amount.toString());
+            button.setAttribute('data-global-bulk', 'true');
+            
+            button.addEventListener('click', () => {
+                this.currentBulkAmount = amount;
+                this.updateGlobalBulkPurchaseButtons();
+                this.updateAllBulkPurchaseCosts();
+            });
+            
+            buttonGroup.appendChild(button);
+        });
+        
+        selectorContainer.appendChild(buttonGroup);
+        return selectorContainer;
+    }
+
+    // 購入個数切り替えボタンの作成（旧版：削除予定）
     createBulkPurchaseSelector(diceIndex: number): HTMLElement {
         const selectorContainer = document.createElement('div');
         selectorContainer.className = 'mb-2';
@@ -680,7 +728,22 @@ export class UIManager {
         return selectorContainer;
     }
 
-    // 購入個数ボタンの状態更新
+    // グローバル購入個数ボタンの状態更新
+    updateGlobalBulkPurchaseButtons(): void {
+        const container = this.elements.autoDiceContainer;
+        if (!container) return;
+        
+        const globalSelector = container.querySelector('#global-bulk-selector');
+        if (!globalSelector) return;
+        
+        const buttons = globalSelector.querySelectorAll('[data-bulk-amount]') as NodeListOf<HTMLButtonElement>;
+        buttons.forEach(button => {
+            const amount = button.getAttribute('data-bulk-amount') || '';
+            button.classList.toggle('active', amount === this.currentBulkAmount.toString());
+        });
+    }
+
+    // 購入個数ボタンの状態更新（旧版：削除予定）
     updateBulkPurchaseButtons(diceIndex: number): void {
         const container = this.elements.autoDiceContainer;
         if (!container) return;
@@ -692,6 +755,18 @@ export class UIManager {
         buttons.forEach(button => {
             const amount = button.getAttribute('data-bulk-amount') || '';
             button.classList.toggle('active', amount === this.currentBulkAmount.toString());
+        });
+    }
+
+    // 全ダイスのまとめ買いコストの表示更新
+    updateAllBulkPurchaseCosts(): void {
+        const container = this.elements.autoDiceContainer;
+        if (!container) return;
+        
+        const panels = container.querySelectorAll('[data-dice-index]');
+        panels.forEach((panel) => {
+            const diceIndex = parseInt((panel as HTMLElement).dataset.diceIndex || '0');
+            this.updateBulkPurchaseCosts(diceIndex);
         });
     }
 
@@ -766,9 +841,6 @@ export class UIManager {
             // ツールチップ用詳細情報
             const tooltipText = `レベル: ${diceInfo.level}/${diceInfo.maxLevel} | アセンション: ${diceInfo.ascensionLevel}\n個数: ${autoDiceInfo?.count || 1}\n間隔: ${intervalSeconds.toFixed(1)}秒 | 毎分: ${(autoDiceInfo?.rollsPerMinute || 0).toFixed(1)}回`;
             
-            // 購入個数切り替えボタンを追加
-            const bulkSelector = this.createBulkPurchaseSelector(diceInfo.index);
-            
             panel.innerHTML = `
                 <h6 class="text-success mb-2" title="${tooltipText}">${config.emoji} ${title}</h6>
                 <div class="mb-2">
@@ -782,9 +854,6 @@ export class UIManager {
                     <small class="text-muted">残り: <span data-dice-timer="${diceInfo.index}">${this.ticksToSeconds(progressInfo.timeLeft).toFixed(1)}s</span></small>
                 </div>
             `;
-            
-            // 購入個数切り替えボタンを挿入
-            panel.appendChild(bulkSelector);
             
             // アップグレードボタンを追加
             const upgradeContainer = document.createElement('div');
@@ -829,28 +898,32 @@ export class UIManager {
                     if (this.systems.upgrade.unlockAutoDice(index)) {
                         // 解禁時は自動ダイスUIを強制再生成
                         this.forceRegenerateAutoDiceUI();
-                        this.updateUI();
+                        this.updateGameInfo();
+                        this.updateUILight();
                     }
                     break;
                 case 'levelup':
                     if (this.systems.upgrade.levelUpAutoDice(index)) {
                         // レベルアップ時は自動ダイスUIを強制再生成
                         this.forceRegenerateAutoDiceUI();
-                        this.updateUI();
+                        this.updateGameInfo();
+                        this.updateUILight();
                     }
                     break;
                 case 'bulk-levelup':
                     if (this.systems.upgrade.bulkLevelUpAutoDice(index, this.currentBulkAmount)) {
                         // まとめ買い時は自動ダイスUIを強制再生成
                         this.forceRegenerateAutoDiceUI();
-                        this.updateUI();
+                        this.updateGameInfo();
+                        this.updateUILight();
                     }
                     break;
                 case 'ascend':
                     if (this.systems.upgrade.ascendAutoDice(index)) {
                         // アセンション時は自動ダイスUIを強制再生成
                         this.forceRegenerateAutoDiceUI();
-                        this.updateUI();
+                        this.updateGameInfo();
+                        this.updateUILight();
                     }
                     break;
             }
