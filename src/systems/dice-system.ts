@@ -30,8 +30,6 @@ interface ManualDiceResult {
     total: number;
     /** 各ダイスの出目配列 */
     results: number[];
-    /** 出目の品質（0.0-1.0、最低～最高） */
-    quality: number;
 }
 
 /** 自動ダイスの振り結果 */
@@ -170,25 +168,8 @@ export class DiceSystem {
         
         return {
             total: totalRoll,
-            results: [...this.manualDiceResults],
-            quality: this.calculateRollQuality(totalRoll, diceCount)
+            results: [...this.manualDiceResults]
         };
-    }
-
-    /**
-     * 手動ダイスの結果品質を計算
-     * 
-     * 出目の合計値から品質（0.0-1.0）を算出します。
-     * 最低値の場合は0.0、最高値の場合は1.0となります。
-     * 
-     * @param total 出目の合計値
-     * @param diceCount ダイスの個数
-     * @returns 品質値（0.0-1.0）
-     */
-    private calculateRollQuality(total: number, diceCount: number): number {
-        const maxPossible = diceCount * MANUAL_DICE_CONFIG.BASE_FACES;
-        const minPossible = diceCount;
-        return (total - minPossible) / (maxPossible - minPossible);
     }
 
     /**
