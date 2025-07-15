@@ -112,7 +112,6 @@ interface Systems {
 interface RollResult {
     total: number;
     results: number[];
-    quality: number;
 }
 
 // 移動結果の型定義
