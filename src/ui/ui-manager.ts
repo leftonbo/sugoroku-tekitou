@@ -409,17 +409,11 @@ export class UIManager {
                     break;
                 case 'credit_bonus':
                     // ボーナスマスの表示
-                    if (cellData.isBonus && !cellData.activated && cellData.effect !== null) {
+                    if (cellData.effect !== null) {
                         const actualCredit = this.systems.board.calculateActualCredit(cellData.effect, true);
                         const formattedCredit = formatNumberWithType(actualCredit, this.gameState.settings.numberFormat);
                         effectDiv.innerHTML = `🌟<br><small>${formattedCredit}</small>`;
                         cell.classList.add('bonus-credit');
-                    } else if (cellData.effect !== null) {
-                        // 使用済みボーナスマスは通常クレジットマスとして表示
-                        const actualCredit = this.systems.board.calculateActualCredit(cellData.effect, false);
-                        const formattedCredit = formatNumberWithType(actualCredit, this.gameState.settings.numberFormat);
-                        effectDiv.innerHTML = `💰<br><small>${formattedCredit}</small>`;
-                        cell.classList.add('credit');
                     } else {
                         effectDiv.innerHTML = `💰<br><small>0</small>`;
                         cell.classList.add('credit');

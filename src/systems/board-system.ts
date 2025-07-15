@@ -329,7 +329,14 @@ export class BoardSystem {
     }
 
     // マス目の効果を適用
-    applySquareEffect(position: number): SquareEffect {
+    /**
+     * 指定した盤面位置のマス効果を適用する
+     *
+     * @param position - 効果を適用する盤面位置
+     * @param recurseCount - 移動効果用の再帰深度（デフォルト: 0）
+     * @returns 適用した {@link SquareEffect} オブジェクト（効果詳細を含む）
+     */
+    applySquareEffect(position: number, recurseCount: number = 0): SquareEffect {
         const cellData = this.getCellType(position, this.gameState.level);
         const effect: SquareEffect = {
             type: cellData.type,
@@ -373,28 +380,28 @@ export class BoardSystem {
                 break;
                 
             case BOARD_CONFIG.CELL_TYPES.FORWARD:
-                if (cellData.effect !== null) {
+                if (cellData.effect !== null && recurseCount === 0) {
                     console.log(`${cellData.effect}マス進む! (位置: ${position})`);
                     // 移動を実行（再帰的な効果は無視）
                     const forwardResult = this.movePlayerDirect(cellData.effect);
                     effect.moveResult = forwardResult;
-                    
-                    // 移動先がクレジットマスの場合、クレジットを獲得
-                    this.checkAndApplyCreditOnLanding(forwardResult.newPosition);
+
+                    // 移動先のマス効果を適用するため、再帰的に呼び出す
+                    this.applySquareEffect(forwardResult.newPosition, recurseCount + 1);
                 }
                 effect.applied = true;
                 break;
                 
             case BOARD_CONFIG.CELL_TYPES.BACKWARD:
-                if (cellData.effect !== null) {
+                if (cellData.effect !== null && recurseCount === 0) {
                     console.log(`${cellData.effect}マス戻る... (位置: ${position})`);
                     // 移動を実行（再帰的な効果は無視、0マス目を下回らないよう制限）
                     const maxBackwardSteps = Math.min(cellData.effect, this.gameState.position);
                     const backwardResult = this.movePlayerDirect(-maxBackwardSteps);
                     effect.moveResult = backwardResult;
                     
-                    // 移動先がクレジットマスの場合、クレジットを獲得
-                    this.checkAndApplyCreditOnLanding(backwardResult.newPosition);
+                    // 移動先のマス効果を適用するため、再帰的に呼び出す
+                    this.applySquareEffect(backwardResult.newPosition, recurseCount + 1);
                 }
                 effect.applied = true;
                 break;
@@ -412,20 +419,6 @@ export class BoardSystem {
         return effect;
     }
 
-    // 移動先のクレジット獲得チェック（進む・戻るマス移動時専用）
-    private checkAndApplyCreditOnLanding(position: number): void {
-        const cellData = this.getCellType(position, this.gameState.level);
-        
-        if (cellData.type === BOARD_CONFIG.CELL_TYPES.CREDIT && cellData.effect !== null) {
-            const baseAmount = cellData.effect;
-            const multiplier = this.prestigeSystem.getCreditMultiplier();
-            const finalAmount = Math.floor(baseAmount * multiplier);
-            
-            this.gameState.credits += finalAmount;
-            this.gameState.stats.totalCreditsEarned += finalAmount;
-            console.log(`移動先でクレジット獲得! +${finalAmount} (基本: ${baseAmount}, 倍率: ${multiplier.toFixed(1)}x) (位置: ${position})`);
-        }
-    }
 
     // 現在の位置情報取得
     getCurrentPositionInfo(): PositionInfo {
