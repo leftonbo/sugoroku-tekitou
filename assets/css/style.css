@@ -292,6 +292,43 @@ body {
     }
 }
 
+/* クレジットボーナス獲得の特別アニメーション */
+.credit-bonus-effect {
+    animation: creditBonusGain 1.2s ease-out;
+}
+
+@keyframes creditBonusGain {
+    0% { 
+        transform: scale(1); 
+        background-color: inherit; 
+        box-shadow: none;
+    }
+    25% { 
+        transform: scale(1.2); 
+        background-color: #ffc107; 
+        color: white;
+        box-shadow: 0 0 15px rgba(255, 193, 7, 0.7);
+    }
+    50% { 
+        transform: scale(1.3) rotate(5deg); 
+        background-color: #FFD700; 
+        color: #333;
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+    }
+    75% { 
+        transform: scale(1.2) rotate(-2deg); 
+        background-color: #ffc107; 
+        color: white;
+        box-shadow: 0 0 20px rgba(255, 193, 7, 0.6);
+    }
+    100% { 
+        transform: scale(1); 
+        background-color: inherit; 
+        color: inherit;
+        box-shadow: none;
+    }
+}
+
 /* 進むマスの効果アニメーション */
 .forward-effect {
     animation: forwardEffect 0.8s ease-out;

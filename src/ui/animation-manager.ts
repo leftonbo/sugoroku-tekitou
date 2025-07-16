@@ -3,7 +3,7 @@
 import { UI_CONFIG } from '../utils/constants.js';
 
 // アニメーション関連の型定義
-type EffectType = 'credit-gain' | 'forward' | 'backward';
+type EffectType = 'credit-gain' | 'credit-bonus' | 'forward' | 'backward';
 
 export class AnimationManager {
     private activeAnimations: Map<HTMLElement, number>;
@@ -68,9 +68,26 @@ export class AnimationManager {
         this.animateCellEffect(cellElement, 'credit-gain');
     }
 
-    // クレジットボーナス獲得アニメーション
+    // クレジットボーナス獲得アニメーション（特別版）
     animateCreditBonusGain(cellElement: HTMLElement | null): void {
-        this.animateCellEffect(cellElement, 'credit-gain'); // 同じアニメーション
+        if (!cellElement) return;
+        
+        // 基本のボーナスマス用アニメーション
+        this.animateCellEffect(cellElement, 'credit-bonus');
+        
+        // 追加の光るエフェクト（ゴールド色）
+        this.addGlowEffect(cellElement, '#FFD700', 1500);
+        
+        // パルスエフェクトの一時的な適用
+        const stopPulse = this.addPulseEffect(cellElement);
+        if (stopPulse) {
+            setTimeout(() => {
+                stopPulse();
+            }, 2000);
+        }
+        
+        // 星のパーティクルエフェクト（疑似的）
+        this.addStarburstEffect(cellElement);
     }
 
     // 進むマスのアニメーション
@@ -213,6 +230,67 @@ export class AnimationManager {
         }
     }
 
+    // 星のパーティクルエフェクト（ボーナスマス用）
+    addStarburstEffect(element: HTMLElement | null): void {
+        if (!element) return;
+        
+        const particles = ['✨', '🌟', '💫', '⭐'];
+        const particleCount = 6;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.textContent = particles[Math.floor(Math.random() * particles.length)] || '✨';
+            particle.className = 'bonus-particle';
+            
+            // 位置とアニメーションの設定
+            const angle = (360 / particleCount) * i;
+            const distance = 40;
+            const x = Math.cos((angle * Math.PI) / 180) * distance;
+            const y = Math.sin((angle * Math.PI) / 180) * distance;
+            
+            particle.style.cssText = `
+                position: absolute;
+                font-size: 16px;
+                pointer-events: none;
+                z-index: 1000;
+                transform: translate(-50%, -50%);
+                animation: starburst-${i} 1.5s ease-out forwards;
+            `;
+            
+            // カスタムアニメーションをインラインで定義
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes starburst-${i} {
+                    0% {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(0.5);
+                    }
+                    50% {
+                        opacity: 1;
+                        transform: translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(1.2);
+                    }
+                    100% {
+                        opacity: 0;
+                        transform: translate(calc(-50% + ${x * 1.5}px), calc(-50% + ${y * 1.5}px)) scale(0.3);
+                    }
+                }
+            `;
+            
+            document.head.appendChild(style);
+            element.appendChild(particle);
+            
+            // パーティクルとスタイルのクリーンアップ
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+                if (style.parentNode) {
+                    style.parentNode.removeChild(style);
+                }
+            }, 1500);
+        }
+    }
+
     // 全アニメーションのクリーンアップ
     cleanupAllAnimations(): void {
         this.activeAnimations.forEach((timeoutId, element) => {
@@ -224,5 +302,13 @@ export class AnimationManager {
             }
         });
         this.activeAnimations.clear();
+        
+        // ボーナスパーティクルもクリーンアップ
+        const particles = document.querySelectorAll('.bonus-particle');
+        particles.forEach(particle => {
+            if (particle.parentNode) {
+                particle.parentNode.removeChild(particle);
+            }
+        });
     }
 }
