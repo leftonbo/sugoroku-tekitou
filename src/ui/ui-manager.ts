@@ -127,6 +127,8 @@ interface SquareEffect {
     type: string;
     position: number;
     moveResult?: MoveResult;
+    levelChanged?: boolean;  // マス効果による移動でレベル変更が発生したか
+    prestigeEarned?: number; // マス効果による移動で獲得したプレステージポイント
 }
 
 
@@ -325,6 +327,13 @@ export class UIManager {
     animateSquareEffect(effect: SquareEffect): void {
         const cell = this.elements.gameBoard?.querySelector(`[data-position="${effect.position}"]`) as HTMLElement;
         if (!cell) return;
+        
+        // マス効果でレベル変更が発生した場合、盤面UIを更新
+        if (effect.levelChanged) {
+            this.generateGameBoard();
+            // 基本情報も更新
+            this.updateGameInfo();
+        }
         
         switch (effect.type) {
             case 'credit':
