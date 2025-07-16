@@ -234,6 +234,16 @@ export class AnimationManager {
     addStarburstEffect(element: HTMLElement | null): void {
         if (!element) return;
         
+        // 親要素の相対位置を確保
+        const originalPosition = element.style.position;
+        if (!originalPosition || originalPosition === 'static') {
+            element.style.position = 'relative';
+        }
+        
+        // オーバーフロー制御を一時的に無効化
+        const originalOverflow = element.style.overflow;
+        element.style.overflow = 'visible';
+        
         const particles = ['✨', '🌟', '💫', '⭐'];
         const particleCount = 6;
         
@@ -244,17 +254,19 @@ export class AnimationManager {
             
             // 位置とアニメーションの設定
             const angle = (360 / particleCount) * i;
-            const distance = 40;
+            const distance = 30; // 距離を短くしてレイアウト影響を軽減
             const x = Math.cos((angle * Math.PI) / 180) * distance;
             const y = Math.sin((angle * Math.PI) / 180) * distance;
             
             particle.style.cssText = `
                 position: absolute;
-                font-size: 16px;
+                top: 50%;
+                left: 50%;
+                font-size: 14px;
                 pointer-events: none;
                 z-index: 1000;
-                transform: translate(-50%, -50%);
-                animation: starburst-${i} 1.5s ease-out forwards;
+                will-change: transform, opacity;
+                animation: starburst-${i} 1.2s ease-out forwards;
             `;
             
             // カスタムアニメーションをインラインで定義
@@ -263,15 +275,19 @@ export class AnimationManager {
                 @keyframes starburst-${i} {
                     0% {
                         opacity: 1;
-                        transform: translate(-50%, -50%) scale(0.5);
+                        transform: translate(-50%, -50%) scale(0.3);
                     }
-                    50% {
+                    30% {
                         opacity: 1;
-                        transform: translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(1.2);
+                        transform: translate(calc(-50% + ${x * 0.5}px), calc(-50% + ${y * 0.5}px)) scale(1.0);
+                    }
+                    70% {
+                        opacity: 0.8;
+                        transform: translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(0.8);
                     }
                     100% {
                         opacity: 0;
-                        transform: translate(calc(-50% + ${x * 1.5}px), calc(-50% + ${y * 1.5}px)) scale(0.3);
+                        transform: translate(calc(-50% + ${x * 1.2}px), calc(-50% + ${y * 1.2}px)) scale(0.2);
                     }
                 }
             `;
@@ -287,8 +303,16 @@ export class AnimationManager {
                 if (style.parentNode) {
                     style.parentNode.removeChild(style);
                 }
-            }, 1500);
+            }, 1200);
         }
+        
+        // オーバーフロー設定を元に戻す
+        setTimeout(() => {
+            element.style.overflow = originalOverflow;
+            if (!originalPosition || originalPosition === 'static') {
+                element.style.position = originalPosition;
+            }
+        }, 1200);
     }
 
     // 全アニメーションのクリーンアップ
