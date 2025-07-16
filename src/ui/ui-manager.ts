@@ -337,8 +337,10 @@ export class UIManager {
         
         switch (effect.type) {
             case 'credit':
-            case 'credit_bonus':
                 this.animationManager.animateCreditGain(cell);
+                break;
+            case 'credit_bonus':
+                this.animationManager.animateCreditBonusGain(cell);
                 break;
             case 'forward':
                 this.animationManager.animateForwardEffect(cell);
