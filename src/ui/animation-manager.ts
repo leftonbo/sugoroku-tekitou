@@ -68,6 +68,11 @@ export class AnimationManager {
         this.animateCellEffect(cellElement, 'credit-gain');
     }
 
+    // クレジットボーナス獲得アニメーション
+    animateCreditBonusGain(cellElement: HTMLElement | null): void {
+        this.animateCellEffect(cellElement, 'credit-gain'); // 同じアニメーション
+    }
+
     // 進むマスのアニメーション
     animateForwardEffect(cellElement: HTMLElement | null): void {
         this.animateCellEffect(cellElement, 'forward');

@@ -36,6 +36,8 @@ interface SquareEffect {
     position: number;
     applied: boolean;
     moveResult?: MoveResult;
+    levelChanged?: boolean;  // マス効果による移動でレベル変更が発生したか
+    prestigeEarned?: number; // マス効果による移動で獲得したプレステージポイント
 }
 
 interface PositionInfo {
@@ -385,6 +387,8 @@ export class BoardSystem {
                     // 移動を実行（再帰的な効果は無視）
                     const forwardResult = this.movePlayerDirect(cellData.effect);
                     effect.moveResult = forwardResult;
+                    effect.levelChanged = forwardResult.levelChanged;
+                    effect.prestigeEarned = forwardResult.prestigeEarned;
 
                     // 移動先のマス効果を適用するため、再帰的に呼び出す
                     this.applySquareEffect(forwardResult.newPosition, recurseCount + 1);
@@ -399,6 +403,8 @@ export class BoardSystem {
                     const maxBackwardSteps = Math.min(cellData.effect, this.gameState.position);
                     const backwardResult = this.movePlayerDirect(-maxBackwardSteps);
                     effect.moveResult = backwardResult;
+                    effect.levelChanged = backwardResult.levelChanged;
+                    effect.prestigeEarned = backwardResult.prestigeEarned;
                     
                     // 移動先のマス効果を適用するため、再帰的に呼び出す
                     this.applySquareEffect(backwardResult.newPosition, recurseCount + 1);
