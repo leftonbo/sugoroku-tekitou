@@ -1,4 +1,8 @@
-// ゲーム定数・設定値
+/**
+ * ゲーム定数・設定値
+ * ゲーム全体で使用される設定値、バランス値、定数を統合管理します。
+ * すべてのゲームバランスはこのファイルで管理されます。
+ */
 
 import type {
     DiceConfig,
@@ -15,8 +19,12 @@ import type {
     StorageKeys
 } from '../types/constants.js';
 
-// 自動ダイス関連定数（Tick-based: 60fps時の変換 ms/16.67≈ticks）
-// Base interval: face * 10 + 40
+/**
+ * 自動ダイス関連定数
+ * 各自動ダイスの設定を管理します。
+ * Tick-based: 60fps時の変換 ms/16.67≈ticks
+ * Base interval: face * 10 + 40
+ */
 export const DICE_CONFIGS: DiceConfig[] = [
     { faces: 4,  baseInterval:  80, emoji: '🔹' },
     { faces: 6,  baseInterval: 100, emoji: '🎲' },
@@ -26,18 +34,27 @@ export const DICE_CONFIGS: DiceConfig[] = [
     { faces: 20, baseInterval: 240, emoji: '⭐' }
 ];
 
-// アップグレードコスト係数
+/**
+ * アップグレードコスト係数
+ * 各種アップグレードのコスト係数を管理します。
+ */
 export const UPGRADE_MULTIPLIERS = {
     MANUAL_DICE: 36.0
 } as const;
 
-// 手動ダイス関連定数
+/**
+ * 手動ダイス関連定数
+ * プレイヤーが手動で振るダイスの設定を管理します。
+ */
 export const MANUAL_DICE_CONFIG: ManualDiceConfig = {
     BASE_UPGRADE_COST: 60,
     BASE_FACES: 6
 };
 
-// 盤面生成定数
+/**
+ * 盤面生成定数
+ * すごろく盤面の基本設定とマス目の種類を管理します。
+ */
 export const BOARD_CONFIG: BoardConfig = {
     TOTAL_CELLS: 100,
     CELL_TYPES: {

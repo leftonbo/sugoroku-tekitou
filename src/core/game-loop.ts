@@ -1,4 +1,12 @@
-// ゲームループ管理
+/**
+ * ゲームループ管理
+ * 
+ * このシステムは以下の機能を提供します：
+ * - ゲームループ管理：60fpsでの安定したゲーム更新
+ * - パフォーマンス監視：FPS計測と最適化
+ * - デバッグ機能：ゲーム状態のリアルタイム監視
+ * - 一時停止・再開機能
+ */
 
 import { GAME_CONFIG } from '../utils/constants.js';
 import type { GameState } from '../types/game-state.js';
@@ -8,7 +16,10 @@ import type { UpgradeSystem } from '../systems/upgrade-system.js';
 import type { PrestigeSystem } from '../systems/prestige-system.js';
 import type { UIManager } from '../ui/ui-manager.js';
 
-// システムの型定義
+/**
+ * システムの型定義
+ * ゲームループで使用される各システムを統合管理します。
+ */
 interface Systems {
     dice: DiceSystem;
     board: BoardSystem;
@@ -16,7 +27,10 @@ interface Systems {
     prestige: PrestigeSystem;
 }
 
-// 自動ダイス結果の型定義
+/**
+ * 自動ダイス結果の型定義
+ * ゲームループ内で使用される自動ダイスの結果を表します。
+ */
 interface AutoDiceRoll {
     index: number;
     faces: number;
@@ -25,14 +39,20 @@ interface AutoDiceRoll {
 
 // 移動結果の型定義は../types/game-state.tsで定義済み
 
-// ゲームループ状態の型定義
+/**
+ * ゲームループ状態の型定義
+ * ゲームループの実行状態を管理します。
+ */
 interface GameLoopStatus {
     isRunning: boolean;
     lastUpdateTime: number;
     animationId: number | null;
 }
 
-// デバッグ情報の型定義
+/**
+ * デバッグ情報の型定義
+ * ゲームループのデバッグ情報を提供します。
+ */
 interface DebugInfo extends GameLoopStatus {
     fps: number;
     targetFrameTime: number;
@@ -45,6 +65,10 @@ interface DebugInfo extends GameLoopStatus {
     };
 }
 
+/**
+ * 詳細デバッグ情報の型定義
+ * より詳細なデバッグ情報を提供します。
+ */
 interface DetailedDebugInfo extends DebugInfo {
     timestamp: number;
     autoDice: Array<{

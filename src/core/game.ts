@@ -1,4 +1,7 @@
-// すごろくインクリメンタルゲーム メインクラス
+/**
+ * すごろくインクリメンタルゲーム メインクラス
+ * ゲーム全体の統合管理とシステム間の連携を担当します。
+ */
 
 // モジュールのインポート
 import { 
@@ -23,7 +26,10 @@ import { UIManager } from '../ui/ui-manager.js';
 import { GameLoop } from './game-loop.js';
 import type { GameState } from '../types/game-state.js';
 
-// ストレージシステムの型定義
+/**
+ * ストレージシステムの型定義
+ * セーブデータの保存・読み込み・管理機能を提供します。
+ */
 interface StorageSystem {
     saveGameState: () => boolean;
     exportGameData: (gameState: GameState) => string | null;
@@ -37,7 +43,10 @@ interface StorageSystem {
     gameState: GameState;
 }
 
-// システムの型定義
+/**
+ * システムの型定義
+ * ゲームの各サブシステムを統合管理します。
+ */
 interface Systems {
     dice: DiceSystem;
     board: BoardSystem;
@@ -47,7 +56,10 @@ interface Systems {
     gameLoop?: GameLoop;
 }
 
-// デバッグ情報の型定義
+/**
+ * デバッグ情報の型定義
+ * デバッグ時に参照される情報を提供します。
+ */
 interface DebugInfo {
     gameState: GameState;
     gameLoop: any;
@@ -59,7 +71,10 @@ interface DebugInfo {
     };
 }
 
-// パフォーマンス統計の型定義
+/**
+ * パフォーマンス統計の型定義
+ * ゲームのパフォーマンス情報を監視します。
+ */
 interface PerformanceStats {
     fps: number;
     isRunning: boolean;
@@ -69,7 +84,10 @@ interface PerformanceStats {
     totalStats: any;
 }
 
-// グローバル型拡張
+/**
+ * グローバル型拡張
+ * ブラウザのwindowオブジェクトにゲーム関連の機能を追加します。
+ */
 declare global {
     interface Window {
         sugorokuGame: SugorokuGame;
@@ -80,6 +98,10 @@ declare global {
     }
 }
 
+/**
+ * すごろくインクリメンタルゲームのメインクラス
+ * 全システムの統合管理とライフサイクル管理を担当します。
+ */
 export class SugorokuGame {
     private gameState: GameState | null;
     private systems: Systems;
@@ -88,6 +110,10 @@ export class SugorokuGame {
     private gameLoop: GameLoop | null;
     private autoSaveCleanup: (() => void) | null;
 
+    /**
+     * コンストラクタ
+     * ゲーム全体の初期化を実行します。
+     */
     constructor() {
         // ゲーム状態の初期化
         this.gameState = null;
@@ -105,7 +131,10 @@ export class SugorokuGame {
         this.init();
     }
     
-    // ゲーム初期化
+    /**
+     * ゲーム初期化
+     * 全システムを順次初期化してゲームを開始可能状態にします。
+     */
     async init(): Promise<void> {
         try {
             // ゲーム状態を読み込み
@@ -130,7 +159,10 @@ export class SugorokuGame {
         }
     }
     
-    // システムの初期化
+    /**
+     * システムの初期化
+     * 各サブシステムを適切な順序で初期化します。
+     */
     private initializeSystems(): void {
         if (!this.gameState) {
             throw new Error('ゲーム状態が初期化されていません');

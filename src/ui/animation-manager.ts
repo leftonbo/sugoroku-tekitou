@@ -1,18 +1,46 @@
-// アニメーション効果管理
+/**
+ * アニメーション効果管理
+ * 
+ * このシステムは以下の機能を提供します：
+ * - ダイスアニメーション：サイコロ振りの視覚効果
+ * - マス効果アニメーション：クレジット獲得や移動効果
+ * - アップグレードアニメーション：ボタンフィードバック
+ * - グロウ効果：重要な情報の強調表示
+ * - メモリ管理：アニメーションの重複防止とリーク防止
+ */
 
 import { UI_CONFIG } from '../utils/constants.js';
 
-// アニメーション関連の型定義
+/**
+ * アニメーション関連の型定義
+ * アニメーション効果の種類を定義します。
+ */
 type EffectType = 'credit-gain' | 'credit-bonus' | 'forward' | 'backward';
 
+/**
+ * アニメーションマネージャークラス
+ * ゲーム内の全アニメーション効果を統合管理します。
+ */
 export class AnimationManager {
     private activeAnimations: Map<HTMLElement, number>;
 
+    /**
+     * コンストラクタ
+     * アニメーション管理システムを初期化します。
+     */
     constructor() {
         this.activeAnimations = new Map();
     }
 
-    // 手動ダイス表示のアニメーション（強化版）
+    /**
+     * 手動ダイス表示のアニメーション（強化版）
+     * ダイス結果を視覚的に魅力的に表示します。
+     * 
+     * @param element アニメーションを適用する要素
+     * @param diceCount ダイスの個数
+     * @param results 各ダイスの出目結果
+     * @param total 合計値
+     */
     animateManualDiceResult(
         element: HTMLElement | null,
         diceCount: number = 1, 
