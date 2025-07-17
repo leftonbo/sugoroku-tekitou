@@ -89,8 +89,8 @@ function formatNumberJapanese(num: number): string {
 }
 
 // 英語略式命数法の配列定義（AAS方式）
-const ENGLISH_ONES: readonly string[] = ["", "U", "D", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No"];
-const ENGLISH_TENS: readonly string[] = ["", "De", "Vg", "Tg", "Qg", "Qq", "Sg", "Su", "Og", "Ng"];
+const ENGLISH_ONES: readonly string[] = ["", "Un", "Du", "Tr", "Qa", "Qi", "Sx", "Sp", "Oc", "No"];
+const ENGLISH_TENS: readonly string[] = ["", "Dc", "Vg", "Tg", "Qg", "Qq", "Sg", "Su", "Og", "Ng"];
 const ENGLISH_HUNDREDS: readonly string[] = ["", "Ce", "Dc", "Tc", "Qe", "Qu", "Se", "St", "Oe", "Ne"];
 
 // 基本略記法のマッピング（1e3〜1e33の範囲）
@@ -175,9 +175,6 @@ export function generateAbbreviation(exponent: number): string {
             
             // 百の位、十の位、一の位を順番に追加
             result += (ENGLISH_HUNDREDS[hundredsDigit] || "") + (ENGLISH_TENS[tensDigit] || "") + (ENGLISH_ONES[onesDigit] || "");
-            
-            // 最後にDcを追加（基本単位）
-            result += "Dc";
         }
         
         // キャッシュに結果を保存（メモリ制限：最大1000エントリ）

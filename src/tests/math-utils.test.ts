@@ -26,9 +26,9 @@ export function testEnglishNumberFormatting(): { [key: string]: string } {
         1e27,         // 1Oc
         1e30,         // 1No
         1e33,         // 1Dc
-        1e36,         // 1UDc
-        1e39,         // 1DDc
-        1e42,         // 1TDc
+        1e36,         // 1UnDc
+        1e39,         // 1DuDc
+        1e42,         // 1TrDc
         1e45,         // 1QaDc
         1e48,         // 1QiDc
         1e51,         // 1SxDc
@@ -36,16 +36,16 @@ export function testEnglishNumberFormatting(): { [key: string]: string } {
         1e57,         // 1OcDc
         1e60,         // 1NoDc
         1e63,         // 1DeDc
-        1e66,         // 1VgDc
-        1e69,         // 1UVgDc
-        1e72,         // 1DVgDc
-        1e84,         // 1TgDc
-        1e90,         // 1QaDc（これは1QaVgDcではなく1QaDcになる）
-        1e120,        // 1Vg
-        1e123,        // 1UVg
-        1e180,        // 1Tg
-        1e240,        // 1Qg
-        1e300,        // 1CeDc
+        1e66,         // 1Vg
+        1e69,         // 1UnVg
+        1e72,         // 1DuVg
+        1e84,         //
+        1e90,         //
+        1e120,        //
+        1e123,        //
+        1e180,        //
+        1e240,        //
+        1e300,        // 1Ce
         1e1000,       // 非常に大きな数値
         -1500,        // 負の数値
         0,            // ゼロ
@@ -84,8 +84,8 @@ export function testAbbreviationGeneration(): { [key: string]: string } {
         30,   // No
         33,   // Dc
         36,   // UDc
-        39,   // DDc
-        42,   // TDc
+        39,   // DuDc
+        42,   // TrDc
         45,   // QaDc
         48,   // QiDc
         51,   // SxDc
@@ -93,15 +93,15 @@ export function testAbbreviationGeneration(): { [key: string]: string } {
         57,   // OcDc
         60,   // NoDc
         63,   // DeDc
-        66,   // VgDc
-        69,   // UVgDc
-        72,   // DVgDc
-        84,   // TgDc
-        90,   // QaVgDc
-        120,  // Vg
-        123,  // UVg
-        180,  // Tg
-        240,  // Qg
+        66,   // Vg
+        69,   // UnVg
+        72,   // DuVg
+        84,   //
+        90,   //
+        120,  //
+        123,  //
+        180,  //
+        240,  //
         300,  // CeDc
         1000, // 非常に大きな指数
         -1,   // 負の指数（エラーケース）
