@@ -3,12 +3,25 @@
 import { PRESTIGE_CONFIG, CALCULATION_CONSTANTS, AUTO_DICE_LEVEL_CONFIG } from './constants.js';
 import type { NumberFormatType } from '../types/game-state.js';
 
-// 数値のフォーマット（K, M, B単位）- 後方互換性のため保持
+/**
+ * 与えられた数値を英語形式でフォーマットして文字列として返します。
+ * 後方互換性のために保持されています。
+ *
+ * @param num フォーマットする数値
+ * @returns 英語形式でフォーマットされた数値の文字列
+ * @deprecated この関数は将来的に削除される予定です。代わりに formatNumberWithType を使用してください。
+ */
 export function formatNumber(num: number): string {
     return formatNumberWithType(num, 'english');
 }
 
-// 数値のフォーマット（フォーマット種類指定）
+/**
+ * 指定された命数法に従って数値を文字列に変換します。
+ *
+ * @param num - 変換する数値
+ * @param formatType - 命数法のタイプ（'japanese', 'english', 'scientific' のいずれか）
+ * @returns フォーマットされた数値の文字列
+ */
 export function formatNumberWithType(num: number, formatType: NumberFormatType): string {
     if (num === 0) return '0';
     
@@ -24,7 +37,16 @@ export function formatNumberWithType(num: number, formatType: NumberFormatType):
     }
 }
 
-// 日本語形式（万、億、兆など）
+/**
+ * 与えられた数値を日本語の命数法（万、億、兆、...）でフォーマットして文字列として返します。
+ * 
+ * - 1 万未満の場合はそのまま整数値を返します。
+ * - 1 万以上の場合は適切な単位を付与し、小数点 1 桁で表現します。
+ * - 負の値の場合は先頭に「-」が付きます。
+ * 
+ * @param num フォーマットする数値
+ * @returns 日本語の命数法でフォーマットされた文字列
+ */
 function formatNumberJapanese(num: number): string {
     const absNum = Math.abs(num);
     const sign = num < 0 ? '-' : '';
@@ -66,7 +88,14 @@ function formatNumberJapanese(num: number): string {
     }
 }
 
-// 英語形式（K, M, B, T）
+/**
+ * 与えられた数値を英語の略記命数法（K, M, B, T など）でフォーマットして文字列として返します。
+ * 例えば、1500 は "1.5K"、2500000 は "2.5M" のように変換されます。
+ * 負の値の場合は先頭に '-' が付きます。
+ *
+ * @param num フォーマットする数値
+ * @returns 英語略記でフォーマットされた文字列
+ */
 function formatNumberEnglish(num: number): string {
     const absNum = Math.abs(num);
     const sign = num < 0 ? '-' : '';
@@ -108,7 +137,16 @@ function formatNumberEnglish(num: number): string {
     }
 }
 
-// 指数表記形式（1e10など）
+
+/**
+ * 与えられた数値を科学的記数法または通常の整数表記でフォーマットします。
+ * 
+ * 数値の絶対値が1000未満の場合は、整数に切り捨てて文字列として返します。
+ * 1000以上の場合は、指数表記（有効数字2桁）で返します。
+ * 
+ * @param num フォーマットする数値
+ * @returns 科学的記数法または整数表記の文字列
+ */
 function formatNumberScientific(num: number): string {
     if (Math.abs(num) < 1000) {
         return Math.floor(num).toString();
