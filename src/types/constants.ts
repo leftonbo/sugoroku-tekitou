@@ -1,6 +1,12 @@
-// 定数関連の型定義
+/**
+ * 定数関連の型定義
+ * ゲーム全体で使用される設定値や定数の型定義を提供します。
+ */
 
-// ダイス設定の型定義
+/**
+ * ダイス設定の型定義
+ * 自動ダイスの基本設定を管理します。
+ */
 export interface DiceConfig {
     faces: number;
     baseInterval: number;
@@ -8,13 +14,19 @@ export interface DiceConfig {
 }
 
 
-// 手動ダイス設定の型定義
+/**
+ * 手動ダイス設定の型定義
+ * プレイヤーが手動で振るダイスの設定を管理します。
+ */
 export interface ManualDiceConfig {
     BASE_UPGRADE_COST: number;
     BASE_FACES: number;
 }
 
-// ボード設定の型定義
+/**
+ * ボード設定の型定義
+ * すごろく盤面の基本設定と、各種マス目の定義を管理します。
+ */
 export interface BoardConfig {
     TOTAL_CELLS: number;
     CELL_TYPES: {
@@ -26,7 +38,10 @@ export interface BoardConfig {
     };
 }
 
-// セル確率設定の型定義
+/**
+ * セル確率設定の型定義
+ * 盤面生成時の各種マス目の出現確率を管理します。
+ */
 export interface CellProbability {
     CREDIT_RATIO: number;
     FORWARD_RATIO: number;
@@ -34,7 +49,10 @@ export interface CellProbability {
     BACKWARD_MAX_RATIO: number;
 }
 
-// ゲーム設定の型定義
+/**
+ * ゲーム設定の型定義
+ * ゲーム全体の動作に関する基本設定を管理します。
+ */
 export interface GameConfig {
     TICK_RATE: number;
     SAVE_INTERVAL: number;
@@ -42,7 +60,10 @@ export interface GameConfig {
     MAX_BACKWARD_STEPS: number;
 }
 
-// 固定戻るマス設定の型定義
+/**
+ * 固定戻るマス設定の型定義
+ * レベル10以降の90-99マス目に配置される固定戻るマスの設定を管理します。
+ */
 export interface FixedBackwardConfig {
     START_LEVEL: number;
     AREA_START: number;
@@ -51,7 +72,10 @@ export interface FixedBackwardConfig {
     LEVEL_INCREMENT: number;
 }
 
-// クレジット計算設定の型定義
+/**
+ * クレジット計算設定の型定義
+ * クレジットマスでの獲得クレジット量の計算に使用される設定を管理します。
+ */
 export interface CreditConfig {
     BASE_AMOUNT: number;                    // 基礎クレジット量
     LEVEL_SCALING_BASE: number;             // レベルスケーリングの基数 (1000.0)
@@ -61,14 +85,20 @@ export interface CreditConfig {
     RANDOM_MIN: number;                     // ランダムボーナスの最小値 (0.8)
 }
 
-// UI設定の型定義
+/**
+ * UI設定の型定義
+ * ユーザーインターフェースのアニメーション設定を管理します。
+ */
 export interface UIConfig {
     ANIMATION_DURATION: number;
     DICE_ANIMATION_DURATION: number;
     GLOW_EFFECT_DURATION: number;
 }
 
-// プレステージシステム設定の型定義
+/**
+ * プレステージシステム設定の型定義
+ * 転生システムとプレステージポイントの計算設定を管理します。
+ */
 export interface PrestigeConfig {
     START_LEVEL: number;
     BASE_POINTS: number;
@@ -76,7 +106,10 @@ export interface PrestigeConfig {
     SCALING_LEVEL_DIVISOR: number;          // スケーリングレベルの除数 (50.0)
 }
 
-// 負荷システム設定の型定義
+/**
+ * 負荷システム設定の型定義
+ * 高レベルでの負荷効果による難易度調整設定を管理します。
+ */
 export interface BurdenConfig {
     START_LEVEL: number;              // 負荷システム開始レベル
     LEVEL_INTERVAL: number;           // 負荷レベル上昇の間隔
@@ -84,7 +117,10 @@ export interface BurdenConfig {
     HALVING_INTERVAL: number;         // 総計半減の間隔
 }
 
-// 自動ダイスレベルシステム設定の型定義
+/**
+ * 自動ダイスレベルシステム設定の型定義
+ * 自動ダイスのレベルアップとアセンションに関する設定を管理します。
+ */
 export interface AutoDiceLevelConfig {
     MAX_LEVEL_BASE: number;
     ASCENSION_LEVEL_INCREMENT: number;
@@ -97,12 +133,18 @@ export interface AutoDiceLevelConfig {
     ASCENSION_COST_BASE_MULTIPLIER: number;
 }
 
-// ストレージキー設定の型定義
+/**
+ * ストレージキー設定の型定義
+ * ローカルストレージに使用されるキー名の設定を管理します。
+ */
 export interface StorageKeys {
     GAME_STATE: string;
 }
 
-// 負荷効果の型定義
+/**
+ * 負荷効果の型定義
+ * レベルごとの負荷効果の具体的な内容を管理します。
+ */
 export interface BurdenEffect {
     level: number;
     description: string;

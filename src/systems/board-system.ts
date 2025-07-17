@@ -1,4 +1,13 @@
-// 盤面システム（盤面生成・プレイヤー移動・マス効果）
+/**
+ * 盤面システム（盤面生成・プレイヤー移動・マス効果）
+ * 
+ * このシステムは以下の機能を提供します：
+ * - 盤面生成：レベルごとのランダム盤面生成
+ * - プレイヤー移動：サイコロ結果による位置更新
+ * - マス効果：各マス目の効果適用と状態管理
+ * - ボーナスマス：特別なクレジットボーナスマスの管理
+ * - 状態保存：マス状態の差分保存で効率化
+ */
 
 import {
     calculateBackwardRatio,
@@ -9,15 +18,30 @@ import { BOARD_CONFIG, CELL_PROBABILITY, GAME_CONFIG, FIXED_BACKWARD_CONFIG, PRE
 import type { GameState, BoardStateDiff } from '../types/game-state.js';
 import type { PrestigeSystem } from './prestige-system.js';
 
-// ボード関連の型定義
+/**
+ * ボード関連の型定義
+ */
+
+/**
+ * セルタイプの定義
+ * 盤面上のマス目の種類を表します。
+ */
 type CellType = 'empty' | 'credit' | 'forward' | 'backward' | 'credit_bonus';
 
+/**
+ * セルデータのインターフェース
+ * 各マス目の詳細情報を管理します。
+ */
 interface CellData {
     type: CellType;
     effect: number | null;
     activates?: number; // 踏んだ回数
 }
 
+/**
+ * 移動結果のインターフェース
+ * プレイヤー移動の結果を表します。
+ */
 interface MoveResult {
     oldPosition: number;
     newPosition: number;
@@ -25,11 +49,19 @@ interface MoveResult {
     prestigeEarned: number;
 }
 
+/**
+ * 位置変更結果のインターフェース
+ * 位置変更時の追加情報を管理します。
+ */
 interface PositionChangeResult {
     levelChanged: boolean;
     prestigeEarned: number;
 }
 
+/**
+ * マス効果のインターフェース
+ * マス目の効果適用結果を表します。
+ */
 interface SquareEffect {
     type: CellType;
     value: number | null;
@@ -40,12 +72,20 @@ interface SquareEffect {
     prestigeEarned?: number; // マス効果による移動で獲得したプレステージポイント
 }
 
+/**
+ * 位置情報のインターフェース
+ * 特定位置の詳細情報を提供します。
+ */
 interface PositionInfo {
     position: number;
     level: number;
     cellData: CellData;
 }
 
+/**
+ * 盤面セルのインターフェース
+ * 盤面上の個々のマス目情報を表します。
+ */
 interface BoardCell {
     position: number;
     type: CellType;

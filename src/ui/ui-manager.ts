@@ -1,4 +1,12 @@
-// UI管理・DOM操作・イベント処理
+/**
+ * UI管理・DOM操作・イベント処理
+ * 
+ * このシステムは以下の機能を提供します：
+ * - DOM操作：ゲーム情報の動的更新
+ * - イベント処理：ユーザー操作の反応処理
+ * - パフォーマンス最適化：部分更新による効率化
+ * - レスポンシブデザイン対応：モバイル・PC対応
+ */
 
 import { formatNumberWithType } from '../utils/math-utils.js';
 import { DICE_CONFIGS } from '../utils/constants.js';
@@ -10,7 +18,11 @@ import type { PrestigeSystem } from '../systems/prestige-system.js';
 import type { AnimationManager } from './animation-manager.js';
 import type { BulkPurchaseAmount } from '../types/game-state.js';
 
-// DOM要素の型定義
+/**
+ * DOM要素の型定義
+ * ゲーム内で使用される全てのDOM要素を管理します。
+ * パフォーマンス向上のためにキャッシュされます。
+ */
 interface DOMElements {
     // ゲーム情報
     credits?: HTMLElement;

@@ -3,12 +3,25 @@
 import { PRESTIGE_CONFIG, CALCULATION_CONSTANTS, AUTO_DICE_LEVEL_CONFIG } from './constants.js';
 import type { NumberFormatType } from '../types/game-state.js';
 
-// 数値のフォーマット（K, M, B単位）- 後方互換性のため保持
+/**
+ * 与えられた数値を英語形式でフォーマットして文字列として返します。
+ * 後方互換性のために保持されています。
+ *
+ * @param num フォーマットする数値
+ * @returns 英語形式でフォーマットされた数値の文字列
+ * @deprecated この関数は将来的に削除される予定です。代わりに formatNumberWithType を使用してください。
+ */
 export function formatNumber(num: number): string {
     return formatNumberWithType(num, 'english');
 }
 
-// 数値のフォーマット（フォーマット種類指定）
+/**
+ * 指定された命数法に従って数値を文字列に変換します。
+ *
+ * @param num - 変換する数値
+ * @param formatType - 命数法のタイプ（'japanese', 'english', 'scientific' のいずれか）
+ * @returns フォーマットされた数値の文字列
+ */
 export function formatNumberWithType(num: number, formatType: NumberFormatType): string {
     if (num === 0) return '0';
     
@@ -24,7 +37,16 @@ export function formatNumberWithType(num: number, formatType: NumberFormatType):
     }
 }
 
-// 日本語形式（万、億、兆など）
+/**
+ * 与えられた数値を日本語の命数法（万、億、兆、...）でフォーマットして文字列として返します。
+ * 
+ * - 1 万未満の場合はそのまま整数値を返します。
+ * - 1 万以上の場合は適切な単位を付与し、小数点 1 桁で表現します。
+ * - 負の値の場合は先頭に「-」が付きます。
+ * 
+ * @param num フォーマットする数値
+ * @returns 日本語の命数法でフォーマットされた文字列
+ */
 function formatNumberJapanese(num: number): string {
     const absNum = Math.abs(num);
     const sign = num < 0 ? '-' : '';
@@ -66,7 +88,14 @@ function formatNumberJapanese(num: number): string {
     }
 }
 
-// 英語形式（K, M, B, T）
+/**
+ * 与えられた数値を英語の略記命数法（K, M, B, T など）でフォーマットして文字列として返します。
+ * 例えば、1500 は "1.5K"、2500000 は "2.5M" のように変換されます。
+ * 負の値の場合は先頭に '-' が付きます。
+ *
+ * @param num フォーマットする数値
+ * @returns 英語略記でフォーマットされた文字列
+ */
 function formatNumberEnglish(num: number): string {
     const absNum = Math.abs(num);
     const sign = num < 0 ? '-' : '';
@@ -108,7 +137,16 @@ function formatNumberEnglish(num: number): string {
     }
 }
 
-// 指数表記形式（1e10など）
+
+/**
+ * 与えられた数値を科学的記数法または通常の整数表記でフォーマットします。
+ * 
+ * 数値の絶対値が1000未満の場合は、整数に切り捨てて文字列として返します。
+ * 1000以上の場合は、指数表記（有効数字2桁）で返します。
+ * 
+ * @param num フォーマットする数値
+ * @returns 科学的記数法または整数表記の文字列
+ */
 function formatNumberScientific(num: number): string {
     if (Math.abs(num) < 1000) {
         return Math.floor(num).toString();
@@ -116,7 +154,17 @@ function formatNumberScientific(num: number): string {
     return num.toExponential(2);
 }
 
-// 盤面用シード生成（改善版：ハッシュ関数的アプローチ）
+/**
+ * 盤面用シード生成（改善版：ハッシュ関数的アプローチ）
+ * 転生回数とレベルから盤面生成用のシード値を計算します。
+ * 
+ * より複雑なハッシュ計算により、レベル間のシード分散を改善し、
+ * 同じ転生・レベルでは同じ盤面を生成できる再現性を保証します。
+ * 
+ * @param rebirthCount 転生回数
+ * @param level 現在のレベル
+ * @returns ハッシュ化されたシード値（32bit符号なし整数）
+ */
 export function getBoardSeed(rebirthCount: number, level: number): number {
     // より複雑なハッシュ計算でレベル間のシード分散を改善
     let seed = rebirthCount * 12345 + level * 67890;
@@ -130,17 +178,43 @@ export function getBoardSeed(rebirthCount: number, level: number): number {
     return (seed * 2654435761) >>> 0;
 }
 
-// 手動ダイスアップグレードのコスト計算
+/**
+ * 手動ダイスアップグレードのコスト計算
+ * 指定されたレベルでの手動ダイスアップグレードコストを計算します。
+ * 
+ * @param level 現在のアップグレードレベル
+ * @param baseCost 基本コスト
+ * @param multiplier レベルごとのコスト倍率
+ * @returns 計算されたアップグレードコスト（整数値）
+ */
 export function calculateManualDiceUpgradeCost(level: number, baseCost: number, multiplier: number): number {
     return Math.floor(baseCost * Math.pow(multiplier, level));
 }
 
-// 戻るマスの確率計算（位置に応じて変動）
+/**
+ * 戻るマスの確率計算（位置に応じて変動）
+ * プレイヤーの現在位置に応じて戻るマスの出現確率を計算します。
+ * 位置が進むほど戻るマスの確率が上昇し、最大値でキャップされます。
+ * 
+ * @param position プレイヤーの現在位置
+ * @param baseRatio 基本の戻るマス確率
+ * @param maxRatio 戻るマス確率の最大値
+ * @returns 計算された戻るマス確率（0.0〜1.0の範囲）
+ */
 export function calculateBackwardRatio(position: number, baseRatio: number, maxRatio: number): number {
     return Math.min(maxRatio, baseRatio + (position / CALCULATION_CONSTANTS.BACKWARD_RATIO_DIVISOR) * CALCULATION_CONSTANTS.BACKWARD_RATIO_SCALING);
 }
 
-// プレステージポイント計算（レベル50以降、べき乗算的増加）
+/**
+ * プレステージポイント計算（レベル50以降、べき乗算的増加）
+ * 指定されたレベルで獲得できるプレステージポイント数を計算します。
+ * 開始レベル未満では0ポイント、以降はべき乗的に増加します。
+ * 
+ * @param level 現在のレベル
+ * @param startLevel プレステージポイント獲得開始レベル
+ * @param basePoints 基本ポイント数
+ * @returns 計算されたプレステージポイント数（整数値）
+ */
 export function calculatePrestigePointsForLevel(level: number, startLevel: number, basePoints: number): number {
     if (level < startLevel) return 0;
     
@@ -151,12 +225,32 @@ export function calculatePrestigePointsForLevel(level: number, startLevel: numbe
 
 // === 新しいレベルシステム用計算関数 ===
 
-// 自動ダイスの最大レベル計算
+/**
+ * 自動ダイスの最大レベル計算
+ * アセンションレベルに応じた自動ダイスの最大レベルを計算します。
+ * 
+ * @param ascensionLevel 現在のアセンションレベル
+ * @param baseMaxLevel 基本最大レベル
+ * @param increment アセンションごとの最大レベル増加量
+ * @returns 計算された最大レベル
+ */
 export function calculateMaxLevel(ascensionLevel: number, baseMaxLevel: number, increment: number): number {
     return baseMaxLevel + (ascensionLevel * increment);
 }
 
-// 自動ダイスレベルアップのコスト計算（累積レベルベース）
+/**
+ * 自動ダイスレベルアップのコスト計算（累積レベルベース）
+ * 累積投資レベルを考慮した公正なレベルアップコストを計算します。
+ * 過去のアセンションでの投資も含めた総投資量に基づいてコストが決定されます。
+ * 
+ * @param diceIndex ダイスのインデックス（0〜5: 4/6/8/10/12/20面ダイス）
+ * @param currentLevel 現在のレベル
+ * @param ascensionLevel 現在のアセンションレベル
+ * @param baseCost 基本コスト
+ * @param multiplier レベルごとのコスト倍率
+ * @param ascensionCostMultiplier アセンションごとの基本コスト倍率
+ * @returns 計算されたレベルアップコスト（整数値）
+ */
 export function calculateLevelUpCost(diceIndex: number, currentLevel: number, ascensionLevel: number, 
                                    baseCost: number, multiplier: number, ascensionCostMultiplier: number): number {
     // 基本コスト = ダイス種類別の基本コスト * アセンションレベルによる基本コスト倍率
@@ -183,7 +277,20 @@ export function calculateLevelUpCost(diceIndex: number, currentLevel: number, as
     return Math.floor(baseForDice * diceMultiplier * levelMultiplier);
 }
 
-// アセンションコスト計算
+/**
+ * アセンションコスト計算
+ * 自動ダイスのアセンションに必要なコストを計算します。
+ * レベルアップコストにアセンションペナルティを適用した値になります。
+ * 
+ * @param diceIndex ダイスのインデックス（0〜5: 4/6/8/10/12/20面ダイス）
+ * @param currentLevel 現在のレベル
+ * @param ascensionLevel 現在のアセンションレベル
+ * @param baseCost 基本コスト
+ * @param multiplier レベルごとのコスト倍率
+ * @param ascensionCostMultiplier アセンションごとの基本コスト倍率
+ * @param ascensionPenalty アセンションペナルティ倍率
+ * @returns 計算されたアセンションコスト（整数値）
+ */
 export function calculateAscensionCost(diceIndex: number, currentLevel: number, ascensionLevel: number,
                                      baseCost: number, multiplier: number, ascensionCostMultiplier: number,
                                      ascensionPenalty: number): number {
@@ -191,7 +298,16 @@ export function calculateAscensionCost(diceIndex: number, currentLevel: number, 
     return Math.floor(levelUpCost * ascensionPenalty);
 }
 
-// 自動ダイスの速度計算（レベルベース）
+/**
+ * 自動ダイスの速度計算（レベルベース）
+ * ダイスレベルに応じた実行間隔を計算します。
+ * レベルが高いほど間隔が短くなり（高速化）、レベル0では未解禁状態を表します。
+ * 
+ * @param level ダイスのレベル（0=未解禁、1〜20=有効レベル）
+ * @param baseInterval 基本実行間隔（ミリ秒）
+ * @param maxSpeedMultiplier 最大速度倍率
+ * @returns 計算された実行間隔（ミリ秒）
+ */
 export function calculateDiceSpeedFromLevel(level: number, baseInterval: number, maxSpeedMultiplier: number): number {
     if (level === 0) return baseInterval; // 未解禁
     
@@ -199,14 +315,37 @@ export function calculateDiceSpeedFromLevel(level: number, baseInterval: number,
     return baseInterval / speedMultiplier;
 }
 
-// 自動ダイスの個数計算（アセンションベース）
+/**
+ * 自動ダイスの個数計算（アセンションベース）
+ * アセンションレベルに応じた自動ダイスの個数を計算します。
+ * アセンションレベルが上がるほど同時実行できるダイス数が増加します。
+ * 
+ * @param ascensionLevel 現在のアセンションレベル
+ * @param baseCount 基本個数
+ * @param multiplier アセンションごとの個数倍率
+ * @returns 計算されたダイス個数
+ */
 export function calculateDiceCountFromAscension(ascensionLevel: number, baseCount: number, multiplier: number): number {
     return baseCount * Math.pow(multiplier, ascensionLevel);
 }
 
 // === まとめ買い関連の計算関数 ===
 
-// まとめ買い時の総コスト計算（アセンション境界考慮）
+/**
+ * まとめ買い時の総コスト計算（アセンション境界考慮）
+ * 指定された個数のレベルアップ・アセンションの総コストと実際の購入数を計算します。
+ * アセンション境界を跨ぐ場合のコスト変動も正確に考慮します。
+ * 
+ * @param diceIndex ダイスのインデックス（0〜5: 4/6/8/10/12/20面ダイス）
+ * @param currentLevel 現在のレベル
+ * @param ascensionLevel 現在のアセンションレベル
+ * @param targetCount 購入したい個数
+ * @param baseCost 基本コスト
+ * @param multiplier レベルごとのコスト倍率
+ * @param ascensionCostMultiplier アセンションごとの基本コスト倍率
+ * @param ascensionPenalty アセンションペナルティ倍率
+ * @returns 総コスト、実際の購入数、含まれるアセンション数のオブジェクト
+ */
 export function calculateBulkLevelUpCost(diceIndex: number, currentLevel: number, ascensionLevel: number,
                                        targetCount: number, baseCost: number, multiplier: number, 
                                        ascensionCostMultiplier: number, ascensionPenalty: number): {
@@ -247,7 +386,21 @@ export function calculateBulkLevelUpCost(diceIndex: number, currentLevel: number
     };
 }
 
-// 指定したクレジット内で購入可能な最大個数を計算
+/**
+ * 指定したクレジット内で購入可能な最大個数を計算
+ * 利用可能なクレジット内でレベルアップ・アセンション可能な最大回数を計算します。
+ * アセンション境界を跨ぐ場合のコスト変動も考慮します。
+ * 
+ * @param diceIndex ダイスのインデックス（0〜5: 4/6/8/10/12/20面ダイス）
+ * @param currentLevel 現在のレベル
+ * @param ascensionLevel 現在のアセンションレベル
+ * @param availableCredits 利用可能なクレジット数
+ * @param baseCost 基本コスト
+ * @param multiplier レベルごとのコスト倍率
+ * @param ascensionCostMultiplier アセンションごとの基本コスト倍率
+ * @param ascensionPenalty アセンションペナルティ倍率
+ * @returns 購入可能な最大個数
+ */
 export function calculateMaxPurchasableCount(diceIndex: number, currentLevel: number, ascensionLevel: number,
                                            availableCredits: number, baseCost: number, multiplier: number,
                                            ascensionCostMultiplier: number, ascensionPenalty: number): number {
@@ -287,7 +440,20 @@ export function calculateMaxPurchasableCount(diceIndex: number, currentLevel: nu
     return maxCount;
 }
 
-// アセンション前で停止する最大購入可能個数を計算
+/**
+ * アセンション前で停止する最大購入可能個数を計算
+ * 現在のアセンションレベル内でのみレベルアップ可能な最大回数を計算します。
+ * アセンションは行わず、最大レベルに到達した時点で停止します。
+ * 
+ * @param diceIndex ダイスのインデックス（0〜5: 4/6/8/10/12/20面ダイス）
+ * @param currentLevel 現在のレベル
+ * @param ascensionLevel 現在のアセンションレベル
+ * @param availableCredits 利用可能なクレジット数
+ * @param baseCost 基本コスト
+ * @param multiplier レベルごとのコスト倍率
+ * @param ascensionCostMultiplier アセンションごとの基本コスト倍率
+ * @returns アセンション前までの購入可能な最大個数
+ */
 export function calculateMaxPurchasableCountNoAscension(diceIndex: number, currentLevel: number, ascensionLevel: number,
                                                        availableCredits: number, baseCost: number, multiplier: number,
                                                        ascensionCostMultiplier: number): number {

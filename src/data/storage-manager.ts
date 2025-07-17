@@ -1,4 +1,13 @@
-// ゲーム状態の保存・読み込み管理
+/**
+ * ゲーム状態の保存・読み込み管理
+ * 
+ * このシステムは以下の機能を提供します：
+ * - セーブデータ管理：ローカルストレージへの保存・読み込み
+ * - インポート・エクスポート：データの入出力機能
+ * - バックアップ管理：データのバックアップと復元
+ * - データ暗号化：セキュリティ強化
+ * - 自動保存：定期的な自動バックアップ
+ */
 
 import { STORAGE_KEYS } from '../utils/constants.js';
 import { createDefaultGameState, mergeGameState } from './game-state.js';
@@ -13,13 +22,19 @@ import {
 } from '../utils/crypto-utils.js';
 import type { GameState } from '../types/game-state.js';
 
-// バックアップデータの型定義
+/**
+ * バックアップデータの型定義
+ * バックアップデータの構造を定義します。
+ */
 interface BackupData {
     timestamp: number;
     data: string;
 }
 
-// 削除結果の型定義
+/**
+ * 削除結果の型定義
+ * データ削除操作の結果を表します。
+ */
 interface ClearResult {
     success: boolean;
     backup?: string | null;
@@ -27,7 +42,10 @@ interface ClearResult {
     error?: string;
 }
 
-// ストレージデータ情報の型定義
+/**
+ * ストレージデータ情報の型定義
+ * ストレージ内のデータ情報を提供します。
+ */
 interface StorageInfo {
     exists: boolean;
     data?: GameState;
@@ -36,7 +54,13 @@ interface StorageInfo {
     error?: string;
 }
 
-// ゲーム状態の保存
+/**
+ * ゲーム状態の保存
+ * ゲーム状態をローカルストレージに保存します。
+ * 
+ * @param gameState 保存するゲーム状態
+ * @returns 保存成功時はtrue、失敗時はfalse
+ */
 export function saveGameState(gameState: GameState): boolean {
     try {
         // データ削除フラグをチェック
