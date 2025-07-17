@@ -302,6 +302,26 @@
                                         </button>
                                         <small class="text-muted">※ゲームは自動保存されますが、手動でも保存できます</small>
                                     </div>
+                                    
+                                    <h6 class="text-info mt-4">データ管理</h6>
+                                    <div class="d-grid gap-2">
+                                        <button id="export-data" class="btn btn-outline-success">
+                                            📤 データエクスポート
+                                        </button>
+                                        <div class="mt-2">
+                                            <input type="file" id="import-file" class="form-control" accept=".txt" style="display: none;">
+                                            <button id="import-data" class="btn btn-outline-warning w-100">
+                                                📥 データインポート
+                                            </button>
+                                        </div>
+                                        <div id="import-drop-zone" class="import-drop-zone mt-2 p-3 border border-2 border-dashed rounded text-center text-muted" style="display: none;">
+                                            <small>ここにファイルをドラッグ&ドロップ<br>または上のボタンでファイル選択</small>
+                                        </div>
+                                        <button id="clear-save-data" class="btn btn-outline-danger mt-2">
+                                            🗑️ セーブデータ消去
+                                        </button>
+                                        <small class="text-muted">※データは暗号化されて保存されます</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -794,3 +794,96 @@ body.debug-mode .debug-panel {
     border: none;
     outline: none;
 }
+
+/* インポート・エクスポート用スタイル */
+.import-drop-zone {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.import-drop-zone:hover {
+    border-color: #0d6efd !important;
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.import-drop-zone.drag-over {
+    border-color: #28a745 !important;
+    background-color: rgba(40, 167, 69, 0.1);
+    transform: scale(1.02);
+}
+
+.import-drop-zone.drag-over small {
+    color: #28a745 !important;
+    font-weight: 600;
+}
+
+/* データ管理ボタンのスタイル */
+#export-data {
+    transition: all 0.3s ease;
+}
+
+#export-data:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+#import-data {
+    transition: all 0.3s ease;
+}
+
+#import-data:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+}
+
+#clear-save-data {
+    transition: all 0.3s ease;
+}
+
+#clear-save-data:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* インポート・エクスポート成功時のアニメーション */
+.import-success {
+    animation: importSuccess 1s ease-out;
+}
+
+.export-success {
+    animation: exportSuccess 1s ease-out;
+}
+
+@keyframes importSuccess {
+    0% { 
+        transform: scale(1); 
+        background-color: inherit; 
+    }
+    50% { 
+        transform: scale(1.05); 
+        background-color: #28a745; 
+        color: white; 
+    }
+    100% { 
+        transform: scale(1); 
+        background-color: inherit; 
+        color: inherit; 
+    }
+}
+
+@keyframes exportSuccess {
+    0% { 
+        transform: scale(1); 
+        background-color: inherit; 
+    }
+    50% { 
+        transform: scale(1.05); 
+        background-color: #20c997; 
+        color: white; 
+    }
+    100% { 
+        transform: scale(1); 
+        background-color: inherit; 
+        color: inherit; 
+    }
+}

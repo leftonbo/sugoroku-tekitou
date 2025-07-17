@@ -84,6 +84,13 @@ interface DOMElements {
     debugLastUpdate?: HTMLElement;
     debugAutoDice?: HTMLElement;
     debugLog?: HTMLElement;
+    
+    // インポート・エクスポート
+    exportDataBtn?: HTMLButtonElement;
+    importDataBtn?: HTMLButtonElement;
+    clearSaveDataBtn?: HTMLButtonElement;
+    importFileInput?: HTMLInputElement;
+    importDropZone?: HTMLElement;
 }
 
 // システムの型定義
@@ -94,6 +101,11 @@ interface Systems {
     prestige: PrestigeSystem;
     storage?: {
         saveGameState: () => boolean;
+        exportGameData: (gameState: GameState) => string | null;
+        importGameData: (data: string) => any;
+        createBackupBeforeImport: (gameState: GameState) => string | null;
+        getExportFileName: () => string;
+        createExportBlob: (data: string) => Blob;
         clearSaveData: (createBackup?: boolean) => any;
         debugShowStorageData: () => any;
         enableAutoSave: () => boolean;
@@ -226,7 +238,14 @@ export class UIManager {
             debugFps: document.getElementById('debug-fps') as HTMLElement,
             debugLastUpdate: document.getElementById('debug-last-update') as HTMLElement,
             debugAutoDice: document.getElementById('debug-auto-dice') as HTMLElement,
-            debugLog: document.getElementById('debug-log') as HTMLElement
+            debugLog: document.getElementById('debug-log') as HTMLElement,
+            
+            // インポート・エクスポート
+            exportDataBtn: document.getElementById('export-data') as HTMLButtonElement,
+            importDataBtn: document.getElementById('import-data') as HTMLButtonElement,
+            clearSaveDataBtn: document.getElementById('clear-save-data') as HTMLButtonElement,
+            importFileInput: document.getElementById('import-file') as HTMLInputElement,
+            importDropZone: document.getElementById('import-drop-zone') as HTMLElement
         };
     }
 
@@ -300,6 +319,9 @@ export class UIManager {
         
         // 設定変更のイベントリスナー
         this.setupSettingsEventListeners();
+        
+        // インポート・エクスポートのイベントリスナー
+        this.setupImportExportEventListeners();
         
         // デバッグパネルのイベントリスナー
         this.setupDebugEventListeners();
@@ -1281,6 +1303,285 @@ export class UIManager {
                 }, 1500);
             }
         });
+    }
+
+    // インポート・エクスポート機能のイベントリスナー
+    setupImportExportEventListeners(): void {
+        // エクスポートボタン
+        this.elements.exportDataBtn?.addEventListener('click', () => {
+            this.handleExportData();
+        });
+        
+        // インポートボタン
+        this.elements.importDataBtn?.addEventListener('click', () => {
+            this.elements.importFileInput?.click();
+            this.showImportDropZone();
+        });
+        
+        // セーブデータ消去ボタン
+        this.elements.clearSaveDataBtn?.addEventListener('click', () => {
+            this.handleClearSaveData();
+        });
+        
+        // ファイル選択
+        this.elements.importFileInput?.addEventListener('change', (e) => {
+            const target = e.target as HTMLInputElement;
+            const file = target.files?.[0];
+            if (file) {
+                this.handleImportFile(file);
+            }
+        });
+        
+        // ドラッグ&ドロップ
+        if (this.elements.importDropZone) {
+            this.setupDragAndDrop(this.elements.importDropZone);
+        }
+    }
+
+    // エクスポート処理
+    handleExportData(): void {
+        try {
+            if (!this.systems.storage) {
+                this.showImportExportMessage('エクスポート機能が利用できません', 'error');
+                return;
+            }
+            
+            const exportData = this.systems.storage.exportGameData(this.gameState);
+            if (!exportData) {
+                this.showImportExportMessage('エクスポートに失敗しました', 'error');
+                return;
+            }
+            
+            const fileName = this.systems.storage.getExportFileName();
+            const blob = this.systems.storage.createExportBlob(exportData);
+            
+            // ファイルダウンロード
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            // 成功フィードバック
+            this.showImportExportMessage('エクスポートが完了しました', 'success');
+            this.animateExportSuccess();
+            
+        } catch (error) {
+            console.error('エクスポート処理でエラーが発生しました:', error);
+            this.showImportExportMessage('エクスポート中にエラーが発生しました', 'error');
+        }
+    }
+
+    // ファイルインポート処理
+    handleImportFile(file: File): void {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const content = e.target?.result as string;
+            if (content) {
+                this.handleImportData(content);
+            }
+        };
+        reader.onerror = () => {
+            this.showImportExportMessage('ファイルの読み込みに失敗しました', 'error');
+        };
+        reader.readAsText(file);
+    }
+
+    // インポートデータ処理
+    handleImportData(data: string): void {
+        try {
+            if (!this.systems.storage) {
+                this.showImportExportMessage('インポート機能が利用できません', 'error');
+                return;
+            }
+            
+            // 確認ダイアログ
+            const confirmed = confirm(
+                '現在のセーブデータが上書きされます。\n' +
+                '続行しますか？\n\n' +
+                '※現在のデータのバックアップが自動作成されます。'
+            );
+            
+            if (!confirmed) {
+                this.hideImportDropZone();
+                return;
+            }
+            
+            // バックアップ作成
+            const backup = this.systems.storage.createBackupBeforeImport(this.gameState);
+            if (backup) {
+                console.log('インポート前のバックアップを作成しました');
+            }
+            
+            // インポート実行
+            const result = this.systems.storage.importGameData(data);
+            
+            if (result.success && result.gameState) {
+                // ゲーム状態を更新
+                Object.assign(this.gameState, result.gameState);
+                
+                // UI更新
+                this.generateGameBoard();
+                this.updateUI();
+                
+                // セーブ
+                this.systems.storage.saveGameState();
+                
+                // 成功フィードバック
+                this.showImportExportMessage('インポートが完了しました', 'success');
+                this.animateImportSuccess();
+                
+                console.log('インポートに成功しました');
+            } else {
+                this.showImportExportMessage(
+                    result.message || 'インポートに失敗しました',
+                    'error'
+                );
+            }
+            
+        } catch (error) {
+            console.error('インポート処理でエラーが発生しました:', error);
+            this.showImportExportMessage('インポート中にエラーが発生しました', 'error');
+        } finally {
+            this.hideImportDropZone();
+            // ファイル入力をリセット
+            if (this.elements.importFileInput) {
+                this.elements.importFileInput.value = '';
+            }
+        }
+    }
+
+    // ドラッグ&ドロップの設定
+    setupDragAndDrop(dropZone: HTMLElement): void {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.add('drag-over');
+            });
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.remove('drag-over');
+            });
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            const files = (e as DragEvent).dataTransfer?.files;
+            if (files && files.length > 0 && files[0]) {
+                this.handleImportFile(files[0]);
+            }
+        });
+        
+        // クリックでもファイル選択
+        dropZone.addEventListener('click', () => {
+            this.elements.importFileInput?.click();
+        });
+    }
+
+    // インポートドロップゾーンの表示
+    showImportDropZone(): void {
+        if (this.elements.importDropZone) {
+            this.elements.importDropZone.style.display = 'block';
+        }
+    }
+
+    // インポートドロップゾーンの非表示
+    hideImportDropZone(): void {
+        if (this.elements.importDropZone) {
+            this.elements.importDropZone.style.display = 'none';
+            this.elements.importDropZone.classList.remove('drag-over');
+        }
+    }
+
+    // セーブデータ消去処理
+    handleClearSaveData(): void {
+        try {
+            // 確認ダイアログ
+            const confirmed = confirm(
+                'セーブデータを削除しますか？\n' +
+                'この操作は取り消せません。\n\n' +
+                '※削除前にバックアップが自動作成されます。'
+            );
+            
+            if (!confirmed) {
+                return;
+            }
+            
+            if (!this.systems.storage) {
+                this.showImportExportMessage('セーブデータ削除機能が利用できません', 'error');
+                return;
+            }
+            
+            // セーブデータ削除実行
+            const result = this.systems.storage.clearSaveData(true);
+            
+            if (result.success) {
+                this.showImportExportMessage('セーブデータを削除しました', 'success');
+                
+                // バックアップ情報をコンソールに出力
+                if (result.backup) {
+                    console.log('削除前のバックアップデータ:', result.backup);
+                    console.log('復元する場合は debugRestoreBackup("バックアップデータ") を実行してください');
+                }
+                
+                // ページリロード
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                this.showImportExportMessage(
+                    result.error || 'セーブデータの削除に失敗しました',
+                    'error'
+                );
+            }
+            
+        } catch (error) {
+            console.error('セーブデータ削除処理でエラーが発生しました:', error);
+            this.showImportExportMessage('削除処理中にエラーが発生しました', 'error');
+        }
+    }
+
+    // インポート・エクスポートメッセージ表示
+    showImportExportMessage(message: string, type: 'success' | 'error'): void {
+        // 既存のToast APIまたはalertで表示
+        if (type === 'success') {
+            // 成功メッセージの表示
+            console.log('✅ ' + message);
+        } else {
+            // エラーメッセージの表示
+            console.error('❌ ' + message);
+            alert(message);
+        }
+    }
+
+    // エクスポート成功アニメーション
+    animateExportSuccess(): void {
+        const button = this.elements.exportDataBtn;
+        if (button) {
+            button.classList.add('export-success');
+            setTimeout(() => {
+                button.classList.remove('export-success');
+            }, 1000);
+        }
+    }
+
+    // インポート成功アニメーション
+    animateImportSuccess(): void {
+        const button = this.elements.importDataBtn;
+        if (button) {
+            button.classList.add('import-success');
+            setTimeout(() => {
+                button.classList.remove('import-success');
+            }, 1000);
+        }
     }
 
     // 設定UIの初期化（モーダル表示時に呼ばれる）
