@@ -2,6 +2,15 @@
 
 import { STORAGE_KEYS } from '../utils/constants.js';
 import { createDefaultGameState, mergeGameState } from './game-state.js';
+import { 
+    encryptSaveData, 
+    decryptSaveData, 
+    validateImportData, 
+    generateSaveFileName, 
+    createSaveBlob,
+    type ImportResult,
+    type ValidationResult 
+} from '../utils/crypto-utils.js';
 import type { GameState } from '../types/game-state.js';
 
 // バックアップデータの型定義
@@ -253,5 +262,83 @@ export function debugShowStorageData(): StorageInfo {
             exists: false,
             error: error instanceof Error ? error.message : String(error)
         };
+    }
+}
+
+// ゲームデータのエクスポート（暗号化済み）
+export function exportGameData(gameState: GameState): string | null {
+    try {
+        const encryptedData = encryptSaveData(gameState);
+        console.log('ゲームデータのエクスポートに成功しました');
+        return encryptedData;
+    } catch (error) {
+        console.error('ゲームデータのエクスポートに失敗しました:', error);
+        return null;
+    }
+}
+
+// ゲームデータのインポート（復号化）
+export function importGameData(encryptedData: string): ImportResult {
+    try {
+        // まずバリデーションを実行
+        const validation = validateImportData(encryptedData);
+        if (!validation.isValid) {
+            return {
+                success: false,
+                error: validation.error || '不明なエラー',
+                message: 'インポートデータの検証に失敗しました'
+            };
+        }
+        
+        // 復号化を実行
+        const result = decryptSaveData(encryptedData);
+        if (result.success && result.gameState) {
+            console.log('ゲームデータのインポートに成功しました');
+            return result;
+        } else {
+            return {
+                success: false,
+                error: result.error || '復号化に失敗',
+                message: result.message || 'インポートに失敗しました'
+            };
+        }
+    } catch (error) {
+        console.error('ゲームデータのインポートに失敗しました:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : '不明なエラー',
+            message: 'インポート処理中にエラーが発生しました'
+        };
+    }
+}
+
+// インポートデータのバリデーション
+export function validateGameDataImport(data: string): ValidationResult {
+    return validateImportData(data);
+}
+
+// エクスポート用ファイル名の生成
+export function getExportFileName(): string {
+    return generateSaveFileName();
+}
+
+// エクスポートデータからBlobを作成
+export function createExportBlob(encryptedData: string): Blob {
+    return createSaveBlob(encryptedData);
+}
+
+// インポート前のバックアップ作成
+export function createBackupBeforeImport(gameState: GameState): string | null {
+    try {
+        const backup = {
+            timestamp: Date.now(),
+            data: JSON.stringify(gameState)
+        };
+        const backupString = JSON.stringify(backup);
+        console.log('インポート前のバックアップを作成しました');
+        return backupString;
+    } catch (error) {
+        console.error('インポート前のバックアップ作成に失敗しました:', error);
+        return null;
     }
 }

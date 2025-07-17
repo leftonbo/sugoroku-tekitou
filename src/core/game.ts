@@ -1,7 +1,19 @@
 // すごろくインクリメンタルゲーム メインクラス
 
 // モジュールのインポート
-import { loadGameState, setupAutoSave, saveGameState, clearSaveData, debugShowStorageData, enableAutoSave } from '../data/storage-manager.js';
+import { 
+    loadGameState, 
+    setupAutoSave, 
+    saveGameState, 
+    clearSaveData, 
+    debugShowStorageData, 
+    enableAutoSave,
+    exportGameData,
+    importGameData,
+    createBackupBeforeImport,
+    getExportFileName,
+    createExportBlob
+} from '../data/storage-manager.js';
 import { DiceSystem } from '../systems/dice-system.js';
 import { BoardSystem } from '../systems/board-system.js';
 import { UpgradeSystem } from '../systems/upgrade-system.js';
@@ -14,6 +26,11 @@ import type { GameState } from '../types/game-state.js';
 // ストレージシステムの型定義
 interface StorageSystem {
     saveGameState: () => boolean;
+    exportGameData: (gameState: GameState) => string | null;
+    importGameData: (data: string) => any;
+    createBackupBeforeImport: (gameState: GameState) => string | null;
+    getExportFileName: () => string;
+    createExportBlob: (data: string) => Blob;
     clearSaveData: (createBackup?: boolean) => any;
     debugShowStorageData: () => any;
     enableAutoSave: () => boolean;
@@ -163,6 +180,11 @@ export class SugorokuGame {
         // デバッグ用にsystemsにstorageとgameLoopの参照を追加
         this.systems.storage = {
             saveGameState: () => this.saveGame(),
+            exportGameData: (gameState: GameState) => exportGameData(gameState),
+            importGameData: (data: string) => importGameData(data),
+            createBackupBeforeImport: (gameState: GameState) => createBackupBeforeImport(gameState),
+            getExportFileName: () => getExportFileName(),
+            createExportBlob: (data: string) => createExportBlob(data),
             clearSaveData: this.clearSaveData.bind(this),
             debugShowStorageData: this.debugShowStorageData.bind(this),
             enableAutoSave: this.enableAutoSave.bind(this),
