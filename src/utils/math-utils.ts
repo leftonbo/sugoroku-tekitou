@@ -88,6 +88,109 @@ function formatNumberJapanese(num: number): string {
     }
 }
 
+// 英語略式命数法の配列定義（AAS方式）
+const ENGLISH_ONES: readonly string[] = ["", "Un", "Du", "Tr", "Qa", "Qi", "Sx", "Sp", "Oc", "No"];
+const ENGLISH_TENS: readonly string[] = ["", "Dc", "Vg", "Tg", "Qg", "Qq", "Sg", "Su", "Og", "Ng"];
+const ENGLISH_HUNDREDS: readonly string[] = ["", "Ce", "Dc", "Tc", "Qe", "Qu", "Se", "St", "Oe", "Ne"];
+
+// 基本略記法のマッピング（1e3〜1e33の範囲）
+interface BasicAbbreviation {
+    readonly threshold: number;
+    readonly divisor: number;
+    readonly suffix: string;
+}
+
+const BASIC_ABBREVIATIONS: readonly BasicAbbreviation[] = [
+    { threshold: 1e3, divisor: 1e3, suffix: "K" },
+    { threshold: 1e6, divisor: 1e6, suffix: "M" },
+    { threshold: 1e9, divisor: 1e9, suffix: "B" },
+    { threshold: 1e12, divisor: 1e12, suffix: "T" },
+    { threshold: 1e15, divisor: 1e15, suffix: "Qa" },
+    { threshold: 1e18, divisor: 1e18, suffix: "Qi" },
+    { threshold: 1e21, divisor: 1e21, suffix: "Sx" },
+    { threshold: 1e24, divisor: 1e24, suffix: "Sp" },
+    { threshold: 1e27, divisor: 1e27, suffix: "Oc" },
+    { threshold: 1e30, divisor: 1e30, suffix: "No" },
+    { threshold: 1e33, divisor: 1e33, suffix: "Dc" }
+];
+
+// 略記生成結果のキャッシュ（パフォーマンス最適化）
+const ABBREVIATION_CACHE = new Map<number, string>();
+
+/**
+ * 指数から英語略記を生成します（AAS方式）
+ * 指数を3で割った値から一の位、十の位、百の位、千の位を計算し、
+ * 対応する配列から略記を合成します。
+ *
+ * @param exponent 指数（3の倍数）
+ * @returns 生成された略記文字列
+ * @throws エラーが発生した場合は科学的記数法にフォールバック
+ */
+export function generateAbbreviation(exponent: number): string {
+    try {
+        // 入力検証
+        if (!isFinite(exponent) || exponent < 0) {
+            throw new Error(`無効な指数: ${exponent}`);
+        }
+        
+        // キャッシュから結果を取得
+        const cachedResult = ABBREVIATION_CACHE.get(exponent);
+        if (cachedResult !== undefined) {
+            return cachedResult;
+        }
+        
+        // 指数を3で割って基本単位を取得
+        const unit = Math.floor(exponent / 3);
+        
+        let result: string;
+        
+        // 基本略記法の範囲（1-11）の場合
+        if (unit <= 11) {
+            const abbreviation = BASIC_ABBREVIATIONS[unit - 1];
+            if (!abbreviation) {
+                throw new Error(`基本略記法の範囲外: unit=${unit}`);
+            }
+            result = abbreviation.suffix;
+        } else {
+            // AAS方式での略記生成（unit >= 12）
+            const adjustedUnit = unit - 12; // Dcから始まるので12を引く
+            
+            // 桁分解
+            const onesDigit = adjustedUnit % 10;
+            const tensDigit = Math.floor(adjustedUnit / 10) % 10;
+            const hundredsDigit = Math.floor(adjustedUnit / 100) % 10;
+            const thousandsDigit = Math.floor(adjustedUnit / 1000);
+            
+            // 配列の範囲チェック
+            if (onesDigit >= ENGLISH_ONES.length || tensDigit >= ENGLISH_TENS.length || hundredsDigit >= ENGLISH_HUNDREDS.length) {
+                throw new Error(`配列の範囲外: ones=${onesDigit}, tens=${tensDigit}, hundreds=${hundredsDigit}`);
+            }
+            
+            // 千の位以上は再帰的に処理
+            result = "";
+            
+            if (thousandsDigit > 0) {
+                result += generateAbbreviation((thousandsDigit + 11) * 3); // 千の位は11を足してから処理
+            }
+            
+            // 百の位、十の位、一の位を順番に追加
+            result += (ENGLISH_HUNDREDS[hundredsDigit] || "") + (ENGLISH_TENS[tensDigit] || "") + (ENGLISH_ONES[onesDigit] || "");
+        }
+        
+        // キャッシュに結果を保存（メモリ制限：最大1000エントリ）
+        if (ABBREVIATION_CACHE.size < 1000) {
+            ABBREVIATION_CACHE.set(exponent, result);
+        }
+        
+        return result;
+        
+    } catch (error) {
+        // エラーが発生した場合は科学的記数法にフォールバック
+        console.warn(`略記生成エラー (exponent=${exponent}):`, error);
+        return `e${exponent}`;
+    }
+}
+
 /**
  * 与えられた数値を英語の略記命数法（K, M, B, T など）でフォーマットして文字列として返します。
  * 例えば、1500 は "1.5K"、2500000 は "2.5M" のように変換されます。
@@ -96,44 +199,41 @@ function formatNumberJapanese(num: number): string {
  * @param num フォーマットする数値
  * @returns 英語略記でフォーマットされた文字列
  */
-function formatNumberEnglish(num: number): string {
-    const absNum = Math.abs(num);
-    const sign = num < 0 ? '-' : '';
-    
-    if (absNum < 1000) {
-        return sign + Math.floor(absNum).toString();
-    } else if (absNum < 1000000) {
-        return sign + (absNum / 1000).toFixed(1) + 'K';
-    } else if (absNum < 1000000000) {
-        return sign + (absNum / 1000000).toFixed(1) + 'M';
-    } else if (absNum < 1000000000000) {
-        return sign + (absNum / 1000000000).toFixed(1) + 'B';
-    } else if (absNum < 1e15) {
-        return sign + (absNum / 1e12).toFixed(1) + 'T';
-    } else if (absNum < 1e18) {
-        return sign + (absNum / 1e15).toFixed(1) + 'Qa';
-    } else if (absNum < 1e21) {
-        return sign + (absNum / 1e18).toFixed(1) + 'Qi';
-    } else if (absNum < 1e24) {
-        return sign + (absNum / 1e21).toFixed(1) + 'Sx';
-    } else if (absNum < 1e27) {
-        return sign + (absNum / 1e24).toFixed(1) + 'Sp';
-    } else if (absNum < 1e30) {
-        return sign + (absNum / 1e27).toFixed(1) + 'Oc';
-    } else if (absNum < 1e33) {
-        return sign + (absNum / 1e30).toFixed(1) + 'No';
-    } else if (absNum < 1e36) {
-        return sign + (absNum / 1e33).toFixed(1) + 'Dc';
-    } else if (absNum < 1e39) {
-        return sign + (absNum / 1e36).toFixed(1) + 'UDc';
-    } else if (absNum < 1e42) {
-        return sign + (absNum / 1e39).toFixed(1) + 'DDc';
-    } else if (absNum < 1e45) {
-        return sign + (absNum / 1e42).toFixed(1) + 'TDc';
-    } else if (absNum < 1e48) {
-        return sign + (absNum / 1e45).toFixed(1) + 'QaDc';
-    } else {
-        return sign + (absNum / 1e48).toFixed(1) + 'QiDc';
+export function formatNumberEnglish(num: number): string {
+    try {
+        // 入力検証
+        if (!isFinite(num) || isNaN(num)) {
+            return num.toString();
+        }
+        
+        const absNum = Math.abs(num);
+        const sign = num < 0 ? '-' : '';
+        
+        if (absNum < 1000) {
+            return sign + Math.floor(absNum).toString();
+        }
+        
+        // 指数を計算（log10を使用）
+        const exponent = Math.floor(Math.log10(absNum));
+        
+        // 3の倍数に調整（例：10^85 → 10^84）
+        const adjustedExponent = Math.floor(exponent / 3) * 3;
+        
+        // 除数を計算
+        const divisor = Math.pow(10, adjustedExponent);
+        
+        // 値を計算
+        const value = (absNum / divisor).toFixed(1);
+        
+        // 略記を生成
+        const abbreviation = generateAbbreviation(adjustedExponent);
+        
+        return sign + value + abbreviation;
+        
+    } catch (error) {
+        // エラーが発生した場合は科学的記数法にフォールバック
+        console.warn(`英語数値フォーマットエラー (num=${num}):`, error);
+        return formatNumberScientific(num);
     }
 }
 
@@ -440,6 +540,7 @@ export function calculateMaxPurchasableCount(diceIndex: number, currentLevel: nu
     return maxCount;
 }
 
+
 /**
  * アセンション前で停止する最大購入可能個数を計算
  * 現在のアセンションレベル内でのみレベルアップ可能な最大回数を計算します。
@@ -478,3 +579,4 @@ export function calculateMaxPurchasableCountNoAscension(diceIndex: number, curre
     
     return maxCount;
 }
+
