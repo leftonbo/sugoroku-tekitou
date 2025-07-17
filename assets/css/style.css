@@ -836,6 +836,15 @@ body.debug-mode .debug-panel {
     box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
 }
 
+#clear-save-data {
+    transition: all 0.3s ease;
+}
+
+#clear-save-data:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
 /* インポート・エクスポート成功時のアニメーション */
 .import-success {
     animation: importSuccess 1s ease-out;

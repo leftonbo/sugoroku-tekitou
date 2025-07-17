@@ -88,6 +88,7 @@ interface DOMElements {
     // インポート・エクスポート
     exportDataBtn?: HTMLButtonElement;
     importDataBtn?: HTMLButtonElement;
+    clearSaveDataBtn?: HTMLButtonElement;
     importFileInput?: HTMLInputElement;
     importDropZone?: HTMLElement;
 }
@@ -242,6 +243,7 @@ export class UIManager {
             // インポート・エクスポート
             exportDataBtn: document.getElementById('export-data') as HTMLButtonElement,
             importDataBtn: document.getElementById('import-data') as HTMLButtonElement,
+            clearSaveDataBtn: document.getElementById('clear-save-data') as HTMLButtonElement,
             importFileInput: document.getElementById('import-file') as HTMLInputElement,
             importDropZone: document.getElementById('import-drop-zone') as HTMLElement
         };
@@ -1316,6 +1318,11 @@ export class UIManager {
             this.showImportDropZone();
         });
         
+        // セーブデータ消去ボタン
+        this.elements.clearSaveDataBtn?.addEventListener('click', () => {
+            this.handleClearSaveData();
+        });
+        
         // ファイル選択
         this.elements.importFileInput?.addEventListener('change', (e) => {
             const target = e.target as HTMLInputElement;
@@ -1491,6 +1498,54 @@ export class UIManager {
         if (this.elements.importDropZone) {
             this.elements.importDropZone.style.display = 'none';
             this.elements.importDropZone.classList.remove('drag-over');
+        }
+    }
+
+    // セーブデータ消去処理
+    handleClearSaveData(): void {
+        try {
+            // 確認ダイアログ
+            const confirmed = confirm(
+                'セーブデータを削除しますか？\n' +
+                'この操作は取り消せません。\n\n' +
+                '※削除前にバックアップが自動作成されます。'
+            );
+            
+            if (!confirmed) {
+                return;
+            }
+            
+            if (!this.systems.storage) {
+                this.showImportExportMessage('セーブデータ削除機能が利用できません', 'error');
+                return;
+            }
+            
+            // セーブデータ削除実行
+            const result = this.systems.storage.clearSaveData(true);
+            
+            if (result.success) {
+                this.showImportExportMessage('セーブデータを削除しました', 'success');
+                
+                // バックアップ情報をコンソールに出力
+                if (result.backup) {
+                    console.log('削除前のバックアップデータ:', result.backup);
+                    console.log('復元する場合は debugRestoreBackup("バックアップデータ") を実行してください');
+                }
+                
+                // ページリロード
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                this.showImportExportMessage(
+                    result.error || 'セーブデータの削除に失敗しました',
+                    'error'
+                );
+            }
+            
+        } catch (error) {
+            console.error('セーブデータ削除処理でエラーが発生しました:', error);
+            this.showImportExportMessage('削除処理中にエラーが発生しました', 'error');
         }
     }
 
