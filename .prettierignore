@@ -1,27 +1,41 @@
-# Build outputs
-dist/
-coverage/
-html/
-
-# Dependencies
+# 依存関係
 node_modules/
 
-# Generated files
-*.min.js
-*.bundle.js
+# ビルド出力
+dist/
+build/
 
-# Log files
+# カバレッジレポート
+coverage/
+
+# ログファイル
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# OS generated files
+# 環境設定ファイル
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# エディタファイル
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS生成ファイル
 .DS_Store
 Thumbs.db
 
-# IDE files
-.vscode/
-.idea/
+# 設定ファイル（一部）
+package-lock.json
+yarn.lock
 
-# Temporary files
-*.tmp
-*.temp
+# その他の除外ファイル
+*.min.js
+*.min.css

@@ -243,7 +243,7 @@ export function validateImportData(data: string): ValidationResult {
       format: exportData.format,
       version: exportData.version,
     };
-  } catch (error) {
+  } catch {
     return {
       isValid: false,
       error: 'セーブデータの解析に失敗しました',

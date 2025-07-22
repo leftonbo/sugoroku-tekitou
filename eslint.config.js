@@ -1,98 +1,73 @@
-// @ts-check
-import eslint from '@eslint/js';
+import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import importPlugin from 'eslint-plugin-import';
-import prettier from 'eslint-config-prettier';
+import prettierConfig from 'eslint-config-prettier';
 
-export default [
-  // ESLint recommended rules
-  eslint.configs.recommended,
-
-  // TypeScript configuration using typescript-eslint
+export default tseslint.config(
+  // 基本的なJavaScriptルール
+  js.configs.recommended,
+  
+  // TypeScriptの推奨設定
   ...tseslint.configs.recommended,
-
-  // TypeScript files configuration
+  
+  // Prettierとの競合を避ける設定
+  prettierConfig,
+  
   {
-    files: ['**/*.ts', '**/*.tsx'],
-    plugins: {
-      import: importPlugin,
+    // 対象ファイル
+    files: ['src/**/*.{ts,js}', '*.{ts,js}'],
+    
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
+    
     rules: {
-      // TypeScript specific rules
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      // TypeScript固有のルール
+      '@typescript-eslint/no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_'
+      }],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'warn',
-
-      // Import rules
-      'import/order': [
-        'error',
-        {
-          groups: ['builtin', 'external', 'internal', ['parent', 'sibling'], 'index'],
-          'newlines-between': 'always',
-          alphabetize: {
-            order: 'asc',
-            caseInsensitive: true,
-          },
-        },
-      ],
-      'import/no-unresolved': 'off', // TypeScript handles this
-
-      // General code quality rules
+      
+      // 一般的なコード品質ルール
+      'no-console': 'off', // ゲーム開発でデバッグログは重要
       'prefer-const': 'error',
       'no-var': 'error',
-      'no-console': 'off', // Allow console for this type of project
-      'no-debugger': 'error',
-      'no-unused-vars': 'off', // Use TypeScript version instead
-
-      // Best practices
-      eqeqeq: ['error', 'always'],
-      curly: ['error', 'all'],
-      'no-eval': 'error',
-      'no-implied-eval': 'error',
-      'prefer-template': 'error',
+      'eqeqeq': ['error', 'always'],
+      'curly': ['warn', 'all'], // 波括弧は推奨だが厳格にしない
+      
+      // ゲーム開発で有用なルール（緩めに設定）
+      'no-magic-numbers': 'off', // ゲームバランス調整で数値が多いので無効化
     },
   },
-
-  // JavaScript files configuration
+  
   {
-    files: ['**/*.js', '**/*.mjs'],
-    languageOptions: {
-      ecmaVersion: 2020,
-      sourceType: 'module',
-    },
-    plugins: {
-      import: importPlugin,
-    },
+    // テストファイル用の設定
+    files: ['**/*.test.{ts,js}', '**/*.spec.{ts,js}'],
     rules: {
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      'prefer-const': 'error',
-      'no-var': 'error',
-      'no-console': 'off',
-      'no-debugger': 'error',
-      eqeqeq: ['error', 'always'],
-      curly: ['error', 'all'],
-      'no-eval': 'error',
-      'no-implied-eval': 'error',
-      'prefer-template': 'error',
-    },
-  },
-
-  // Test files specific configuration
-  {
-    files: ['tests/**/*.ts', 'tests/**/*.js', '**/*.test.ts', '**/*.spec.ts'],
-    rules: {
+      'no-magic-numbers': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
-      'no-console': 'off',
     },
   },
-
-  // Global ignores
+  
+  
   {
-    ignores: ['node_modules/**', 'dist/**', 'coverage/**', 'html/**', '*.min.js', '*.bundle.js'],
-  },
-
-  // Prettier integration (must be last)
-  prettier,
-];
+    // 除外するファイル/ディレクトリ
+    ignores: [
+      'dist/**',
+      'html/**',
+      'node_modules/**',
+      'coverage/**',
+      'tests/**',
+      '*.config.js',
+      '*.config.ts',
+      'test-number-formatting.js',
+    ],
+  }
+);
