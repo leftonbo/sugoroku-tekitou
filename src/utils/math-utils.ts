@@ -37,12 +37,103 @@ export function formatNumberWithType(num: number, formatType: NumberFormatType):
     }
 }
 
+// 日本語数詞の定義（八十華厳の数詞を含む）
+interface JapaneseUnit {
+    readonly threshold: number;
+    readonly divisor: number;
+    readonly name: string;
+}
+
+const JAPANESE_UNITS: readonly JapaneseUnit[] = [
+    { threshold: 1e4, divisor: 1e4, name: '万' },
+    { threshold: 1e8, divisor: 1e8, name: '億' },
+    { threshold: 1e12, divisor: 1e12, name: '兆' },
+    { threshold: 1e16, divisor: 1e16, name: '京' },
+    { threshold: 1e20, divisor: 1e20, name: '垓' },
+    { threshold: 1e24, divisor: 1e24, name: '秭' },
+    { threshold: 1e28, divisor: 1e28, name: '穣' },
+    { threshold: 1e32, divisor: 1e32, name: '溝' },
+    { threshold: 1e36, divisor: 1e36, name: '澗' },
+    { threshold: 1e40, divisor: 1e40, name: '正' },
+    { threshold: 1e44, divisor: 1e44, name: '載' },
+    { threshold: 1e48, divisor: 1e48, name: '極' },
+    { threshold: 1e52, divisor: 1e52, name: '恒河沙' },
+    { threshold: 1e56, divisor: 1e56, name: '阿僧祇' },
+    { threshold: 1e60, divisor: 1e60, name: '那由他' },
+    { threshold: 1e64, divisor: 1e64, name: '不可思議' },
+    { threshold: 1e68, divisor: 1e68, name: '無量大数' },
+    // 一般的な数詞はここまで
+    // 以降はAIが出してくれた謎の数詞をそのまま使用 (TODO: なんとかする)
+    { threshold: 1e72, divisor: 1e72, name: '頻波羅' },
+    { threshold: 1e76, divisor: 1e76, name: '矜羯羅' },
+    { threshold: 1e80, divisor: 1e80, name: '阿伽羅' },
+    { threshold: 1e84, divisor: 1e84, name: '最勝' },
+    { threshold: 1e88, divisor: 1e88, name: '摩婆羅' },
+    { threshold: 1e92, divisor: 1e92, name: '婆嚕吒' },
+    { threshold: 1e96, divisor: 1e96, name: '伽羅毘' },
+    { threshold: 1e100, divisor: 1e100, name: '鉢羅麼怛羅' },
+    { threshold: 1e104, divisor: 1e104, name: '薩陀夜' },
+    { threshold: 1e108, divisor: 1e108, name: '尸婆歩雲' },
+    { threshold: 1e112, divisor: 1e112, name: '薄佉羅' },
+    { threshold: 1e116, divisor: 1e116, name: '跋嚕那' },
+    { threshold: 1e120, divisor: 1e120, name: '娑伽羅龍王' },
+    { threshold: 1e124, divisor: 1e124, name: '阿波波' },
+    { threshold: 1e128, divisor: 1e128, name: '嚴浮' },
+    { threshold: 1e132, divisor: 1e132, name: '掘蒲' },
+    { threshold: 1e136, divisor: 1e136, name: '鍮波羅' },
+    { threshold: 1e140, divisor: 1e140, name: '驢分那' },
+    { threshold: 1e144, divisor: 1e144, name: '質多羅' },
+    { threshold: 1e148, divisor: 1e148, name: '阿波羅' },
+    { threshold: 1e152, divisor: 1e152, name: '界分' },
+    { threshold: 1e156, divisor: 1e156, name: '普摩' },
+    { threshold: 1e160, divisor: 1e160, name: '祇婆羅' },
+    { threshold: 1e164, divisor: 1e164, name: '毘伽婆' },
+    { threshold: 1e168, divisor: 1e168, name: '嗢蹭伽' },
+    { threshold: 1e172, divisor: 1e172, name: '娑攞荼' },
+    { threshold: 1e176, divisor: 1e176, name: '謎嚧陀' },
+    { threshold: 1e180, divisor: 1e180, name: '者麼' },
+    { threshold: 1e184, divisor: 1e184, name: '驢波' },
+    { threshold: 1e188, divisor: 1e188, name: '伽攞麼' },
+    { threshold: 1e192, divisor: 1e192, name: '調伏' },
+    { threshold: 1e196, divisor: 1e196, name: '離畔' },
+    { threshold: 1e200, divisor: 1e200, name: '印' },
+    { threshold: 1e204, divisor: 1e204, name: '世間' },
+    { threshold: 1e208, divisor: 1e208, name: '毘盧遮那' },
+    { threshold: 1e212, divisor: 1e212, name: '皤伽婆' },
+    { threshold: 1e216, divisor: 1e216, name: '僧伽胝' },
+    { threshold: 1e220, divisor: 1e220, name: '趣' },
+    { threshold: 1e224, divisor: 1e224, name: '至' },
+    { threshold: 1e228, divisor: 1e228, name: '阿僧祇品' },
+    { threshold: 1e232, divisor: 1e232, name: '歩' },
+    { threshold: 1e236, divisor: 1e236, name: '路' },
+    { threshold: 1e240, divisor: 1e240, name: '由旬' },
+    { threshold: 1e244, divisor: 1e244, name: '俱胝' },
+    { threshold: 1e248, divisor: 1e248, name: '阿庾多' },
+    { threshold: 1e252, divisor: 1e252, name: '那由他轉' },
+    { threshold: 1e256, divisor: 1e256, name: '鉢羅慕陀' },
+    { threshold: 1e260, divisor: 1e260, name: '矜羯羅轉' },
+    { threshold: 1e264, divisor: 1e264, name: '普賢行' },
+    { threshold: 1e268, divisor: 1e268, name: '妙覺' },
+    { threshold: 1e272, divisor: 1e272, name: '白蓮華' },
+    { threshold: 1e276, divisor: 1e276, name: '微塵' },
+    { threshold: 1e280, divisor: 1e280, name: '怛羅歩' },
+    { threshold: 1e284, divisor: 1e284, name: '善覺' },
+    { threshold: 1e288, divisor: 1e288, name: '一持' },
+    { threshold: 1e292, divisor: 1e292, name: '異路' },
+    { threshold: 1e296, divisor: 1e296, name: '十方' },
+    { threshold: 1e300, divisor: 1e300, name: '無邊' },
+    { threshold: 1e304, divisor: 1e304, name: '法界' },
+    { threshold: 1e308, divisor: 1e308, name: '不可説不可説' }
+];
+
 /**
  * 与えられた数値を日本語の命数法（万、億、兆、...）でフォーマットして文字列として返します。
+ * 八十華厳の数詞を含み、e308（JavaScript の Number.MAX_VALUE）まで対応しています。
  * 
  * - 1 万未満の場合はそのまま整数値を返します。
  * - 1 万以上の場合は適切な単位を付与し、小数点 1 桁で表現します。
  * - 負の値の場合は先頭に「-」が付きます。
+ * - e308を超える場合は科学的記数法で返します。
  * 
  * @param num フォーマットする数値
  * @returns 日本語の命数法でフォーマットされた文字列
@@ -53,41 +144,23 @@ function formatNumberJapanese(num: number): string {
     
     if (absNum < 10000) {
         return sign + Math.floor(absNum).toString();
-    } else if (absNum < 100000000) { // 1億未満
-        return sign + (absNum / 10000).toFixed(1) + '万';
-    } else if (absNum < 1000000000000) { // 1兆未満
-        return sign + (absNum / 100000000).toFixed(1) + '億';
-    } else if (absNum < 10000000000000000) { // 1京未満
-        return sign + (absNum / 1000000000000).toFixed(1) + '兆';
-    } else if (absNum < 1e20) { // 1垓未満
-        return sign + (absNum / 1e16).toFixed(1) + '京';
-    } else if (absNum < 1e24) { // 1秭未満
-        return sign + (absNum / 1e20).toFixed(1) + '垓';
-    } else if (absNum < 1e28) { // 1穣未満
-        return sign + (absNum / 1e24).toFixed(1) + '秭';
-    } else if (absNum < 1e32) { // 1溝未満
-        return sign + (absNum / 1e28).toFixed(1) + '穣';
-    } else if (absNum < 1e36) { // 1澗未満
-        return sign + (absNum / 1e32).toFixed(1) + '溝';
-    } else if (absNum < 1e40) { // 1正未満
-        return sign + (absNum / 1e36).toFixed(1) + '澗';
-    } else if (absNum < 1e44) { // 1載未満
-        return sign + (absNum / 1e40).toFixed(1) + '正';
-    } else if (absNum < 1e48) { // 1極未満
-        return sign + (absNum / 1e44).toFixed(1) + '載';
-    } else if (absNum < 1e52) { // 1恒河沙未満
-        return sign + (absNum / 1e48).toFixed(1) + '極';
-    } else if (absNum < 1e56) { // 1阿僧祇未満
-        return sign + (absNum / 1e52).toFixed(1) + '恒河沙';
-    } else if (absNum < 1e60) { // 1那由他未満
-        return sign + (absNum / 1e56).toFixed(1) + '阿僧祇';
-    } else if (absNum < 1e64) { // 1不可思議未満
-        return sign + (absNum / 1e60).toFixed(1) + '那由他';
-    } else if (absNum < 1e68) { // 1無量大数未満
-        return sign + (absNum / 1e64).toFixed(1) + '不可思議';
-    } else {
-        return sign + (absNum / 1e68).toFixed(1) + '無量大数';
     }
+    
+    // e308を超える場合は科学的記数法にフォールバック
+    if (absNum > Number.MAX_VALUE) {
+        return formatNumberScientific(num);
+    }
+    
+    // 配列を逆順（大きい単位から）で検索
+    for (let i = JAPANESE_UNITS.length - 1; i >= 0; i--) {
+        const unit = JAPANESE_UNITS[i];
+        if (unit && absNum >= unit.threshold) {
+            return sign + (absNum / unit.divisor).toFixed(1) + unit.name;
+        }
+    }
+    
+    // ここに到達することはないが、安全のため
+    return sign + Math.floor(absNum).toString();
 }
 
 // 英語略式命数法の配列定義（AAS方式）
