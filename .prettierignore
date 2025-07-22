@@ -1,0 +1,27 @@
+# Build outputs
+dist/
+coverage/
+html/
+
+# Dependencies
+node_modules/
+
+# Generated files
+*.min.js
+*.bundle.js
+
+# Log files
+*.log
+npm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp

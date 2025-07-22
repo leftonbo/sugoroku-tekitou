@@ -8,19 +8,18 @@
  * 自動ダイスの基本設定を管理します。
  */
 export interface DiceConfig {
-    faces: number;
-    baseInterval: number;
-    emoji: string;
+  faces: number;
+  baseInterval: number;
+  emoji: string;
 }
-
 
 /**
  * 手動ダイス設定の型定義
  * プレイヤーが手動で振るダイスの設定を管理します。
  */
 export interface ManualDiceConfig {
-    BASE_UPGRADE_COST: number;
-    BASE_FACES: number;
+  BASE_UPGRADE_COST: number;
+  BASE_FACES: number;
 }
 
 /**
@@ -28,14 +27,14 @@ export interface ManualDiceConfig {
  * すごろく盤面の基本設定と、各種マス目の定義を管理します。
  */
 export interface BoardConfig {
-    TOTAL_CELLS: number;
-    CELL_TYPES: {
-        EMPTY: 'empty';
-        CREDIT: 'credit';
-        FORWARD: 'forward';
-        BACKWARD: 'backward';
-        CREDIT_BONUS: 'credit_bonus';
-    };
+  TOTAL_CELLS: number;
+  CELL_TYPES: {
+    EMPTY: 'empty';
+    CREDIT: 'credit';
+    FORWARD: 'forward';
+    BACKWARD: 'backward';
+    CREDIT_BONUS: 'credit_bonus';
+  };
 }
 
 /**
@@ -43,10 +42,10 @@ export interface BoardConfig {
  * 盤面生成時の各種マス目の出現確率を管理します。
  */
 export interface CellProbability {
-    CREDIT_RATIO: number;
-    FORWARD_RATIO: number;
-    BACKWARD_BASE_RATIO: number;
-    BACKWARD_MAX_RATIO: number;
+  CREDIT_RATIO: number;
+  FORWARD_RATIO: number;
+  BACKWARD_BASE_RATIO: number;
+  BACKWARD_MAX_RATIO: number;
 }
 
 /**
@@ -54,10 +53,10 @@ export interface CellProbability {
  * ゲーム全体の動作に関する基本設定を管理します。
  */
 export interface GameConfig {
-    TICK_RATE: number;
-    SAVE_INTERVAL: number;
-    MAX_SPEED_MULTIPLIER: number;
-    MAX_BACKWARD_STEPS: number;
+  TICK_RATE: number;
+  SAVE_INTERVAL: number;
+  MAX_SPEED_MULTIPLIER: number;
+  MAX_BACKWARD_STEPS: number;
 }
 
 /**
@@ -65,11 +64,11 @@ export interface GameConfig {
  * レベル10以降の90-99マス目に配置される固定戻るマスの設定を管理します。
  */
 export interface FixedBackwardConfig {
-    START_LEVEL: number;
-    AREA_START: number;
-    AREA_END: number;
-    MAX_COUNT: number;
-    LEVEL_INCREMENT: number;
+  START_LEVEL: number;
+  AREA_START: number;
+  AREA_END: number;
+  MAX_COUNT: number;
+  LEVEL_INCREMENT: number;
 }
 
 /**
@@ -77,12 +76,12 @@ export interface FixedBackwardConfig {
  * クレジットマスでの獲得クレジット量の計算に使用される設定を管理します。
  */
 export interface CreditConfig {
-    BASE_AMOUNT: number;                    // 基礎クレジット量
-    LEVEL_SCALING_BASE: number;             // レベルスケーリングの基数 (1000.0)
-    LEVEL_SCALING_DIVISOR: number;          // レベルスケーリングの除数 (100.0)
-    POSITION_BONUS_DIVISOR: number;         // 位置ボーナスの除数 (100.0)
-    RANDOM_RANGE: number;                   // ランダムボーナスの範囲 (0.4)
-    RANDOM_MIN: number;                     // ランダムボーナスの最小値 (0.8)
+  BASE_AMOUNT: number; // 基礎クレジット量
+  LEVEL_SCALING_BASE: number; // レベルスケーリングの基数 (1000.0)
+  LEVEL_SCALING_DIVISOR: number; // レベルスケーリングの除数 (100.0)
+  POSITION_BONUS_DIVISOR: number; // 位置ボーナスの除数 (100.0)
+  RANDOM_RANGE: number; // ランダムボーナスの範囲 (0.4)
+  RANDOM_MIN: number; // ランダムボーナスの最小値 (0.8)
 }
 
 /**
@@ -90,9 +89,9 @@ export interface CreditConfig {
  * ユーザーインターフェースのアニメーション設定を管理します。
  */
 export interface UIConfig {
-    ANIMATION_DURATION: number;
-    DICE_ANIMATION_DURATION: number;
-    GLOW_EFFECT_DURATION: number;
+  ANIMATION_DURATION: number;
+  DICE_ANIMATION_DURATION: number;
+  GLOW_EFFECT_DURATION: number;
 }
 
 /**
@@ -100,10 +99,10 @@ export interface UIConfig {
  * 転生システムとプレステージポイントの計算設定を管理します。
  */
 export interface PrestigeConfig {
-    START_LEVEL: number;
-    BASE_POINTS: number;
-    SCALING_BASE: number;                   // スケーリングの基数 (2)
-    SCALING_LEVEL_DIVISOR: number;          // スケーリングレベルの除数 (50.0)
+  START_LEVEL: number;
+  BASE_POINTS: number;
+  SCALING_BASE: number; // スケーリングの基数 (2)
+  SCALING_LEVEL_DIVISOR: number; // スケーリングレベルの除数 (50.0)
 }
 
 /**
@@ -111,10 +110,10 @@ export interface PrestigeConfig {
  * 高レベルでの負荷効果による難易度調整設定を管理します。
  */
 export interface BurdenConfig {
-    START_LEVEL: number;              // 負荷システム開始レベル
-    LEVEL_INTERVAL: number;           // 負荷レベル上昇の間隔
-    MAX_INDIVIDUAL_REDUCTION: number; // 個別ダイス減少の最大値
-    HALVING_INTERVAL: number;         // 総計半減の間隔
+  START_LEVEL: number; // 負荷システム開始レベル
+  LEVEL_INTERVAL: number; // 負荷レベル上昇の間隔
+  MAX_INDIVIDUAL_REDUCTION: number; // 個別ダイス減少の最大値
+  HALVING_INTERVAL: number; // 総計半減の間隔
 }
 
 /**
@@ -122,15 +121,15 @@ export interface BurdenConfig {
  * 自動ダイスのレベルアップとアセンションに関する設定を管理します。
  */
 export interface AutoDiceLevelConfig {
-    MAX_LEVEL_BASE: number;
-    ASCENSION_LEVEL_INCREMENT: number;
-    ASCENSION_COST_MULTIPLIER: number;
-    SPEED_MULTIPLIER_MAX: number;
-    DICE_COUNT_BASE: number;
-    DICE_COUNT_MULTIPLIER: number;
-    LEVEL_COST_BASE: number;
-    LEVEL_COST_MULTIPLIER: number;
-    ASCENSION_COST_BASE_MULTIPLIER: number;
+  MAX_LEVEL_BASE: number;
+  ASCENSION_LEVEL_INCREMENT: number;
+  ASCENSION_COST_MULTIPLIER: number;
+  SPEED_MULTIPLIER_MAX: number;
+  DICE_COUNT_BASE: number;
+  DICE_COUNT_MULTIPLIER: number;
+  LEVEL_COST_BASE: number;
+  LEVEL_COST_MULTIPLIER: number;
+  ASCENSION_COST_BASE_MULTIPLIER: number;
 }
 
 /**
@@ -138,7 +137,7 @@ export interface AutoDiceLevelConfig {
  * ローカルストレージに使用されるキー名の設定を管理します。
  */
 export interface StorageKeys {
-    GAME_STATE: string;
+  GAME_STATE: string;
 }
 
 /**
@@ -146,8 +145,7 @@ export interface StorageKeys {
  * レベルごとの負荷効果の具体的な内容を管理します。
  */
 export interface BurdenEffect {
-    level: number;
-    description: string;
-    diceModifier: number;  // ダイス結果に対する乗数
+  level: number;
+  description: string;
+  diceModifier: number; // ダイス結果に対する乗数
 }
-

@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import {
   formatNumber,
   formatNumberWithType,
@@ -20,7 +21,7 @@ import {
   calculateDiceCountFromAscension,
   calculateBulkLevelUpCost,
   calculateMaxPurchasableCount,
-  calculateMaxPurchasableCountNoAscension
+  calculateMaxPurchasableCountNoAscension,
 } from '@/utils/math-utils';
 
 describe('formatNumber (deprecated)', () => {
@@ -91,12 +92,12 @@ describe('formatNumberEnglish', () => {
     const result36 = formatNumberEnglish(1e36);
     const result39 = formatNumberEnglish(1e39);
     const result42 = formatNumberEnglish(1e42);
-    
+
     // 最低限、数値部分と何らかの略記が含まれることを確認
     expect(result36).toMatch(/^1\.0/);
     expect(result39).toMatch(/^1\.0/);
     expect(result42).toMatch(/^1\.0/);
-    
+
     // 異なる値から異なる結果が得られることを確認
     expect(result36).not.toBe(result39);
     expect(result39).not.toBe(result42);
@@ -140,12 +141,12 @@ describe('generateAbbreviation', () => {
     const result36 = generateAbbreviation(36);
     const result39 = generateAbbreviation(39);
     const result42 = generateAbbreviation(42);
-    
+
     // 最低限、何らかの文字列が返されることを確認
     expect(typeof result36).toBe('string');
     expect(typeof result39).toBe('string');
     expect(typeof result42).toBe('string');
-    
+
     // 異なる指数から異なる結果が得られることを確認
     expect(result36).not.toBe(result39);
     expect(result39).not.toBe(result42);
@@ -160,7 +161,7 @@ describe('generateAbbreviation', () => {
   it('高次の指数でも適切に処理する', () => {
     const result300 = generateAbbreviation(300);
     const result1000 = generateAbbreviation(1000);
-    
+
     expect(typeof result300).toBe('string');
     expect(typeof result1000).toBe('string');
     expect(result300.length).toBeGreaterThan(0);
@@ -187,7 +188,7 @@ describe('getBoardSeed', () => {
     const seed1 = getBoardSeed(1, 1);
     const seed2 = getBoardSeed(1, 2);
     const seed3 = getBoardSeed(2, 1);
-    
+
     expect(seed1).not.toBe(seed2);
     expect(seed1).not.toBe(seed3);
     expect(seed2).not.toBe(seed3);
@@ -395,7 +396,16 @@ describe('calculateMaxPurchasableCount', () => {
   });
 
   it('無限ループ防止機能が働く', () => {
-    const maxCount = calculateMaxPurchasableCount(0, 1, 0, Number.MAX_SAFE_INTEGER, 100, 1.3, 6, 10);
+    const maxCount = calculateMaxPurchasableCount(
+      0,
+      1,
+      0,
+      Number.MAX_SAFE_INTEGER,
+      100,
+      1.3,
+      6,
+      10
+    );
     expect(maxCount).toBeLessThanOrEqual(1000);
   });
 });
@@ -408,7 +418,15 @@ describe('calculateMaxPurchasableCountNoAscension', () => {
   });
 
   it('最大レベルに到達すると停止', () => {
-    const maxCount = calculateMaxPurchasableCountNoAscension(0, 19, 0, Number.MAX_SAFE_INTEGER, 100, 1.3, 6);
+    const maxCount = calculateMaxPurchasableCountNoAscension(
+      0,
+      19,
+      0,
+      Number.MAX_SAFE_INTEGER,
+      100,
+      1.3,
+      6
+    );
     expect(maxCount).toBe(1); // レベル20が最大なので1回だけ
   });
 
@@ -431,7 +449,7 @@ describe('エラーハンドリング', () => {
   it('generateAbbreviationが無効な値で適切にフォールバック', () => {
     const result1 = generateAbbreviation(-5);
     const result2 = generateAbbreviation(Infinity);
-    
+
     expect(result1).toMatch(/^e-5$/);
     expect(result2).toMatch(/^eInfinity$/);
   });
@@ -451,7 +469,7 @@ describe('後方互換性テスト', () => {
       { input: 1e24, expected: '1.0Sp' },
       { input: 1e27, expected: '1.0Oc' },
       { input: 1e30, expected: '1.0No' },
-      { input: 1e33, expected: '1.0Dc' }
+      { input: 1e33, expected: '1.0Dc' },
     ];
 
     testCases.forEach(({ input, expected }) => {
@@ -464,12 +482,12 @@ describe('後方互換性テスト', () => {
     const result36 = formatNumberEnglish(1e36);
     const result39 = formatNumberEnglish(1e39);
     const result42 = formatNumberEnglish(1e42);
-    
+
     // 最低限、数値部分が含まれることを確認
     expect(result36).toMatch(/^1\.0/);
     expect(result39).toMatch(/^1\.0/);
     expect(result42).toMatch(/^1\.0/);
-    
+
     // 異なる値から異なる結果が得られることを確認
     expect(result36).not.toBe(result39);
     expect(result39).not.toBe(result42);
@@ -479,32 +497,32 @@ describe('後方互換性テスト', () => {
 describe('パフォーマンステスト', () => {
   it('大量の数値フォーマット処理が適切な時間で完了する', () => {
     const startTime = performance.now();
-    
+
     for (let i = 0; i < 1000; i++) {
       formatNumberEnglish(Math.pow(10, i % 100));
     }
-    
+
     const endTime = performance.now();
     const duration = endTime - startTime;
-    
+
     expect(duration).toBeLessThan(1000); // 1秒以内
   });
 
   it('略記生成のキャッシュが効果を発揮する', () => {
     const testExponent = 45;
-    
+
     // 初回生成
     const startTime1 = performance.now();
     generateAbbreviation(testExponent);
     const endTime1 = performance.now();
     const firstDuration = endTime1 - startTime1;
-    
+
     // キャッシュからの取得
     const startTime2 = performance.now();
     generateAbbreviation(testExponent);
     const endTime2 = performance.now();
     const cachedDuration = endTime2 - startTime2;
-    
+
     expect(cachedDuration).toBeLessThanOrEqual(firstDuration);
   });
 });

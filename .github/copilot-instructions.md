@@ -9,12 +9,14 @@ TypeScriptベースのブラウザゲームで、プレイヤーはサイコロ�
 ## コーディング規約
 
 ### 言語とスタイル
+
 - **TypeScript**: ES6+ Modules使用
 - **日本語コメント**: すべてのコメントは日本語で記述
 - **型安全性**: 厳密な型定義、null安全性を重視
 - **関数型プログラミング**: 可能な限り純粋関数を使用
 
 ### 命名規則
+
 - **関数**: camelCase
 - **クラス**: PascalCase
 - **定数**: UPPER_SNAKE_CASE
@@ -22,6 +24,7 @@ TypeScriptベースのブラウザゲームで、プレイヤーはサイコロ�
 - **型**: PascalCase (interface/type)
 
 ### アーキテクチャ
+
 - **モジュラー設計**: 関心の分離を重視
 - **システム分割**: Core/Systems/Data/UI/Utils層に分離
 - **部分更新**: DOM操作は最小限に、既存要素の更新を優先
@@ -41,21 +44,25 @@ src/
 ## 重要なシステム
 
 ### XorShift128乱数システム
+
 - 高品質疑似乱数生成器を使用
 - 独立したシードで異なる乱数ストリームを管理
 - `src/utils/xorshift-random.ts`を参照
 
 ### 累積コストシステム
+
 - アセンション累積投資を考慮した価格計算
 - `calculateCumulativeCost()`関数を使用
 
 ### ボーナスマスシステム
+
 - 1%確率でボーナスクレジットマス生成
 - 状態管理と差分保存による効率化
 
 ## コード生成時の注意点
 
 ### 型定義
+
 ```typescript
 // 良い例: 明確な型定義
 interface DiceConfig {
@@ -69,6 +76,7 @@ let config: any = { ... };
 ```
 
 ### null安全性
+
 ```typescript
 // 良い例: optional chaining
 const value = gameState.autoDice?.[index]?.level ?? 0;
@@ -78,6 +86,7 @@ const value = gameState.autoDice[index].level;
 ```
 
 ### UI更新
+
 ```typescript
 // 良い例: 部分更新
 updateExistingAutoDice();
@@ -87,6 +96,7 @@ regenerateAllUI();
 ```
 
 ### 乱数生成
+
 ```typescript
 // 良い例: XorShift128使用
 const random = gameRng.next();

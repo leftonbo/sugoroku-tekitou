@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
+
 import {
   DICE_CONFIGS,
   UPGRADE_MULTIPLIERS,
@@ -18,7 +19,7 @@ import {
   PRESTIGE_CONFIG,
   BURDEN_CONFIG,
   AUTO_DICE_LEVEL_CONFIG,
-  STORAGE_KEYS
+  STORAGE_KEYS,
 } from '@/utils/constants';
 
 describe('DICE_CONFIGS', () => {
@@ -31,14 +32,14 @@ describe('DICE_CONFIGS', () => {
       expect(config).toHaveProperty('faces');
       expect(config).toHaveProperty('baseInterval');
       expect(config).toHaveProperty('emoji');
-      
+
       // 面数は正の整数
       expect(config.faces).toBeGreaterThan(0);
       expect(Number.isInteger(config.faces)).toBe(true);
-      
+
       // 基本間隔は正数
       expect(config.baseInterval).toBeGreaterThan(0);
-      
+
       // 絵文字は空文字ではない
       expect(config.emoji.length).toBeGreaterThan(0);
     });
@@ -77,7 +78,7 @@ describe('UPGRADE_MULTIPLIERS', () => {
     // TypeScriptの`as const`による読み取り専用プロパティをテスト
     // 実行時には制限されないが、型レベルでは読み取り専用
     expect(UPGRADE_MULTIPLIERS).toHaveProperty('MANUAL_DICE');
-    
+
     // 実際のオブジェクトは変更可能だが、型で保護されている
     const originalValue = UPGRADE_MULTIPLIERS.MANUAL_DICE;
     expect(originalValue).toBe(36.0);
@@ -142,15 +143,17 @@ describe('CELL_PROBABILITY', () => {
   });
 
   it('基本確率の合計が妥当である', () => {
-    const baseSum = CELL_PROBABILITY.CREDIT_RATIO + 
-                   CELL_PROBABILITY.FORWARD_RATIO + 
-                   CELL_PROBABILITY.BACKWARD_BASE_RATIO;
+    const baseSum =
+      CELL_PROBABILITY.CREDIT_RATIO +
+      CELL_PROBABILITY.FORWARD_RATIO +
+      CELL_PROBABILITY.BACKWARD_BASE_RATIO;
     expect(baseSum).toBeLessThanOrEqual(1);
   });
 
   it('戻るマス最大確率が基本確率以上である', () => {
-    expect(CELL_PROBABILITY.BACKWARD_MAX_RATIO)
-      .toBeGreaterThanOrEqual(CELL_PROBABILITY.BACKWARD_BASE_RATIO);
+    expect(CELL_PROBABILITY.BACKWARD_MAX_RATIO).toBeGreaterThanOrEqual(
+      CELL_PROBABILITY.BACKWARD_BASE_RATIO
+    );
   });
 });
 
@@ -228,7 +231,7 @@ describe('UI_CONFIG', () => {
     expect(UI_CONFIG.ANIMATION_DURATION).toBeGreaterThan(0);
     expect(UI_CONFIG.DICE_ANIMATION_DURATION).toBeGreaterThan(0);
     expect(UI_CONFIG.GLOW_EFFECT_DURATION).toBeGreaterThan(0);
-    
+
     // 妥当な範囲内（10秒以下）
     expect(UI_CONFIG.ANIMATION_DURATION).toBeLessThan(10000);
     expect(UI_CONFIG.DICE_ANIMATION_DURATION).toBeLessThan(10000);
@@ -297,10 +300,10 @@ describe('統合テスト', () => {
   it('設定値の相互関係が妥当である', () => {
     // プレステージ開始レベルが負荷開始レベル未満
     expect(PRESTIGE_CONFIG.START_LEVEL).toBeLessThan(BURDEN_CONFIG.START_LEVEL);
-    
+
     // 固定戻るマス開始レベルがプレステージ開始レベル未満
     expect(FIXED_BACKWARD_CONFIG.START_LEVEL).toBeLessThan(PRESTIGE_CONFIG.START_LEVEL);
-    
+
     // セーブ間隔がティックレートより大きい
     expect(GAME_CONFIG.SAVE_INTERVAL).toBeGreaterThan(GAME_CONFIG.TICK_RATE);
   });

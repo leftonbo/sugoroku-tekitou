@@ -2,888 +2,955 @@
 
 /* 全体的なスタイル */
 body {
-    background-color: #f8f9fa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* ゲームボードのスタイル */
 .game-board {
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    gap: 2px;
-    padding: 10px;
-    background-color: #ffffff;
-    border: 2px solid #dee2e6;
-    border-radius: 8px;
-    max-height: 700px;
-    overflow-y: auto;
-    overflow-x: hidden;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 2px;
+  padding: 10px;
+  background-color: #ffffff;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  max-height: 700px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* マス目のスタイル */
 .board-cell {
-    aspect-ratio: 1.5;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: #e9ecef;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden; /* パーティクルによるレイアウト崩れを防ぐ */
+  aspect-ratio: 1.5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #e9ecef;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden; /* パーティクルによるレイアウト崩れを防ぐ */
 }
 
 /* マス目の種類別スタイル */
 .board-cell.normal {
-    background-color: #e9ecef;
+  background-color: #e9ecef;
 }
 
 .board-cell.credit {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
 }
 
 .board-cell.bonus-credit {
-    background-color: #fff3cd;
-    border-color: #ffc107;
-    animation: bonusGlow 2s ease-in-out infinite;
+  background-color: #fff3cd;
+  border-color: #ffc107;
+  animation: bonusGlow 2s ease-in-out infinite;
 }
 
 .board-cell.special {
-    background-color: #fff3cd;
-    border-color: #ffeaa7;
+  background-color: #fff3cd;
+  border-color: #ffeaa7;
 }
 
 .board-cell.forward {
-    background-color: #cfe2ff;
-    border-color: #9ec5fe;
+  background-color: #cfe2ff;
+  border-color: #9ec5fe;
 }
 
 .board-cell.backward {
-    background-color: #f8d7da;
-    border-color: #f1aeb5;
+  background-color: #f8d7da;
+  border-color: #f1aeb5;
 }
 
 /* プレイヤーの位置 */
 .board-cell.player-position {
-    background-color: #0d6efd !important;
-    color: white;
-    transform: scale(1.1);
-    z-index: 10;
-    box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+  background-color: #0d6efd !important;
+  color: white;
+  transform: scale(1.1);
+  z-index: 10;
+  box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
 }
 
 /* プレイヤーアイコン */
 .player-icon {
-    font-size: 16px;
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background-color: #0d6efd;
-    color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    z-index: 11;
+  font-size: 16px;
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #0d6efd;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  z-index: 11;
 }
 
 /* マス目番号 */
 .cell-number {
-    font-size: 10px;
-    color: #6c757d;
-    position: absolute;
-    top: 2px;
-    left: 2px;
+  font-size: 10px;
+  color: #6c757d;
+  position: absolute;
+  top: 2px;
+  left: 2px;
 }
 
 /* マス目の効果表示 */
 .cell-effect {
-    font-size: 10px;
-    color: #495057;
-    text-align: center;
+  font-size: 10px;
+  color: #495057;
+  text-align: center;
 }
 
 /* カードのスタイル調整 */
 .card {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: none;
-    border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 8px;
 }
 
 .card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
-    border-radius: 8px 8px 0 0 !important;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  border-radius: 8px 8px 0 0 !important;
 }
 
 /* アップグレードセクション */
 .upgrade-section {
-    padding: 10px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  margin-bottom: 10px;
 }
 
 .upgrade-item {
-    margin-bottom: 8px;
+  margin-bottom: 8px;
 }
 
 .upgrade-item button {
-    transition: all 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .upgrade-item button:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .upgrade-item button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* サイコロ結果の表示 */
 #dice-result {
-    color: #0d6efd;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-    animation: diceRoll 0.5s ease-in-out;
+  color: #0d6efd;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  animation: diceRoll 0.5s ease-in-out;
 }
 
 /* 手動ダイスローリング状態 */
 #manual-dice-result.rolling {
-    animation: diceRolling 0.6s ease-in-out infinite;
-    color: #6c757d;
-    font-size: 2rem;
+  animation: diceRolling 0.6s ease-in-out infinite;
+  color: #6c757d;
+  font-size: 2rem;
 }
 
 /* 結果品質別アニメーション */
 .result-excellent {
-    animation: excellentGlow 2s ease-in-out;
+  animation: excellentGlow 2s ease-in-out;
 }
 
 @keyframes excellentGlow {
-    0%, 100% { text-shadow: 0 0 5px gold; }
-    50% { text-shadow: 0 0 20px gold, 0 0 30px orange; }
+  0%,
+  100% {
+    text-shadow: 0 0 5px gold;
+  }
+  50% {
+    text-shadow:
+      0 0 20px gold,
+      0 0 30px orange;
+  }
 }
 
 .result-great {
-    animation: greatPulse 1.5s ease-in-out;
+  animation: greatPulse 1.5s ease-in-out;
 }
 
 @keyframes greatPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 /* サイコロアニメーション */
 @keyframes diceRoll {
-    0% { transform: scale(1) rotate(0deg); }
-    50% { transform: scale(1.2) rotate(180deg); }
-    100% { transform: scale(1) rotate(360deg); }
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
 }
 
 /* サイコロボタンのアニメーション */
 #roll-dice:active {
-    transform: scale(0.95);
+  transform: scale(0.95);
 }
 
 /* バッジのスタイル調整 */
 .badge {
-    font-size: 14px;
-    padding: 6px 12px;
+  font-size: 14px;
+  padding: 6px 12px;
 }
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
-    .game-board {
-        grid-template-columns: repeat(8, 1fr);
-        gap: 1px;
-        padding: 5px;
-    }
-    
-    .board-cell {
-        font-size: 10px;
-    }
-    
-    .cell-number {
-        font-size: 8px;
-    }
-    
-    .cell-effect {
-        font-size: 8px;
-    }
-    
-    .player-icon {
-        width: 16px;
-        height: 16px;
-        font-size: 8px;
-    }
+  .game-board {
+    grid-template-columns: repeat(8, 1fr);
+    gap: 1px;
+    padding: 5px;
+  }
+
+  .board-cell {
+    font-size: 10px;
+  }
+
+  .cell-number {
+    font-size: 8px;
+  }
+
+  .cell-effect {
+    font-size: 8px;
+  }
+
+  .player-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 8px;
+  }
 }
 
 @media (max-width: 576px) {
-    .game-board {
-        grid-template-columns: repeat(6, 1fr);
-    }
-    
-    .board-cell {
-        font-size: 9px;
-    }
-    
-    .display-4 {
-        font-size: 2rem;
-    }
+  .game-board {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .board-cell {
+    font-size: 9px;
+  }
+
+  .display-4 {
+    font-size: 2rem;
+  }
 }
 
 /* ホバー効果 */
 .board-cell:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* アップグレードボタンのアフォーダブル状態 */
 .btn-affordable {
-    box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
-    border-color: #28a745 !important;
+  box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
+  border-color: #28a745 !important;
 }
 
 .btn-affordable:hover {
-    box-shadow: 0 0 12px rgba(40, 167, 69, 0.6);
-    transform: translateY(-2px);
+  box-shadow: 0 0 12px rgba(40, 167, 69, 0.6);
+  transform: translateY(-2px);
 }
 
 /* アップグレード成功時のアニメーション */
 .upgrade-success {
-    animation: upgradeSuccess 0.8s ease-out;
+  animation: upgradeSuccess 0.8s ease-out;
 }
 
 @keyframes upgradeSuccess {
-    0% { transform: scale(1); background-color: inherit; }
-    50% { transform: scale(1.1); background-color: #28a745; color: white; }
-    100% { transform: scale(1); background-color: inherit; color: inherit; }
+  0% {
+    transform: scale(1);
+    background-color: inherit;
+  }
+  50% {
+    transform: scale(1.1);
+    background-color: #28a745;
+    color: white;
+  }
+  100% {
+    transform: scale(1);
+    background-color: inherit;
+    color: inherit;
+  }
 }
 
 /* アニメーション用クラス */
 .credit-gain {
-    animation: creditGain 0.8s ease-out;
+  animation: creditGain 0.8s ease-out;
 }
 
 @keyframes creditGain {
-    0% { 
-        transform: scale(1); 
-        background-color: inherit; 
-    }
-    50% { 
-        transform: scale(1.1); 
-        background-color: #28a745; 
-        color: white; 
-    }
-    100% { 
-        transform: scale(1); 
-        background-color: inherit; 
-        color: inherit; 
-    }
+  0% {
+    transform: scale(1);
+    background-color: inherit;
+  }
+  50% {
+    transform: scale(1.1);
+    background-color: #28a745;
+    color: white;
+  }
+  100% {
+    transform: scale(1);
+    background-color: inherit;
+    color: inherit;
+  }
 }
 
 /* クレジットボーナス獲得の特別アニメーション */
 .credit-bonus-effect {
-    animation: creditBonusGain 1.2s ease-out;
+  animation: creditBonusGain 1.2s ease-out;
 }
 
 @keyframes creditBonusGain {
-    0% { 
-        transform: scale(1); 
-        background-color: inherit; 
-        box-shadow: none;
-    }
-    25% { 
-        transform: scale(1.2); 
-        background-color: #ffc107; 
-        color: white;
-        box-shadow: 0 0 15px rgba(255, 193, 7, 0.7);
-    }
-    50% { 
-        transform: scale(1.3) rotate(5deg); 
-        background-color: #FFD700; 
-        color: #333;
-        box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
-    }
-    75% { 
-        transform: scale(1.2) rotate(-2deg); 
-        background-color: #ffc107; 
-        color: white;
-        box-shadow: 0 0 20px rgba(255, 193, 7, 0.6);
-    }
-    100% { 
-        transform: scale(1); 
-        background-color: inherit; 
-        color: inherit;
-        box-shadow: none;
-    }
+  0% {
+    transform: scale(1);
+    background-color: inherit;
+    box-shadow: none;
+  }
+  25% {
+    transform: scale(1.2);
+    background-color: #ffc107;
+    color: white;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.7);
+  }
+  50% {
+    transform: scale(1.3) rotate(5deg);
+    background-color: #ffd700;
+    color: #333;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+  }
+  75% {
+    transform: scale(1.2) rotate(-2deg);
+    background-color: #ffc107;
+    color: white;
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    background-color: inherit;
+    color: inherit;
+    box-shadow: none;
+  }
 }
 
 /* 進むマスの効果アニメーション */
 .forward-effect {
-    animation: forwardEffect 0.8s ease-out;
+  animation: forwardEffect 0.8s ease-out;
 }
 
 @keyframes forwardEffect {
-    0% { 
-        transform: scale(1); 
-        background-color: inherit; 
-    }
-    50% { 
-        transform: scale(1.2) rotateY(180deg); 
-        background-color: #0d6efd; 
-        color: white; 
-    }
-    100% { 
-        transform: scale(1); 
-        background-color: inherit; 
-        color: inherit; 
-    }
+  0% {
+    transform: scale(1);
+    background-color: inherit;
+  }
+  50% {
+    transform: scale(1.2) rotateY(180deg);
+    background-color: #0d6efd;
+    color: white;
+  }
+  100% {
+    transform: scale(1);
+    background-color: inherit;
+    color: inherit;
+  }
 }
 
 /* 戻るマスの効果アニメーション */
 .backward-effect {
-    animation: backwardEffect 0.8s ease-out;
+  animation: backwardEffect 0.8s ease-out;
 }
 
 @keyframes backwardEffect {
-    0% { 
-        transform: scale(1); 
-        background-color: inherit; 
-    }
-    50% { 
-        transform: scale(1.1) rotateX(180deg); 
-        background-color: #dc3545; 
-        color: white; 
-    }
-    100% { 
-        transform: scale(1); 
-        background-color: inherit; 
-        color: inherit; 
-    }
+  0% {
+    transform: scale(1);
+    background-color: inherit;
+  }
+  50% {
+    transform: scale(1.1) rotateX(180deg);
+    background-color: #dc3545;
+    color: white;
+  }
+  100% {
+    transform: scale(1);
+    background-color: inherit;
+    color: inherit;
+  }
 }
 
 /* 自動サイコロ時の視覚効果 */
 .auto-rolling #dice-result {
-    animation: pulse 1s infinite;
+  animation: pulse 1s infinite;
 }
 
 @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.7; }
-    100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 /* プレステージボタンのスタイル */
 #prestige-btn:not(:disabled) {
-    background: linear-gradient(45deg, #ffc107, #fd7e14);
-    border: none;
-    color: white;
-    font-weight: bold;
-    animation: prestigeGlow 3s ease-in-out infinite;
+  background: linear-gradient(45deg, #ffc107, #fd7e14);
+  border: none;
+  color: white;
+  font-weight: bold;
+  animation: prestigeGlow 3s ease-in-out infinite;
 }
 
 #prestige-btn:not(:disabled):hover {
-    background: linear-gradient(45deg, #fd7e14, #dc3545);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    animation: none;
+  background: linear-gradient(45deg, #fd7e14, #dc3545);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  animation: none;
 }
 
 @keyframes prestigeGlow {
-    0%, 100% { box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3); }
-    50% { box-shadow: 0 2px 4px rgba(255, 193, 7, 0.6), 0 0 12px rgba(255, 193, 7, 0.4); }
+  0%,
+  100% {
+    box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 2px 4px rgba(255, 193, 7, 0.6),
+      0 0 12px rgba(255, 193, 7, 0.4);
+  }
 }
 
 /* 自動ダイスパネルのスタイル */
 .auto-dice-panel {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6 !important;
-    transition: all 0.3s ease;
-    transform: translateY(0);
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6 !important;
+  transition: all 0.3s ease;
+  transform: translateY(0);
 }
 
 .auto-dice-panel:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 
 .auto-dice-panel.locked {
-    opacity: 0.6;
-    filter: grayscale(0.3);
+  opacity: 0.6;
+  filter: grayscale(0.3);
 }
 
 /* クールダウンゲージのスタイル */
 .cooldown-container {
-    background-color: #ffffff;
-    padding: 5px;
-    border-radius: 4px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  padding: 5px;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .progress {
-    background-color: #e9ecef;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  background-color: #e9ecef;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .progress-bar {
-    -webkit-transition: none;
-    -moz-transition: none;
-    -ms-transition: none;
-    -o-transition: none;
-    transition: none;
-    background: linear-gradient(45deg, #007bff, #0056b3);
-    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+  -webkit-transition: none;
+  -moz-transition: none;
+  -ms-transition: none;
+  -o-transition: none;
+  transition: none;
+  background: linear-gradient(45deg, #007bff, #0056b3);
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
 }
 
 /* 手動ダイス結果のスタイル */
 #manual-dice-result {
-    color: #0d6efd;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-    min-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  color: #0d6efd;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ダイスアップグレードボタンのスタイル */
 .auto-dice-panel .btn {
-    font-size: 11px;
-    padding: 4px 8px;
-    transition: all 0.2s ease;
+  font-size: 11px;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
 }
 
 .auto-dice-panel .btn:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .auto-dice-panel .btn:active {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 .auto-dice-panel h6 {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #495057;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #495057;
 }
 
 /* 解禁されたダイスのハイライト効果 */
 .auto-dice-panel.unlocked {
-    border-color: #28a745 !important;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e8f5e8 100%);
-    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
+  border-color: #28a745 !important;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e8f5e8 100%);
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
 }
 
 .auto-dice-panel.unlocked h6 {
-    color: #28a745;
-    text-shadow: 0 1px 2px rgba(40, 167, 69, 0.2);
+  color: #28a745;
+  text-shadow: 0 1px 2px rgba(40, 167, 69, 0.2);
 }
 
 /* Enhanced locked state visual feedback */
 .auto-dice-panel.locked {
-    opacity: 0.7;
-    filter: grayscale(0.4);
-    border-color: #6c757d !important;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  opacity: 0.7;
+  filter: grayscale(0.4);
+  border-color: #6c757d !important;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
 .auto-dice-panel.locked h6 {
-    color: #6c757d;
+  color: #6c757d;
 }
 
 /* Affordable upgrade button animation */
 .btn-ripple {
-    position: relative;
-    overflow: hidden;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-ripple:hover:not(:disabled) {
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-    transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  transform: translateY(-1px);
 }
 
 /* Pulse animation for affordable items */
 @keyframes affordablePulse {
-    0% { 
-        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
-        transform: scale(1);
-    }
-    50% { 
-        box-shadow: 0 0 0 8px rgba(40, 167, 69, 0);
-        transform: scale(1.02);
-    }
-    100% { 
-        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
-        transform: scale(1);
-    }
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(40, 167, 69, 0);
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+    transform: scale(1);
+  }
 }
 
 /* Enhanced status display */
 .auto-dice-panel .bg-light {
-    border: 1px solid #e9ecef;
-    transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
 }
 
 .auto-dice-panel.unlocked .bg-light {
-    background: linear-gradient(90deg, #f8f9fa 0%, #e8f5e8 100%) !important;
-    border-color: #c3e6cb;
+  background: linear-gradient(90deg, #f8f9fa 0%, #e8f5e8 100%) !important;
+  border-color: #c3e6cb;
 }
 
 /* Performance badges with glow effects */
 .badge.bg-success {
-    box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
-    animation: performanceGlow 3s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+  animation: performanceGlow 3s ease-in-out infinite;
 }
 
 .badge.bg-warning {
-    box-shadow: 0 0 6px rgba(255, 193, 7, 0.3);
+  box-shadow: 0 0 6px rgba(255, 193, 7, 0.3);
 }
 
 .badge.bg-secondary {
-    opacity: 0.8;
+  opacity: 0.8;
 }
 
 @keyframes performanceGlow {
-    0%, 100% { 
-        box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
-    }
-    50% { 
-        box-shadow: 0 0 12px rgba(40, 167, 69, 0.5);
-    }
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(40, 167, 69, 0.5);
+  }
 }
 
 /* ボーナスマスのグロー効果 */
 @keyframes bonusGlow {
-    0%, 100% { 
-        box-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
-        border-color: #ffc107;
-    }
-    50% { 
-        box-shadow: 0 0 16px rgba(255, 193, 7, 0.6);
-        border-color: #ffca2c;
-        background-color: #fffbf0;
-    }
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
+    border-color: #ffc107;
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(255, 193, 7, 0.6);
+    border-color: #ffca2c;
+    background-color: #fffbf0;
+  }
 }
 
 /* Enhanced cooldown progress bar */
 .progress-bar.bg-success {
-    background: linear-gradient(45deg, #28a745, #20c997) !important;
-    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
-    animation: readyPulse 1s ease-in-out infinite;
+  background: linear-gradient(45deg, #28a745, #20c997) !important;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+  animation: readyPulse 1s ease-in-out infinite;
 }
 
 @keyframes readyPulse {
-    0%, 100% { 
-        opacity: 1;
-    }
-    50% { 
-        opacity: 0.8;
-    }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }
 
 /* Enhanced button interactions */
 .auto-dice-panel .btn:not(:disabled):hover {
-    transform: translateY(-2px);
-    transition: all 0.2s ease;
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
 }
 
 .auto-dice-panel .btn:not(:disabled):active {
-    transform: translateY(0);
-    transition: all 0.1s ease;
+  transform: translateY(0);
+  transition: all 0.1s ease;
 }
 
 /* 手動ダイス結果のアニメーション強化 */
 #manual-dice-result.rolling {
-    animation: diceRolling 0.6s ease-in-out;
+  animation: diceRolling 0.6s ease-in-out;
 }
 
 @keyframes diceRolling {
-    0% { transform: scale(1) rotate(0deg); }
-    25% { transform: scale(1.1) rotate(90deg); }
-    50% { transform: scale(1.2) rotate(180deg); }
-    75% { transform: scale(1.1) rotate(270deg); }
-    100% { transform: scale(1) rotate(360deg); }
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(90deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(270deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
 }
 
 /* ダイスアイコン専用の回転アニメーション */
 @keyframes diceIconSpin {
-    0% { transform: rotate(0deg); }
-    25% { transform: rotate(90deg); }
-    50% { transform: rotate(180deg); }
-    75% { transform: rotate(270deg); }
-    100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(90deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  75% {
+    transform: rotate(270deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* ダイスアイコンのスタイル */
 .dice-icon {
-    display: inline-block;
-    font-size: 2rem;
-    animation: diceIconSpin 0.6s ease-in-out;
+  display: inline-block;
+  font-size: 2rem;
+  animation: diceIconSpin 0.6s ease-in-out;
 }
 
 .dice-icon.spinning {
-    animation: diceIconSpin 0.6s ease-in-out infinite;
+  animation: diceIconSpin 0.6s ease-in-out infinite;
 }
 
 /* ボタンのリップル効果（メインリップル） */
 .btn-ripple::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    transform: translate(-50%, -50%);
-    transition: width 0.4s, height 0.4s;
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.4s,
+    height 0.4s;
 }
 
 .btn-ripple:active::after {
-    width: 300px;
-    height: 300px;
+  width: 300px;
+  height: 300px;
 }
 
 /* デバッグパネルのスタイル */
 .debug-panel {
-    position: fixed;
-    bottom: 0;
-    right: 20px;
-    width: 600px;
-    max-width: 90vw;
-    background: rgba(255, 255, 255, 0.95);
-    border: 2px solid #6c757d;
-    border-radius: 8px 8px 0 0;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 1050;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    display: none; /* デフォルトで非表示 */
+  position: fixed;
+  bottom: 0;
+  right: 20px;
+  width: 600px;
+  max-width: 90vw;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #6c757d;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1050;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  display: none; /* デフォルトで非表示 */
 }
 
 /* デバッグモード時に表示 */
 body.debug-mode .debug-panel {
-    display: block;
+  display: block;
 }
 
 .debug-header {
-    background: #495057;
-    padding: 8px 12px;
-    border-radius: 6px 6px 0 0;
-    border-bottom: 1px solid #6c757d;
+  background: #495057;
+  padding: 8px 12px;
+  border-radius: 6px 6px 0 0;
+  border-bottom: 1px solid #6c757d;
 }
 
 .debug-content {
-    padding: 15px;
-    max-height: 400px;
-    overflow-y: auto;
+  padding: 15px;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .debug-status {
-    font-size: 11px;
-    line-height: 1.4;
-    min-height: 80px;
+  font-size: 11px;
+  line-height: 1.4;
+  min-height: 80px;
 }
 
 .debug-log {
-    height: 100px;
-    overflow-y: auto;
-    font-size: 10px;
-    line-height: 1.3;
-    white-space: pre-wrap;
-    word-break: break-all;
+  height: 100px;
+  overflow-y: auto;
+  font-size: 10px;
+  line-height: 1.3;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 /* デバッグボタンのスタイル調整 */
 .debug-panel .btn {
-    font-size: 11px;
-    padding: 4px 8px;
-    margin-bottom: 2px;
-    border-radius: 4px;
+  font-size: 11px;
+  padding: 4px 8px;
+  margin-bottom: 2px;
+  border-radius: 4px;
 }
 
 .debug-panel .btn-group-vertical .btn {
-    border-radius: 0;
+  border-radius: 0;
 }
 
 .debug-panel .btn-group-vertical .btn:first-child {
-    border-radius: 4px 4px 0 0;
+  border-radius: 4px 4px 0 0;
 }
 
 .debug-panel .btn-group-vertical .btn:last-child {
-    border-radius: 0 0 4px 4px;
+  border-radius: 0 0 4px 4px;
 }
 
 /* デバッグパネルのレスポンシブ対応 */
 @media (max-width: 768px) {
-    .debug-panel {
-        width: calc(100vw - 20px);
-        right: 10px;
-    }
-    
-    .debug-content {
-        padding: 10px;
-        max-height: 300px;
-    }
-    
-    .debug-log {
-        height: 60px;
-    }
+  .debug-panel {
+    width: calc(100vw - 20px);
+    right: 10px;
+  }
+
+  .debug-content {
+    padding: 10px;
+    max-height: 300px;
+  }
+
+  .debug-log {
+    height: 60px;
+  }
 }
 
 /* デバッグパネルのアニメーション */
 .debug-content {
-    transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 
 .debug-panel .btn {
-    transition: all 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .debug-panel .btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* デバッグログのスクロールバー */
 .debug-log::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 
 .debug-log::-webkit-scrollbar-track {
-    background: #2c3e50;
+  background: #2c3e50;
 }
 
 .debug-log::-webkit-scrollbar-thumb {
-    background: #7f8c8d;
-    border-radius: 3px;
+  background: #7f8c8d;
+  border-radius: 3px;
 }
 
 .debug-log::-webkit-scrollbar-thumb:hover {
-    background: #95a5a6;
+  background: #95a5a6;
 }
 
 /* ボーナスパーティクルのスタイル */
 .bonus-particle {
-    position: absolute;
-    pointer-events: none;
-    user-select: none;
-    white-space: nowrap;
-    font-size: 14px;
-    z-index: 1000;
-    will-change: transform, opacity;
-    /* レイアウト影響を最小限に抑制 */
-    max-width: none;
-    max-height: none;
-    width: auto;
-    height: auto;
-    margin: 0;
-    padding: 0;
-    border: none;
-    outline: none;
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  font-size: 14px;
+  z-index: 1000;
+  will-change: transform, opacity;
+  /* レイアウト影響を最小限に抑制 */
+  max-width: none;
+  max-height: none;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
 }
 
 /* インポート・エクスポート用スタイル */
 .import-drop-zone {
-    transition: all 0.3s ease;
-    cursor: pointer;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .import-drop-zone:hover {
-    border-color: #0d6efd !important;
-    background-color: rgba(13, 110, 253, 0.05);
+  border-color: #0d6efd !important;
+  background-color: rgba(13, 110, 253, 0.05);
 }
 
 .import-drop-zone.drag-over {
-    border-color: #28a745 !important;
-    background-color: rgba(40, 167, 69, 0.1);
-    transform: scale(1.02);
+  border-color: #28a745 !important;
+  background-color: rgba(40, 167, 69, 0.1);
+  transform: scale(1.02);
 }
 
 .import-drop-zone.drag-over small {
-    color: #28a745 !important;
-    font-weight: 600;
+  color: #28a745 !important;
+  font-weight: 600;
 }
 
 /* データ管理ボタンのスタイル */
 #export-data {
-    transition: all 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 #export-data:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
 }
 
 #import-data {
-    transition: all 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 #import-data:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
 }
 
 #clear-save-data {
-    transition: all 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 #clear-save-data:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
 }
 
 /* インポート・エクスポート成功時のアニメーション */
 .import-success {
-    animation: importSuccess 1s ease-out;
+  animation: importSuccess 1s ease-out;
 }
 
 .export-success {
-    animation: exportSuccess 1s ease-out;
+  animation: exportSuccess 1s ease-out;
 }
 
 @keyframes importSuccess {
-    0% { 
-        transform: scale(1); 
-        background-color: inherit; 
-    }
-    50% { 
-        transform: scale(1.05); 
-        background-color: #28a745; 
-        color: white; 
-    }
-    100% { 
-        transform: scale(1); 
-        background-color: inherit; 
-        color: inherit; 
-    }
+  0% {
+    transform: scale(1);
+    background-color: inherit;
+  }
+  50% {
+    transform: scale(1.05);
+    background-color: #28a745;
+    color: white;
+  }
+  100% {
+    transform: scale(1);
+    background-color: inherit;
+    color: inherit;
+  }
 }
 
 @keyframes exportSuccess {
-    0% { 
-        transform: scale(1); 
-        background-color: inherit; 
-    }
-    50% { 
-        transform: scale(1.05); 
-        background-color: #20c997; 
-        color: white; 
-    }
-    100% { 
-        transform: scale(1); 
-        background-color: inherit; 
-        color: inherit; 
-    }
+  0% {
+    transform: scale(1);
+    background-color: inherit;
+  }
+  50% {
+    transform: scale(1.05);
+    background-color: #20c997;
+    color: white;
+  }
+  100% {
+    transform: scale(1);
+    background-color: inherit;
+    color: inherit;
+  }
 }

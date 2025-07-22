@@ -3,15 +3,15 @@ name: Test
 # プルリクエスト時にテストを実行
 on:
   pull_request:
-    branches: ["main"]
-  
+    branches: ['main']
+
   # 手動実行も可能
   workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -1,385 +1,536 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>すごろくインクリメンタルゲーム</title>
-    
+
     <!-- SEO and Social Media Meta Tags -->
-    <meta name="description" content="🎲 すごろくをテーマにしたインクリメンタル放置ブラウザゲーム。サイコロを振って100マスの盤面を進み、クレジットを獲得してアップグレードを購入しよう！">
-    <meta name="keywords" content="すごろく,インクリメンタルゲーム,放置ゲーム,ブラウザゲーム,サイコロ,アップグレード">
-    <meta name="author" content="leftonbo">
-    
+    <meta
+      name="description"
+      content="🎲 すごろくをテーマにしたインクリメンタル放置ブラウザゲーム。サイコロを振って100マスの盤面を進み、クレジットを獲得してアップグレードを購入しよう！"
+    />
+    <meta
+      name="keywords"
+      content="すごろく,インクリメンタルゲーム,放置ゲーム,ブラウザゲーム,サイコロ,アップグレード"
+    />
+    <meta name="author" content="leftonbo" />
+
     <!-- Open Graph Protocol (OGP) for Facebook, Discord, etc. -->
-    <meta property="og:title" content="🎲 すごろくインクリメンタルゲーム">
-    <meta property="og:description" content="サイコロを振って100マスの盤面を進み、クレジットを獲得してアップグレードを購入する放置ブラウザゲーム！">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://leftonbo.github.io/sugoroku-tekitou/">
-    <meta property="og:image" content="https://leftonbo.github.io/sugoroku-tekitou/assets/img/thumbnail.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:site_name" content="すごろくインクリメンタルゲーム">
-    <meta property="og:locale" content="ja_JP">
-    
+    <meta property="og:title" content="🎲 すごろくインクリメンタルゲーム" />
+    <meta
+      property="og:description"
+      content="サイコロを振って100マスの盤面を進み、クレジットを獲得してアップグレードを購入する放置ブラウザゲーム！"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://leftonbo.github.io/sugoroku-tekitou/" />
+    <meta
+      property="og:image"
+      content="https://leftonbo.github.io/sugoroku-tekitou/assets/img/thumbnail.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="すごろくインクリメンタルゲーム" />
+    <meta property="og:locale" content="ja_JP" />
+
     <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="🎲 すごろくインクリメンタルゲーム">
-    <meta name="twitter:description" content="サイコロを振って100マスの盤面を進み、クレジットを獲得してアップグレードを購入する放置ブラウザゲーム！">
-    <meta name="twitter:image" content="https://leftonbo.github.io/sugoroku-tekitou/assets/img/thumbnail.png">
-    <meta name="twitter:creator" content="@leftonbo">
-    
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="🎲 すごろくインクリメンタルゲーム" />
+    <meta
+      name="twitter:description"
+      content="サイコロを振って100マスの盤面を進み、クレジットを獲得してアップグレードを購入する放置ブラウザゲーム！"
+    />
+    <meta
+      name="twitter:image"
+      content="https://leftonbo.github.io/sugoroku-tekitou/assets/img/thumbnail.png"
+    />
+    <meta name="twitter:creator" content="@leftonbo" />
+
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
     <!-- カスタムCSS -->
-    <link rel="stylesheet" href="assets/css/style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body>
     <div class="container-fluid">
-        <!-- ヘッダー -->
-        <header class="row bg-primary text-white py-3 mb-4">
-            <div class="col-12">
-                <h1 class="text-center mb-0">🎲 すごろくインクリメンタルゲーム</h1>
-            </div>
-        </header>
+      <!-- ヘッダー -->
+      <header class="row bg-primary text-white py-3 mb-4">
+        <div class="col-12">
+          <h1 class="text-center mb-0">🎲 すごろくインクリメンタルゲーム</h1>
+        </div>
+      </header>
 
-        <!-- メインコンテンツ -->
-        <main class="row">
-            <!-- ゲーム情報パネル -->
-            <div class="col-lg-3 col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">💰 ゲーム情報</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <strong>クレジット:</strong>
-                            <span id="credits" class="badge bg-success fs-6">0</span>
-                        </div>
-                        <div class="mb-3">
-                            <strong>現在位置:</strong>
-                            <span id="position" class="badge bg-info fs-6">0</span>
-                        </div>
-                        <div class="mb-3">
-                            <strong>レベル:</strong>
-                            <span id="level" class="badge bg-primary fs-6">1</span>
-                        </div>
-                        <div class="mb-3">
-                            <strong>獲得予定PP:</strong>
-                            <span id="prestige-earned" class="badge bg-warning fs-6">0</span>
-                        </div>
-                        <div class="mb-3">
-                            <strong>使用可能PP:</strong>
-                            <span id="prestige-available" class="badge bg-success fs-6">0</span>
-                        </div>
-                        <div class="mb-3" id="burden-display" style="display: none;">
-                            <strong>負荷レベル:</strong>
-                            <span id="burden-level" class="badge bg-danger fs-6">0</span>
-                            <div class="mt-1">
-                                <small id="burden-effects" class="text-muted"></small>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <button id="stats-btn" class="btn btn-outline-secondary btn-sm">
-                                📊 統計を見る
-                            </button>
-                        </div>
-                    </div>
+      <!-- メインコンテンツ -->
+      <main class="row">
+        <!-- ゲーム情報パネル -->
+        <div class="col-lg-3 col-md-4 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">💰 ゲーム情報</h5>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <strong>クレジット:</strong>
+                <span id="credits" class="badge bg-success fs-6">0</span>
+              </div>
+              <div class="mb-3">
+                <strong>現在位置:</strong>
+                <span id="position" class="badge bg-info fs-6">0</span>
+              </div>
+              <div class="mb-3">
+                <strong>レベル:</strong>
+                <span id="level" class="badge bg-primary fs-6">1</span>
+              </div>
+              <div class="mb-3">
+                <strong>獲得予定PP:</strong>
+                <span id="prestige-earned" class="badge bg-warning fs-6">0</span>
+              </div>
+              <div class="mb-3">
+                <strong>使用可能PP:</strong>
+                <span id="prestige-available" class="badge bg-success fs-6">0</span>
+              </div>
+              <div class="mb-3" id="burden-display" style="display: none">
+                <strong>負荷レベル:</strong>
+                <span id="burden-level" class="badge bg-danger fs-6">0</span>
+                <div class="mt-1">
+                  <small id="burden-effects" class="text-muted"></small>
                 </div>
+              </div>
+              <div class="text-center">
+                <button id="stats-btn" class="btn btn-outline-secondary btn-sm">
+                  📊 統計を見る
+                </button>
+              </div>
+            </div>
+          </div>
 
-                <!-- 手動ダイスパネル -->
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <h5 class="mb-0">🎲 手動ダイス</h5>
-                    </div>
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <div id="manual-dice-result" class="mb-2" style="min-height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center;">-</div>
-                        </div>
-                        <button id="roll-manual-dice" class="btn btn-primary btn-lg w-100 mb-2">
-                            🎲 ダイスを振る
-                        </button>
-                        <div class="d-grid">
-                            <button id="upgrade-manual-count" class="btn btn-outline-success btn-sm">
-                                個数アップグレード
-                                <br><small>現在: <span id="manual-dice-count">1</span>個 | コスト: <span id="manual-upgrade-cost">100</span>💰</small>
-                            </button>
-                        </div>
-                    </div>
+          <!-- 手動ダイスパネル -->
+          <div class="card mt-3">
+            <div class="card-header">
+              <h5 class="mb-0">🎲 手動ダイス</h5>
+            </div>
+            <div class="card-body text-center">
+              <div class="mb-3">
+                <div
+                  id="manual-dice-result"
+                  class="mb-2"
+                  style="
+                    min-height: 100px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                  "
+                >
+                  -
                 </div>
+              </div>
+              <button id="roll-manual-dice" class="btn btn-primary btn-lg w-100 mb-2">
+                🎲 ダイスを振る
+              </button>
+              <div class="d-grid">
+                <button id="upgrade-manual-count" class="btn btn-outline-success btn-sm">
+                  個数アップグレード
+                  <br /><small
+                    >現在: <span id="manual-dice-count">1</span>個 | コスト:
+                    <span id="manual-upgrade-cost">100</span>💰</small
+                  >
+                </button>
+              </div>
             </div>
+          </div>
+        </div>
 
-            <!-- ゲームボード -->
-            <div class="col-lg-6 col-md-8 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">🎯 すごろく盤面</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="game-board" class="game-board">
-                            <!-- ゲーム盤面はJavaScriptで動的に生成 -->
-                        </div>
-                    </div>
+        <!-- ゲームボード -->
+        <div class="col-lg-6 col-md-8 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">🎯 すごろく盤面</h5>
+            </div>
+            <div class="card-body">
+              <div id="game-board" class="game-board">
+                <!-- ゲーム盤面はJavaScriptで動的に生成 -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 自動ダイスパネル -->
+        <div class="col-lg-3 col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">🤖 自動ダイス</h5>
+            </div>
+            <div class="card-body">
+              <div id="auto-dice-container">
+                <!-- 自動ダイスはJavaScriptで動的に生成 -->
+              </div>
+
+              <!-- プレステージ -->
+              <div class="upgrade-section mt-4">
+                <h6 class="text-warning">✨ プレステージ</h6>
+                <button id="prestige-btn" class="btn btn-warning btn-sm w-100" disabled>
+                  転生する
+                  <br /><small>レベルアップで解放</small>
+                </button>
+
+                <!-- プレステージアップグレード -->
+                <div id="prestige-upgrades" class="mt-3">
+                  <h6 class="text-info">🎯 プレステージアップグレード</h6>
+                  <div class="small mb-2">
+                    <span class="text-info">使用可能PP:</span>
+                    <span id="available-prestige-points">0</span>
+                  </div>
+
+                  <!-- クレジット獲得倍率 -->
+                  <div class="upgrade-item mb-2">
+                    <button
+                      id="prestige-upgrade-credit"
+                      class="btn btn-outline-success btn-sm w-100"
+                      disabled
+                    >
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span>💰 クレジット獲得倍率</span>
+                        <span id="credit-multiplier-cost">5PP</span>
+                      </div>
+                      <small class="text-muted"
+                        >レベル: <span id="credit-multiplier-level">0</span> | 効果:
+                        <span id="credit-multiplier-effect">1.0倍</span></small
+                      >
+                    </button>
+                  </div>
+
+                  <!-- 自動ダイス速度向上 -->
+                  <div class="upgrade-item mb-2">
+                    <button
+                      id="prestige-upgrade-speed"
+                      class="btn btn-outline-primary btn-sm w-100"
+                      disabled
+                    >
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span>⚡ 自動ダイス速度向上</span>
+                        <span id="dice-speed-cost">10PP</span>
+                      </div>
+                      <small class="text-muted"
+                        >レベル: <span id="dice-speed-level">0</span>/40 | 効果:
+                        <span id="dice-speed-effect">1.0倍</span></small
+                      >
+                    </button>
+                  </div>
+
+                  <!-- ボーナスマス出現確率 -->
+                  <div class="upgrade-item mb-2">
+                    <button
+                      id="prestige-upgrade-bonus-chance"
+                      class="btn btn-outline-warning btn-sm w-100"
+                      disabled
+                    >
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span>🌟 ボーナス確率向上</span>
+                        <span id="bonus-chance-cost">8PP</span>
+                      </div>
+                      <small class="text-muted"
+                        >レベル: <span id="bonus-chance-level">0</span>/20 | 効果:
+                        <span id="bonus-chance-effect">1.0%</span></small
+                      >
+                    </button>
+                  </div>
+
+                  <!-- ボーナスマス倍率向上 -->
+                  <div class="upgrade-item mb-2">
+                    <button
+                      id="prestige-upgrade-bonus-multiplier"
+                      class="btn btn-outline-danger btn-sm w-100"
+                      disabled
+                    >
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span>💎 ボーナス倍率向上</span>
+                        <span id="bonus-multiplier-cost">15PP</span>
+                      </div>
+                      <small class="text-muted"
+                        >レベル: <span id="bonus-multiplier-level">0</span>/15 | 効果:
+                        <span id="bonus-multiplier-effect">5.0倍</span></small
+                      >
+                    </button>
+                  </div>
                 </div>
+              </div>
             </div>
+          </div>
+        </div>
+      </main>
 
-            <!-- 自動ダイスパネル -->
-            <div class="col-lg-3 col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">🤖 自動ダイス</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="auto-dice-container">
-                            <!-- 自動ダイスはJavaScriptで動的に生成 -->
-                        </div>
-                        
-                        <!-- プレステージ -->
-                        <div class="upgrade-section mt-4">
-                            <h6 class="text-warning">✨ プレステージ</h6>
-                            <button id="prestige-btn" class="btn btn-warning btn-sm w-100" disabled>
-                                転生する
-                                <br><small>レベルアップで解放</small>
-                            </button>
-                            
-                            <!-- プレステージアップグレード -->
-                            <div id="prestige-upgrades" class="mt-3">
-                                <h6 class="text-info">🎯 プレステージアップグレード</h6>
-                                <div class="small mb-2">
-                                    <span class="text-info">使用可能PP:</span> <span id="available-prestige-points">0</span>
-                                </div>
-                                
-                                <!-- クレジット獲得倍率 -->
-                                <div class="upgrade-item mb-2">
-                                    <button id="prestige-upgrade-credit" class="btn btn-outline-success btn-sm w-100" disabled>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span>💰 クレジット獲得倍率</span>
-                                            <span id="credit-multiplier-cost">5PP</span>
-                                        </div>
-                                        <small class="text-muted">レベル: <span id="credit-multiplier-level">0</span> | 効果: <span id="credit-multiplier-effect">1.0倍</span></small>
-                                    </button>
-                                </div>
-                                
-                                <!-- 自動ダイス速度向上 -->
-                                <div class="upgrade-item mb-2">
-                                    <button id="prestige-upgrade-speed" class="btn btn-outline-primary btn-sm w-100" disabled>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span>⚡ 自動ダイス速度向上</span>
-                                            <span id="dice-speed-cost">10PP</span>
-                                        </div>
-                                        <small class="text-muted">レベル: <span id="dice-speed-level">0</span>/40 | 効果: <span id="dice-speed-effect">1.0倍</span></small>
-                                    </button>
-                                </div>
-                                
-                                <!-- ボーナスマス出現確率 -->
-                                <div class="upgrade-item mb-2">
-                                    <button id="prestige-upgrade-bonus-chance" class="btn btn-outline-warning btn-sm w-100" disabled>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span>🌟 ボーナス確率向上</span>
-                                            <span id="bonus-chance-cost">8PP</span>
-                                        </div>
-                                        <small class="text-muted">レベル: <span id="bonus-chance-level">0</span>/20 | 効果: <span id="bonus-chance-effect">1.0%</span></small>
-                                    </button>
-                                </div>
-                                
-                                <!-- ボーナスマス倍率向上 -->
-                                <div class="upgrade-item mb-2">
-                                    <button id="prestige-upgrade-bonus-multiplier" class="btn btn-outline-danger btn-sm w-100" disabled>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span>💎 ボーナス倍率向上</span>
-                                            <span id="bonus-multiplier-cost">15PP</span>
-                                        </div>
-                                        <small class="text-muted">レベル: <span id="bonus-multiplier-level">0</span>/15 | 効果: <span id="bonus-multiplier-effect">5.0倍</span></small>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- フッター -->
-        <footer class="row mt-4">
-            <div class="col-12 text-center text-muted">
-                <small>© 2025 すごろくインクリメンタルゲーム - 放置して楽しもう！</small>
-                <br>
-                <small class="mt-2 d-inline-block">
-                    <a href="https://github.com/leftonbo/sugoroku-tekitou" target="_blank" rel="noopener noreferrer" class="text-muted text-decoration-none">
-                        📱 GitHub で見る
-                    </a>
-                </small>
-            </div>
-        </footer>
+      <!-- フッター -->
+      <footer class="row mt-4">
+        <div class="col-12 text-center text-muted">
+          <small>© 2025 すごろくインクリメンタルゲーム - 放置して楽しもう！</small>
+          <br />
+          <small class="mt-2 d-inline-block">
+            <a
+              href="https://github.com/leftonbo/sugoroku-tekitou"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-muted text-decoration-none"
+            >
+              📱 GitHub で見る
+            </a>
+          </small>
+        </div>
+      </footer>
     </div>
 
     <!-- 統計・設定モーダル -->
-    <div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="statsModalLabel">📊 ゲーム統計・設定</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- タブナビゲーション -->
-                    <ul class="nav nav-tabs" id="modalTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats-pane" type="button" role="tab">📊 統計</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-pane" type="button" role="tab">⚙️ 設定</button>
-                        </li>
+    <div
+      class="modal fade"
+      id="statsModal"
+      tabindex="-1"
+      aria-labelledby="statsModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="statsModalLabel">📊 ゲーム統計・設定</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <!-- タブナビゲーション -->
+            <ul class="nav nav-tabs" id="modalTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link active"
+                  id="stats-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#stats-pane"
+                  type="button"
+                  role="tab"
+                >
+                  📊 統計
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  id="settings-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#settings-pane"
+                  type="button"
+                  role="tab"
+                >
+                  ⚙️ 設定
+                </button>
+              </li>
+            </ul>
+
+            <!-- タブコンテンツ -->
+            <div class="tab-content mt-3" id="modalTabContent">
+              <!-- 統計タブ -->
+              <div class="tab-pane fade show active" id="stats-pane" role="tabpanel">
+                <div class="row">
+                  <div class="col-md-6">
+                    <h6 class="text-primary">基本統計</h6>
+                    <ul class="list-unstyled">
+                      <li>
+                        <strong>総サイコロ振り回数:</strong> <span id="stat-dice-rolls">0</span>
+                      </li>
+                      <li>
+                        <strong>手動ダイス振り回数:</strong>
+                        <span id="stat-manual-dice-rolls">0</span>
+                      </li>
+                      <li>
+                        <strong>自動ダイス振り回数:</strong>
+                        <span id="stat-auto-dice-rolls">0</span>
+                      </li>
+                      <li><strong>総移動マス数:</strong> <span id="stat-total-moves">0</span></li>
+                      <li>
+                        <strong>総獲得クレジット:</strong> <span id="stat-total-credits">0</span>
+                      </li>
                     </ul>
-                    
-                    <!-- タブコンテンツ -->
-                    <div class="tab-content mt-3" id="modalTabContent">
-                        <!-- 統計タブ -->
-                        <div class="tab-pane fade show active" id="stats-pane" role="tabpanel">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6 class="text-primary">基本統計</h6>
-                                    <ul class="list-unstyled">
-                                        <li><strong>総サイコロ振り回数:</strong> <span id="stat-dice-rolls">0</span></li>
-                                        <li><strong>手動ダイス振り回数:</strong> <span id="stat-manual-dice-rolls">0</span></li>
-                                        <li><strong>自動ダイス振り回数:</strong> <span id="stat-auto-dice-rolls">0</span></li>
-                                        <li><strong>総移動マス数:</strong> <span id="stat-total-moves">0</span></li>
-                                        <li><strong>総獲得クレジット:</strong> <span id="stat-total-credits">0</span></li>
-                                    </ul>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6 class="text-success">プレステージ統計</h6>
-                                    <ul class="list-unstyled">
-                                        <li><strong>転生回数:</strong> <span id="stat-rebirths">0</span></li>
-                                        <li><strong>総獲得PP:</strong> <span id="stat-total-prestige">0</span></li>
-                                        <li><strong>現在レベル:</strong> <span id="stat-current-level">1</span></li>
-                                    </ul>
-                                    
-                                    <h6 class="text-warning mt-3">アップグレード統計</h6>
-                                    <ul class="list-unstyled">
-                                        <li><strong>手動ダイスアップグレード:</strong> <span id="stat-manual-upgrades">0</span></li>
-                                        <li><strong>自動ダイスアップグレード:</strong> <span id="stat-auto-upgrades">0</span></li>
-                                        <li><strong>自動ダイスアセンション:</strong> <span id="stat-auto-ascensions">0</span></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- 設定タブ -->
-                        <div class="tab-pane fade" id="settings-pane" role="tabpanel">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h6 class="text-info">表示設定</h6>
-                                    
-                                    <!-- 数値表示形式 -->
-                                    <div class="mb-4">
-                                        <label class="form-label"><strong>数値表示形式</strong></label>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="numberFormat" id="format-english" value="english" checked>
-                                            <label class="form-check-label" for="format-english">
-                                                英語形式 (例: 1.5K, 2.3M, 4.7B)
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="numberFormat" id="format-japanese" value="japanese">
-                                            <label class="form-check-label" for="format-japanese">
-                                                日本語形式 (例: 1.5万, 2.3億, 4.7兆)
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="numberFormat" id="format-scientific" value="scientific">
-                                            <label class="form-check-label" for="format-scientific">
-                                                指数表記 (例: 1.50e+03, 2.30e+06)
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <h6 class="text-warning">ゲーム管理</h6>
-                                    <div class="d-grid gap-2">
-                                        <button id="manual-save" class="btn btn-outline-primary">
-                                            💾 手動セーブ
-                                        </button>
-                                        <small class="text-muted">※ゲームは自動保存されますが、手動でも保存できます</small>
-                                    </div>
-                                    
-                                    <h6 class="text-info mt-4">データ管理</h6>
-                                    <div class="d-grid gap-2">
-                                        <button id="export-data" class="btn btn-outline-success">
-                                            📤 データエクスポート
-                                        </button>
-                                        <div class="mt-2">
-                                            <input type="file" id="import-file" class="form-control" accept=".txt" style="display: none;">
-                                            <button id="import-data" class="btn btn-outline-warning w-100">
-                                                📥 データインポート
-                                            </button>
-                                        </div>
-                                        <div id="import-drop-zone" class="import-drop-zone mt-2 p-3 border border-2 border-dashed rounded text-center text-muted" style="display: none;">
-                                            <small>ここにファイルをドラッグ&ドロップ<br>または上のボタンでファイル選択</small>
-                                        </div>
-                                        <button id="clear-save-data" class="btn btn-outline-danger mt-2">
-                                            🗑️ セーブデータ消去
-                                        </button>
-                                        <small class="text-muted">※データは暗号化されて保存されます</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                  </div>
+                  <div class="col-md-6">
+                    <h6 class="text-success">プレステージ統計</h6>
+                    <ul class="list-unstyled">
+                      <li><strong>転生回数:</strong> <span id="stat-rebirths">0</span></li>
+                      <li><strong>総獲得PP:</strong> <span id="stat-total-prestige">0</span></li>
+                      <li><strong>現在レベル:</strong> <span id="stat-current-level">1</span></li>
+                    </ul>
+
+                    <h6 class="text-warning mt-3">アップグレード統計</h6>
+                    <ul class="list-unstyled">
+                      <li>
+                        <strong>手動ダイスアップグレード:</strong>
+                        <span id="stat-manual-upgrades">0</span>
+                      </li>
+                      <li>
+                        <strong>自動ダイスアップグレード:</strong>
+                        <span id="stat-auto-upgrades">0</span>
+                      </li>
+                      <li>
+                        <strong>自動ダイスアセンション:</strong>
+                        <span id="stat-auto-ascensions">0</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 設定タブ -->
+              <div class="tab-pane fade" id="settings-pane" role="tabpanel">
+                <div class="row">
+                  <div class="col-md-8">
+                    <h6 class="text-info">表示設定</h6>
+
+                    <!-- 数値表示形式 -->
+                    <div class="mb-4">
+                      <label class="form-label"><strong>数値表示形式</strong></label>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          name="numberFormat"
+                          id="format-english"
+                          value="english"
+                          checked
+                        />
+                        <label class="form-check-label" for="format-english">
+                          英語形式 (例: 1.5K, 2.3M, 4.7B)
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          name="numberFormat"
+                          id="format-japanese"
+                          value="japanese"
+                        />
+                        <label class="form-check-label" for="format-japanese">
+                          日本語形式 (例: 1.5万, 2.3億, 4.7兆)
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          name="numberFormat"
+                          id="format-scientific"
+                          value="scientific"
+                        />
+                        <label class="form-check-label" for="format-scientific">
+                          指数表記 (例: 1.50e+03, 2.30e+06)
+                        </label>
+                      </div>
                     </div>
+                  </div>
+                  <div class="col-md-4">
+                    <h6 class="text-warning">ゲーム管理</h6>
+                    <div class="d-grid gap-2">
+                      <button id="manual-save" class="btn btn-outline-primary">
+                        💾 手動セーブ
+                      </button>
+                      <small class="text-muted"
+                        >※ゲームは自動保存されますが、手動でも保存できます</small
+                      >
+                    </div>
+
+                    <h6 class="text-info mt-4">データ管理</h6>
+                    <div class="d-grid gap-2">
+                      <button id="export-data" class="btn btn-outline-success">
+                        📤 データエクスポート
+                      </button>
+                      <div class="mt-2">
+                        <input
+                          type="file"
+                          id="import-file"
+                          class="form-control"
+                          accept=".txt"
+                          style="display: none"
+                        />
+                        <button id="import-data" class="btn btn-outline-warning w-100">
+                          📥 データインポート
+                        </button>
+                      </div>
+                      <div
+                        id="import-drop-zone"
+                        class="import-drop-zone mt-2 p-3 border border-2 border-dashed rounded text-center text-muted"
+                        style="display: none"
+                      >
+                        <small
+                          >ここにファイルをドラッグ&ドロップ<br />または上のボタンでファイル選択</small
+                        >
+                      </div>
+                      <button id="clear-save-data" class="btn btn-outline-danger mt-2">
+                        🗑️ セーブデータ消去
+                      </button>
+                      <small class="text-muted">※データは暗号化されて保存されます</small>
+                    </div>
+                  </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
-                </div>
+              </div>
             </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- デバッグパネル -->
     <div id="debug-panel" class="debug-panel">
-        <div class="debug-header">
-            <button id="debug-toggle" class="btn btn-dark btn-sm">🐛 デバッグ</button>
-        </div>
-        <div id="debug-content" class="debug-content" style="display: none;">
-            <div class="row">
-                <div class="col-md-6">
-                    <h6 class="text-info">ゲーム制御</h6>
-                    <div class="btn-group-vertical w-100 mb-3">
-                        <button id="debug-pause" class="btn btn-warning btn-sm">⏸️ 一時停止</button>
-                        <button id="debug-resume" class="btn btn-success btn-sm">▶️ 再開</button>
-                        <button id="debug-step" class="btn btn-info btn-sm">👉 1Tick進める</button>
-                    </div>
-                    
-                    <h6 class="text-danger">データ管理</h6>
-                    <div class="btn-group-vertical w-100 mb-3">
-                        <button id="debug-show-data" class="btn btn-secondary btn-sm">📊 データ表示</button>
-                        <button id="debug-clear-data" class="btn btn-danger btn-sm">🗑️ セーブ削除</button>
-                        <button id="debug-enable-save" class="btn btn-success btn-sm">💾 保存再有効化</button>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <h6 class="text-success">ステータス</h6>
-                    <div class="debug-status bg-light p-2 rounded">
-                        <small>
-                            <div><strong>ゲーム状態:</strong> <span id="debug-game-status">実行中</span></div>
-                            <div><strong>FPS:</strong> <span id="debug-fps">60</span></div>
-                            <div><strong>最終更新:</strong> <span id="debug-last-update">-</span></div>
-                            <div><strong>自動ダイス:</strong> <span id="debug-auto-dice">0/7</span></div>
-                        </small>
-                    </div>
-                    
-                    <h6 class="text-warning mt-3">ログ</h6>
-                    <div id="debug-log" class="debug-log bg-dark text-light p-2 rounded">
-                        <small>デバッグログが表示されます...</small>
-                    </div>
-                </div>
+      <div class="debug-header">
+        <button id="debug-toggle" class="btn btn-dark btn-sm">🐛 デバッグ</button>
+      </div>
+      <div id="debug-content" class="debug-content" style="display: none">
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="text-info">ゲーム制御</h6>
+            <div class="btn-group-vertical w-100 mb-3">
+              <button id="debug-pause" class="btn btn-warning btn-sm">⏸️ 一時停止</button>
+              <button id="debug-resume" class="btn btn-success btn-sm">▶️ 再開</button>
+              <button id="debug-step" class="btn btn-info btn-sm">👉 1Tick進める</button>
             </div>
+
+            <h6 class="text-danger">データ管理</h6>
+            <div class="btn-group-vertical w-100 mb-3">
+              <button id="debug-show-data" class="btn btn-secondary btn-sm">📊 データ表示</button>
+              <button id="debug-clear-data" class="btn btn-danger btn-sm">🗑️ セーブ削除</button>
+              <button id="debug-enable-save" class="btn btn-success btn-sm">💾 保存再有効化</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-success">ステータス</h6>
+            <div class="debug-status bg-light p-2 rounded">
+              <small>
+                <div><strong>ゲーム状態:</strong> <span id="debug-game-status">実行中</span></div>
+                <div><strong>FPS:</strong> <span id="debug-fps">60</span></div>
+                <div><strong>最終更新:</strong> <span id="debug-last-update">-</span></div>
+                <div><strong>自動ダイス:</strong> <span id="debug-auto-dice">0/7</span></div>
+              </small>
+            </div>
+
+            <h6 class="text-warning mt-3">ログ</h6>
+            <div id="debug-log" class="debug-log bg-dark text-light p-2 rounded">
+              <small>デバッグログが表示されます...</small>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Bootstrap JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- ゲームロジック (TypeScript compiled ES6 Modules) -->
     <script type="module" src="dist/core/game.js"></script>
-</body>
+  </body>
 </html>
