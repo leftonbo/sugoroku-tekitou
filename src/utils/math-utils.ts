@@ -83,8 +83,10 @@ function formatNumberJapanese(num: number): string {
         return sign + (absNum / 1e56).toFixed(1) + '阿僧祇';
     } else if (absNum < 1e64) { // 1不可思議未満
         return sign + (absNum / 1e60).toFixed(1) + '那由他';
-    } else {
+    } else if (absNum < 1e68) { // 1無量大数未満
         return sign + (absNum / 1e64).toFixed(1) + '不可思議';
+    } else {
+        return sign + (absNum / 1e68).toFixed(1) + '無量大数';
     }
 }
 
