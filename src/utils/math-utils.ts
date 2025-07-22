@@ -134,6 +134,7 @@ const JAPANESE_UNITS: readonly JapaneseUnit[] = [
  * - 1 万以上の場合は適切な単位を付与し、小数点 1 桁で表現します。
  * - 負の値の場合は先頭に「-」が付きます。
  * - e308を超える場合は科学的記数法で返します。
+ * - O(log n)の二分探索とメモ化により高速化されています。
  * 
  * @param num フォーマットする数値
  * @returns 日本語の命数法でフォーマットされた文字列
@@ -151,16 +152,36 @@ function formatNumberJapanese(num: number): string {
         return formatNumberScientific(num);
     }
     
-    // 配列を逆順（大きい単位から）で検索
-    for (let i = JAPANESE_UNITS.length - 1; i >= 0; i--) {
-        const unit = JAPANESE_UNITS[i];
-        if (unit && absNum >= unit.threshold) {
-            return sign + (absNum / unit.divisor).toFixed(1) + unit.name;
+    // キャッシュをチェック（メモ化による高速化）
+    const cachedResult = JAPANESE_FORMAT_CACHE.get(num);
+    if (cachedResult !== undefined) {
+        return cachedResult;
+    }
+    
+    // 二分探索で適切な単位を検索（O(log n)で高速化）
+    const unit = findJapaneseUnitBinarySearch(absNum);
+    
+    let result: string;
+    if (unit) {
+        result = sign + (absNum / unit.divisor).toFixed(1) + unit.name;
+    } else {
+        // ここに到達することはないが、安全のため
+        result = sign + Math.floor(absNum).toString();
+    }
+    
+    // 結果をキャッシュに保存（メモリ制限：最大100エントリ）
+    if (JAPANESE_FORMAT_CACHE.size < 100) {
+        JAPANESE_FORMAT_CACHE.set(num, result);
+    } else {
+        // キャッシュサイズ制限に達した場合、最も古いエントリを削除
+        const firstKey = JAPANESE_FORMAT_CACHE.keys().next().value;
+        if (firstKey !== undefined) {
+            JAPANESE_FORMAT_CACHE.delete(firstKey);
+            JAPANESE_FORMAT_CACHE.set(num, result);
         }
     }
     
-    // ここに到達することはないが、安全のため
-    return sign + Math.floor(absNum).toString();
+    return result;
 }
 
 // 英語略式命数法の配列定義（AAS方式）
@@ -191,6 +212,37 @@ const BASIC_ABBREVIATIONS: readonly BasicAbbreviation[] = [
 
 // 略記生成結果のキャッシュ（パフォーマンス最適化）
 const ABBREVIATION_CACHE = new Map<number, string>();
+
+// 日本語数値フォーマット結果のキャッシュ（パフォーマンス最適化）
+const JAPANESE_FORMAT_CACHE = new Map<number, string>();
+
+/**
+ * 二分探索で日本語単位を検索
+ * ソート済みのJAPANESE_UNITS配列から、指定された数値に適用する単位を効率的に検索します。
+ * O(log n)の時間計算量でO(n)の線形探索を改善します。
+ * 
+ * @param absNum 検索対象の数値（絶対値）
+ * @returns 適用する単位オブジェクト、見つからない場合はnull
+ */
+function findJapaneseUnitBinarySearch(absNum: number): JapaneseUnit | null {
+    let left = 0;
+    let right = JAPANESE_UNITS.length - 1;
+    let result: JapaneseUnit | null = null;
+    
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        const unit = JAPANESE_UNITS[mid];
+        
+        if (unit && absNum >= unit.threshold) {
+            result = unit; // 条件を満たす単位を記録
+            left = mid + 1; // より大きな単位を探す
+        } else {
+            right = mid - 1; // より小さな単位を探す
+        }
+    }
+    
+    return result;
+}
 
 /**
  * 指数から英語略記を生成します（AAS方式）
