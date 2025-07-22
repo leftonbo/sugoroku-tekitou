@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig({
   test: {
@@ -40,7 +41,7 @@ export default defineConfig({
   // resolve設定でTypeScriptモジュール解決を改善
   resolve: {
     alias: {
-      '@': '/src'
+      '@': path.resolve(__dirname, './src')
     }
   }
 });

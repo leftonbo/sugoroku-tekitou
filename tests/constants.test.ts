@@ -19,7 +19,7 @@ import {
   BURDEN_CONFIG,
   AUTO_DICE_LEVEL_CONFIG,
   STORAGE_KEYS
-} from '../src/utils/constants.js';
+} from '@/utils/constants';
 
 describe('DICE_CONFIGS', () => {
   it('正しい数の自動ダイス設定が存在する', () => {

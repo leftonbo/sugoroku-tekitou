@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { GameState } from '../src/types/game-state.js';
+import type { GameState } from '@/types/game-state';
 import {
   SAVE_FORMAT_PREFIX,
   SAVE_FORMAT_VERSION,
@@ -17,7 +17,7 @@ import {
   type ExportData,
   type ImportResult,
   type ValidationResult
-} from '../src/utils/crypto-utils.js';
+} from '@/utils/crypto-utils';
 
 // テスト用のモックGameState
 const createMockGameState = (): GameState => ({

@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { XorShiftRandom } from '../src/utils/xorshift-random.js';
+import { XorShiftRandom } from '@/utils/xorshift-random';
 
 describe('XorShiftRandom コンストラクタ', () => {
   it('デフォルトシードで初期化される', () => {

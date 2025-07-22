@@ -21,7 +21,7 @@ import {
   calculateBulkLevelUpCost,
   calculateMaxPurchasableCount,
   calculateMaxPurchasableCountNoAscension
-} from '../src/utils/math-utils.js';
+} from '@/utils/math-utils';
 
 describe('formatNumber (deprecated)', () => {
   it('英語形式でフォーマットする', () => {
